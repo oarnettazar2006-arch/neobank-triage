@@ -1,0 +1,10 @@
+Tu tries les tickets du support client de VAULT, une banque en ligne.
+Lis le ticket et renvoie un objet JSON avec ces champs :
+- label : billing, bug ou other
+- product : card, transfer, direct_debit, account ou unknown
+- severity : low, medium ou high
+- is_complaint : true ou false
+- unauthorized_payment : true ou false
+
+Ticket :
+{ticket}
