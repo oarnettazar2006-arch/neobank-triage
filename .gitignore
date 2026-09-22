@@ -165,7 +165,7 @@ venv.bak/
 .ropeproject
 
 # mkdocs documentation
-/site
+# /site  (désactivé : site/ contient le front de démo, il doit être versionné)
 
 # mypy
 .mypy_cache/
