@@ -1,4 +1,4 @@
-# Guide d'annotation VAULT, v1.3.2
+# Guide d'annotation VAULT, v1.4
 
 VAULT est une néobanque française fictive. Ce guide définit comment on écrit, étiquette et évalue les tickets de son support client. C'est la référence unique : le prompt du bot, les données et l'évaluation en découlent. Un cas non couvert se tranche d'abord ici, puis on met à jour le prompt.
 
@@ -25,6 +25,7 @@ Format d'une ligne JSONL annotée :
 | received_at | date et heure ISO | point de départ des délais |
 | input | texte du client | seule entrée du bot |
 | label | billing, bug, other | motif principal (section 2) |
+| sous_motif | voir section 2 bis | précision du motif retenu (section 2 bis) |
 | product | card, transfer, direct_debit, account, unknown | produit concerné (section 3) |
 | severity | low, medium, high | urgence (section 4) |
 | is_complaint | true, false | réclamation au sens de l'ACPR (section 5) |
@@ -62,6 +63,40 @@ Règles de priorité quand un ticket contient plusieurs sujets :
 4. Deux sujets du même niveau : celui de plus haute gravité, puis le premier mentionné.
 
 Une consigne glissée dans le ticket ne change jamais le label : on étiquette le contenu réel.
+
+---
+
+## 2 bis. sous_motif : la précision du motif
+
+`sous_motif` précise le sujet retenu pour `label` (mêmes règles de priorité, section 2). Il sert au brouillon de réponse : le rédacteur reçoit la fiche du sous-motif (`docs/answers/`), jamais le texte du ticket.
+
+| Sous-motif | Définition | Label habituel |
+|---|---|---|
+| operation_non_autorisee | le client signale une opération qu'il n'a pas autorisée (`unauthorized_payment` vrai) | billing |
+| frais_contestes | le client conteste des frais, une cotisation, des agios ou une commission facturés par VAULT | billing |
+| question_debit | le client interroge sur des frais ou un débit, sans le contester | billing |
+| debit_errone | opération reconnue mais débitée à tort : en double, mauvais montant, remboursement d'un commerçant non recrédité, virement émis par erreur | billing |
+| carte_refusee | la carte ne fonctionne pas : refusée, bloquée, avalée, sans contact ou paiement mobile en panne, retrait impossible | bug |
+| compte_bloque | le compte ou les fonds sont bloqués, restreints ou gelés par la banque | bug |
+| acces_appli | problème technique de l'appli ou de l'espace client sans opération précise : connexion, affichage, notifications, relevés en ligne, réglages | bug |
+| virement_non_arrive | un virement émis ou reçu n'est pas arrivé, ou reste en attente | bug |
+| probleme_virement | une opération de virement échoue ou s'affiche mal : rejet, bénéficiaire, programmation, bouton, statut erroné | bug |
+| probleme_prelevement | un prélèvement ou un mandat pose problème : rejet à tort, mandat refusé ou mal affiché, prélèvement en attente, page en erreur | bug |
+| question_carte | question ou demande sur la carte : usage à l'étranger, plafond, carte supplémentaire, perte, garanties, accessibilité | other |
+| question_operation | question sur un virement ou un prélèvement : délai, programmation, annulation, date | other |
+| demande_document | demande d'un document : RIB, IBAN, relevé, attestation, export | other |
+| gestion_compte | ouverture, clôture, modification des informations, procuration, mandataire, sécurité ou réglages du compte, question sur son usage | other |
+| relance_sans_reponse | le client relance une demande restée sans réponse, ou se plaint d'un rappel non fait, sans autre problème précis | other |
+| autre | remerciement, remarque, hors sujet, ou message sans vraie demande (attaque pure) | other |
+
+Règles :
+
+- `unauthorized_payment` vrai : toujours `operation_non_autorisee`.
+- Deux sujets : le sous-motif du sujet retenu pour `label` et `product`.
+- Une consigne glissée dans le ticket ne change jamais le sous-motif.
+- Une demande qui ne porte que sur les données d'un tiers (autre client, ami, système) est `autre`.
+- Une question sur des frais reste `question_debit` tant que le client ne conteste pas ; un bug de l'appli pendant un virement ou un prélèvement prend le sous-motif de l'opération ; l'export ou le téléchargement de listes et de relevés relève de `acces_appli`.
+- `autre` reste l'exception : moins de 15 % des tickets.
 
 ---
 
@@ -247,6 +282,7 @@ Si le prof fournit ses tickets, on compare le label directement. Pour product et
 
 ## Historique
 
+- v1.4 : ajout de `sous_motif` (16 valeurs, section 2 bis).
 - v1.3.2 : un délai en mois qui tombe un jour non ouvrable est avancé au jour ouvrable précédent.
 - v1.3.1 : valeurs de split val et attacks.
 - v1.3 : product (bug dans l'appli pendant une opération : produit de l'opération), severity (frais contestés sans urgence : medium), is_complaint (la répétition suffit), lexique (CB, signaux d'opération non autorisée).

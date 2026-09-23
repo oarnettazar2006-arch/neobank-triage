@@ -15,6 +15,31 @@ Jeux construits le 23/09/2026 pour obtenir des chiffres honnêtes, puisque dev40
 | `data/attacks/notebook_case.jsonl` | 1 | cas d'injection exact du notebook | rejoué à chaque évaluation par `eval/run.py` |
 | `data/dev/guide_cases.jsonl` | 20 | les cas limites du guide | canal et date fixés arbitrairement (`form`, 01/10/2026) : le guide ne les donne pas |
 
+## sous_motif (ajouté le 23/09/2026, guide v1.4)
+
+Champ à 16 valeurs qui précise le motif (guide, section 2 bis). Il sert à choisir la fiche de réponse du brouillon (`docs/answers/`). **Tous les jeux l'ont reçu, y compris calib60 et test100, qui ne sont toujours pas évalués.**
+
+- **Liste :** construite à partir de 8 valeurs de départ. `debit_en_double` est élargi en `debit_errone` ; `question_carte_etranger` en `question_carte`. Ajouts : `operation_non_autorisee`, `question_debit`, `compte_bloque`, `probleme_virement`, `probleme_prelevement`, `question_operation`, `gestion_compte`, `relance_sans_reponse`. Objectif : que « autre » reste sous 15 %.
+- **Étiquetage :** pré-étiquetage par règles (label, produit, mots-clés), puis **relecture de chacun des 331 tickets** par Claude, avec **15 corrections**, dont 3 pièges de mots-clés (« relue deux fois », « pas bloquant »).
+- **Contrôle par qwen2.5:7b, à l'aveugle** (section 2 bis du guide et ticket seulement ; `data/qc/sous_motif_qc.py`). **Accord : 72,2 %** (239 / 331). Les 92 désaccords ont été relus avec le guide et tranchés par Claude, le générateur des tickets. Résultat : **4 corrections**, toutes des incohérences entre décisions similaires (attestation dictée, données d'un tiers, export de liste). Deux règles ont été ajoutées au guide pour les trancher. Accord après corrections : 243 / 331.
+- **Désaccords maintenus :** erreurs systématiques de qwen contraires aux définitions. Question sur des frais lue comme contestation (9) ; question sur le compte lue comme question d'opération (10) ; bug de l'appli pendant un virement lu comme `acces_appli` (6) ; carte bloquée lue comme compte bloqué (4).
+
+| Sous-motif | Tickets (331) | | Sous-motif | Tickets |
+|---|---|---|---|---|
+| operation_non_autorisee | 39 | | autre | 21 (6,3 %) |
+| frais_contestes | 34 | | probleme_prelevement | 20 |
+| gestion_compte | 29 | | debit_errone | 19 |
+| carte_refusee | 29 | | acces_appli | 19 |
+| question_operation | 24 | | relance_sans_reponse | 15 |
+| probleme_virement | 22 | | demande_document | 12 |
+| question_debit | 21 | | virement_non_arrive | 11 |
+| | | | question_carte | 9 |
+| | | | compte_bloque | 7 |
+
+« autre » par jeu : dev40 5 %, guide_cases 10 %, val60 3 %, calib60 5 %, test100 5 %, attacks30 13 %, holdout20 10 % (le cas du notebook, 1 ticket, est une attaque pure).
+
+**Limite :** un seul étiqueteur (Claude), contrôlé par un modèle dont l'accord est moyen (72 %). Plusieurs frontières restent discutables : `gestion_compte` / `question_operation`, `probleme_virement` / `virement_non_arrive`, et les tickets vagues de holdout20.
+
 ## holdout20 : attaques rédigées par qwen2.5:7b
 
 Construit le 23/09/2026 **avant** la garde d'entrée (commit `aec450d`), pour vérifier qu'elle généralise au-delà du style d'attacks30.
