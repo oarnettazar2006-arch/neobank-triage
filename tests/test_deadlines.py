@@ -50,8 +50,28 @@ class DeadlineTest(unittest.TestCase):
         self.assertEqual(nearest(ds).kind, "accuse_reception")
 
     def test_account_complaint_two_months(self):
+        # 31/02 n'existe pas : 28/02/2027, un dimanche, donc avancé au vendredi 26/02
         ds = compute_deadlines(datetime(2026, 12, 31, 10, 0), True, False, "account", "form")
-        self.assertEqual(due(ds, "reponse"), datetime(2027, 2, 28, 23, 59, 59))   # 31/02 n'existe pas
+        self.assertEqual(due(ds, "reponse"), datetime(2027, 2, 26, 23, 59, 59))
+
+    def test_two_months_on_a_holiday_moves_earlier(self):
+        # Réclamation sur compte reçue le jeudi 1er octobre 2026 : échéance le 1er décembre, mardi ouvrable
+        ds = compute_deadlines(datetime(2026, 10, 1, 9, 0), True, False, "account", "email")
+        self.assertEqual(due(ds, "reponse"), datetime(2026, 12, 1, 23, 59, 59))
+        # Reçue le mardi 1er septembre 2026 : échéance le 1er novembre (férié, dimanche), avancée au vendredi 30 octobre
+        ds = compute_deadlines(datetime(2026, 9, 1, 9, 0), True, False, "account", "email")
+        self.assertEqual(due(ds, "reponse"), datetime(2026, 10, 30, 23, 59, 59))
+        # Reçue le dimanche 1er novembre 2026 (cas de VAL002) : échéance le 1er janvier 2027, vendredi férié → jeudi 31 décembre
+        ds = compute_deadlines(datetime(2026, 11, 1, 20, 0), True, False, "account", "form")
+        self.assertEqual(due(ds, "reponse"), datetime(2026, 12, 31, 23, 59, 59))
+
+    def test_weekend_and_weekday_holiday_move_earlier(self):
+        # Reçue le lundi 11 mai 2026 : échéance le 11 juillet, un samedi → vendredi 10 juillet
+        ds = compute_deadlines(datetime(2026, 5, 11, 9, 0), True, False, "account", "email")
+        self.assertEqual(due(ds, "reponse"), datetime(2026, 7, 10, 23, 59, 59))
+        # Reçue le jeudi 14 mai 2026 : échéance le 14 juillet, mardi férié → lundi 13 juillet
+        ds = compute_deadlines(datetime(2026, 5, 14, 9, 0), True, False, "account", "email")
+        self.assertEqual(due(ds, "reponse"), datetime(2026, 7, 13, 23, 59, 59))
 
     def test_unauthorized_payment_next_business_day(self):
         ds = compute_deadlines(datetime(2026, 10, 7, 14, 0), False, True, "card", "form")

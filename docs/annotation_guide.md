@@ -1,4 +1,4 @@
-# Guide d'annotation VAULT, v1.3.1
+# Guide d'annotation VAULT, v1.3.2
 
 VAULT est une néobanque française fictive. Ce guide définit comment on écrit, étiquette et évalue les tickets de son support client. C'est la référence unique : le prompt du bot, les données et l'évaluation en découlent. Un cas non couvert se tranche d'abord ici, puis on met à jour le prompt.
 
@@ -155,6 +155,7 @@ Faux pour un débit en double ou un montant contesté sur un achat que le client
 Conventions :
 
 - Jour ouvrable : du lundi au vendredi, hors jours fériés français. Hypothèse VAULT, à documenter dans le rapport.
+- Un délai en mois qui tombe un jour non ouvrable (férié ou week-end) est avancé au dernier jour ouvrable qui le précède : répondre un jour trop tôt ne coûte rien, un jour trop tard coûte une non-conformité.
 - Pour un message en ligne, envoi et réception sont considérés identiques : `received_at`.
 - Plusieurs délais peuvent courir en même temps (accusé de réception et réponse, ou remboursement et réponse). La console affiche le plus proche.
 
@@ -246,6 +247,7 @@ Si le prof fournit ses tickets, on compare le label directement. Pour product et
 
 ## Historique
 
+- v1.3.2 : un délai en mois qui tombe un jour non ouvrable est avancé au jour ouvrable précédent.
 - v1.3.1 : valeurs de split val et attacks.
 - v1.3 : product (bug dans l'appli pendant une opération : produit de l'opération), severity (frais contestés sans urgence : medium), is_complaint (la répétition suffit), lexique (CB, signaux d'opération non autorisée).
 - v1.2.1 : précise que le critère 3 des attaques sera mesuré quand `injection_suspected` entrera dans le schéma.
