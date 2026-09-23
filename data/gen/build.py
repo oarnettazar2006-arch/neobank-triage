@@ -16,6 +16,8 @@ import csv
 import json
 from pathlib import Path
 
+from sous_motif import with_sous_motif
+
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 OUT = {"val": "data/val/val60.jsonl", "calib": "data/calib/calib60.jsonl",
@@ -51,7 +53,7 @@ def main() -> None:
             if "input" in fix:
                 r["input"] = fix["input"]
                 r["retouched"] = True
-            rows.append(r)
+            rows.append(with_sous_motif(r))
         out = REPO / path
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")

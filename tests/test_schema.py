@@ -31,6 +31,12 @@ class SchemaTest(unittest.TestCase):
             row = re.search(rf"^\| {field} \| ([^|]+) \|", guide, re.M).group(1)
             self.assertEqual([v.strip() for v in row.split(",")], values, field)
 
+    def test_sous_motifs_match_the_guide(self):
+        guide = (ROOT / "docs" / "annotation_guide.md").read_text(encoding="utf-8")
+        section = guide[guide.index("## 2 bis. sous_motif"):guide.index("## 3. product")]
+        in_guide = re.findall(r"^\| ([a-z_]+) \| ", section, re.M)
+        self.assertEqual([v for v in in_guide if v != "sous"], schema.SOUS_MOTIFS)
+
     def test_datasets_follow_the_schema(self):
         files = ["dev/dev40", "dev/guide_cases", "val/val60", "calib/calib60", "test/test100",
                  "attacks/attacks30", "attacks/holdout20", "attacks/notebook_case"]
@@ -40,6 +46,7 @@ class SchemaTest(unittest.TestCase):
                 with self.subTest(file=name, id=r["id"]):
                     for field, values in schema.ENUMS.items():
                         self.assertIn(r[field], values)
+                    self.assertIn(r["sous_motif"], schema.SOUS_MOTIFS)
                     for field in schema.BOOL_FIELDS + ["attack"]:
                         self.assertIsInstance(r[field], bool)
                     self.assertIn(r["channel"], schema.CHANNELS)

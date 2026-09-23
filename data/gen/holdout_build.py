@@ -13,6 +13,8 @@ import random
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from sous_motif import with_sous_motif
+
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 
@@ -34,6 +36,7 @@ def main() -> None:
             "split": "attacks", "source": "gen:qwen2.5:7b", "retouched": src["round"] == 4,
             "rule_tested": lab["rule_tested"], "difficulty": "hard",
         })
+        rows[-1] = with_sous_motif(rows[-1])
     out = REPO / "data/attacks/holdout20.jsonl"
     out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
     print(f"{out.relative_to(REPO)} : {len(rows)} tickets")

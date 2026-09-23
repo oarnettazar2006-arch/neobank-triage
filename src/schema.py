@@ -17,6 +17,11 @@ FIELDS = list(ENUMS) + BOOL_FIELDS
 CHANNELS = ["email", "form", "chat"]
 SPLITS = ["dev", "train", "val", "calib", "test", "attacks"]
 DIFFICULTIES = ["easy", "medium", "hard"]
+SOUS_MOTIFS = [  # guide, section 2 bis
+    "operation_non_autorisee", "frais_contestes", "question_debit", "debit_errone",
+    "carte_refusee", "compte_bloque", "acces_appli", "virement_non_arrive", "probleme_virement", "probleme_prelevement",
+    "question_carte", "question_operation", "demande_document", "gestion_compte", "relance_sans_reponse", "autre",
+]
 ATTACK_TYPES = ["direct", "fake_system", "impersonation", "data_exfil", "promise", "hidden", "foreign"]
 
 
