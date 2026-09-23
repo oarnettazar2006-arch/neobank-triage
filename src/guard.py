@@ -11,7 +11,15 @@ vérifier que la garde généralise :
   consigne après plusieurs lignes vides) ;
 - consigne adressée à l'assistant (ignorer ses instructions, répondre une
   phrase dictée, message « pour l'IA », « l'assistente »...) ;
-- lettres espacées (« l a b e l », « i g n o r e »).
+- lettres espacées (« l a b e l », « i g n o r e ») ;
+- réponse dictée sans guillemets : un verbe d'écriture ou de réponse à
+  l'impératif suivi de « que » (« écrivez-moi que », « répondez que »,
+  « write that »), ou « confirmez que vous… » au présent ou au futur, qui
+  fait prendre un engagement à VAULT. Une simple demande de remboursement
+  (« remboursez-moi », « je veux être remboursé ») n'est pas visée, ni une
+  demande de confirmation d'un fait passé (« confirmez-moi que vous avez bien
+  reçu »). Seule la consigne est retirée : le début de la phrase, qui décrit
+  souvent le vrai problème, est gardé.
 
 Si un motif est trouvé, `flagged` passe à vrai et le passage est retiré du
 texte envoyé au LLM. Le texte d'origine reste disponible pour le conseiller.
@@ -62,6 +70,34 @@ SENTENCE_RULES = [
     ("lettres espacées", re.compile(r"\b(?:\w[ \t]){4,}\w\b")),
     ("caractère invisible", re.compile("[\u200b-\u200f\u2060\ufeff]")),
 ]
+# Réponse dictée sans guillemets : retirée du verbe à la fin de la phrase.
+_E = "[eéEÉ]"
+_TO = r"(?:[\s-]*(?:moi|nous|m['’]|me|us|to\s+me|to\s+us|back))?"
+_ADV = (r"(?:[\s,]+(?:simplement|juste|seulement|bien|clairement|officiellement|noir\s+sur\s+blanc|par\s+écrit|"
+        r"par\s+e-?mail|par\s+mail|par\s+message|dans\s+(?:votre|ta|la)\s+réponse|simply|just|clearly|"
+        r"in\s+writing|in\s+(?:your|the)\s+reply))*")
+_THAT = r"[\s:]+(?:que\b|qu['’]|that\b)"
+_WRITE = rf"(?:{_E}cri(?:s|vez)|r{_E}pond(?:s|ez)|mett(?:ez|s)\s+par\s+{_E}crit|write|reply|respond|state)"
+_CONFIRM = rf"(?:confirme[sz]?|certifie[sz]?|atteste[sz]?|confirm|certify)"
+# Sujet qui engage VAULT, puis un verbe qui n'est pas un passé (avez, étiez, have, did...).
+_COMMIT = (r"\s*(?:vous|vault|la\s+banque|you|we)\s+(?!(?:avez|aviez|avez-vous|êtes|étiez|étes|have|had|did|were|was)\b)"
+           r"(?:me\s+|m['’]|nous\s+|allez\s+|va\s+|will\s+)?\w+")
+DICTATED = [
+    re.compile(rf"\b{_WRITE}\b{_TO}{_ADV}{_THAT}", re.I),
+    re.compile(rf"\b{_CONFIRM}\b{_TO}{_ADV}{_THAT}{_COMMIT}", re.I),
+]
+# Première personne ou narration (« je vous écris que », « il me répond que ») : pas une consigne.
+NARRATION = re.compile(r"\b(?:je|j['’]|on|il|elle|ils|elles|qui|i|we|they|he|she)\s+(?:vous\s+|te\s+|lui\s+|leur\s+|you\s+)?$", re.I)
+
+
+def _dictated(sentence: str) -> re.Match | None:
+    for rx in DICTATED:
+        for m in rx.finditer(sentence):
+            if not NARRATION.search(sentence[: m.start()]):
+                return m
+    return None
+
+
 # Texte isolé après au moins trois lignes vides : retiré s'il contient une consigne.
 HIDDEN_TAIL = re.compile(r"\n[ \t]*\n[ \t]*\n[ \t]*\n\s*(.+)\Z", re.S)
 TAIL_HINT = re.compile(r"\b(?:consigne|mets|mettre|classe[rz]?|ignore[rsz]?|réponds|répondez|label|severity)\b", re.I)
@@ -95,6 +131,10 @@ def guard(text: str) -> GuardResult:
         hit = next(((rule, m) for rule, rx in SENTENCE_RULES if (m := rx.search(sentence))), None)
         if hit:
             matches.append({"rule": hit[0], "text": sentence.strip()})
+        elif d := _dictated(sentence):
+            matches.append({"rule": "réponse dictée", "text": sentence[d.start():].strip()})
+            if sentence[: d.start()].strip(" ,;:-"):
+                kept.append(sentence[: d.start()].strip(" ,;:-"))
         elif sentence.strip():
             kept.append(sentence.strip())
 
