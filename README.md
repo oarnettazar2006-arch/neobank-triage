@@ -116,6 +116,7 @@ echo "Ma carte est refusée partout depuis ce matin, je ne peux plus rien payer.
 - Guide d'annotation (référence unique des étiquettes et des délais) : `docs/annotation_guide.md`.
 - Jeux de données (construction, contrôle qualité, limites) : `docs/data_card.md`.
 - Politique d'automatisation : `docs/automation_policy.md`.
+- Base de réponses (une fiche par `sous_motif`, validée par `tests/test_answers.py`) : `docs/answers/`.
 - Méthode :
   - **une modification par PR**, mesurée avant et après sur le même jeu, avec McNemar exact ;
   - une étape du bot est fusionnée si aucun champ ne régresse significativement et si les attaques réussies n'augmentent pas ;
