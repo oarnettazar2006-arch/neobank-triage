@@ -10,6 +10,7 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
   - `triage.py` : chaîne de tri (garde, puis LLM avec `prompts/v4_injection.txt`)
   - `deadlines.py` : délais réglementaires en jours ouvrables
   - `reply.py`, `output_guard.py` : brouillon de réponse et garde de sortie
+  - `answers.py` : chargeur de la base de réponses (`docs/answers/`, une fiche par `sous_motif`)
   - `notebook.py` : adaptateur compatible avec le notebook du cours (`classify`, `extract`, `draft_reply_for`)
 - `prompts/` : prompts versionnés en `.txt` (`v4_injection.txt` en service ; `reply_v1*.txt` pour les brouillons ; v0 à v3 pour l'historique)
 - `data/dev/` : dev40 (réglage), `guide_cases.jsonl` (cas limites du guide), `raw/` (sources de dev40)
@@ -23,7 +24,7 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 - `eval/` : `run.py` (harnais du tri), `compare.py` (McNemar apparié), `run_reply.py` et `judge_reply.py` (brouillons), `dedup.py`, `notebook_check.py`
 - `eval/reports/` : un rapport par étape ; `eval/results/` : résultats bruts horodatés
 - `tests/` : tests unitaires (`python3 -m unittest discover -s tests`)
-- `docs/` : guide d'annotation, politique d'automatisation, data card, audit
+- `docs/` : guide d'annotation, politique d'automatisation, data card, audit, base de réponses (`answers/`)
 - `site/` : le front de démo (plus tard)
 
 ## Règles
