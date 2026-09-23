@@ -14,7 +14,12 @@ Conception anti-injection (CaMeL simplifié) :
   valeur fermée (fr ou en) ;
 - le texte d'origine ne sert qu'au code : détection de langue et garde de
   sortie (src/output_guard.py). Si la garde bloque le brouillon, un modèle
-  fixe écrit en code le remplace.
+  fixe écrit en code le remplace ;
+- fiche du sous-motif (docs/answers/) : transmise seulement si le garde-fou
+  l'accepte (src/answers.py : choose, accord tri / contrôleur et cohérence
+  avec le label). La fiche est un texte fixe du repo, pas un extrait du
+  ticket. Fiches en français seulement : un ticket anglais garde le brouillon
+  générique.
 Bibliothèque standard uniquement.
 """
 
@@ -27,12 +32,14 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
+import answers
 import output_guard
 from deadlines import compute_deadlines
 
 REPO = Path(__file__).resolve().parent.parent
 PROMPT = REPO / "prompts" / "reply_v1.txt"
 PROMPTS = {"fr": PROMPT, "en": REPO / "prompts" / "reply_v1_en.txt"}
+PROMPT_FICHE = REPO / "prompts" / "reply_v2_fiche.txt"   # brouillon avec fiche (français)
 SIGNATURE = {"fr": "Cordialement,\nLe service client VAULT", "en": "Kind regards,\nVAULT customer service"}
 # Lignes de fin que le modèle ajoute parfois malgré la consigne : retirées avant d'apposer la signature.
 CLOSING_LINE = re.compile(r"^(?:cordialement|bien cordialement|bien à vous|kind regards|best regards|regards|sincerely|"
@@ -136,8 +143,11 @@ def case_of(fields: dict) -> str:
     return "question" if fields["label"] == "other" else "signalement"
 
 
-def build_facts(ticket: dict, fields: dict) -> dict:
-    """Faits structurés transmis au rédacteur : aucune donnée du texte du ticket."""
+def build_facts(ticket: dict, fields: dict, sous_motif: str | None = None) -> dict:
+    """Faits structurés transmis au rédacteur : aucune donnée du texte du ticket.
+
+    `sous_motif` : fiche retenue par le garde-fou (None : brouillon générique).
+    """
     lang = detect_language(ticket["input"])
     received = datetime.fromisoformat(ticket["received_at"])
     ds = compute_deadlines(received, fields["is_complaint"], fields["unauthorized_payment"],
@@ -152,6 +162,7 @@ def build_facts(ticket: dict, fields: dict) -> dict:
     if fields["is_complaint"] and ticket["channel"] == "chat":
         actions.append(t["in_writing"])
     kinds = t["kinds"]
+    card = answers.for_writer(sous_motif) if sous_motif and lang == "fr" else {}
     return {
         "langue": lang,
         "situation": t["situation"][case],
@@ -163,6 +174,8 @@ def build_facts(ticket: dict, fields: dict) -> dict:
         "canal": ticket["channel"],
         "ce_qui_va_se_passer": [{"etape": kinds[d.kind], "date": format_date(d.due, lang)} for d in ds],
         "ce_que_le_client_doit_faire": actions,
+        "fiche": sous_motif if card else None,
+        **card,
     }
 
 
@@ -186,12 +199,14 @@ def fallback(facts: dict) -> str:
 
 
 WRITER_KEYS = ["situation", "consigne", "sujet", "urgent", "ce_qui_va_se_passer", "ce_que_le_client_doit_faire"]
+FICHE_KEYS = ["reponse_type", "ce_que_le_client_peut_faire"]
 
 
 def write(facts: dict, model: str = MODEL, host: str = HOST, prompt_path: Path | None = None) -> str:
-    """Le rédacteur ne reçoit que WRITER_KEYS : ni codes techniques, ni texte du ticket."""
-    prompt_path = prompt_path or PROMPTS[facts["langue"]]
-    sent = {k: facts[k] for k in WRITER_KEYS}
+    """Le rédacteur ne reçoit que WRITER_KEYS (+ FICHE_KEYS si une fiche est retenue) : ni codes techniques, ni texte du ticket."""
+    fiche = facts.get("fiche")
+    prompt_path = prompt_path or (PROMPT_FICHE if fiche else PROMPTS[facts["langue"]])
+    sent = {k: facts[k] for k in WRITER_KEYS + (FICHE_KEYS if fiche else [])}
     prompt = prompt_path.read_text(encoding="utf-8").replace("{faits}", json.dumps(sent, ensure_ascii=False, indent=1))
     payload = {"model": model, "messages": [{"role": "user", "content": prompt}], "format": SCHEMA,
                "stream": False, "options": OPTIONS}
@@ -215,9 +230,17 @@ def normalize(text: str) -> str:
     return " ".join(re.sub(r"\b1er\b", "1", re.sub(r"[^\w\s]", " ", text.lower())).split())
 
 
-def draft_reply(ticket: dict, fields: dict, forbidden: list[str] | None = None, **llm) -> dict:
-    """Brouillon final, brouillon du LLM, faits transmis et violations relevées par la garde de sortie."""
-    facts = build_facts(ticket, fields)
+def draft_reply(ticket: dict, fields: dict, forbidden: list[str] | None = None,
+                controller_sous_motif: str | None = None, **llm) -> dict:
+    """Brouillon final, brouillon du LLM, faits transmis, fiche et violations relevées par la garde de sortie.
+
+    `controller_sous_motif` : sous_motif prédit par le contrôleur (src/controller.py).
+    Sans lui, pas de fiche : brouillon générique.
+    """
+    gate = answers.choose(fields, controller_sous_motif)
+    facts = build_facts(ticket, fields, gate["sous_motif"])
+    if gate["sous_motif"] and not facts["fiche"]:
+        gate = {"sous_motif": None, "reason": "anglais"}
     llm_draft = write(facts, **llm)
     allowed = " ".join(s["date"] for s in facts["ce_qui_va_se_passer"])
     issues = output_guard.check(llm_draft, ticket["input"], allowed_text=allowed, forbidden=forbidden)
@@ -227,4 +250,5 @@ def draft_reply(ticket: dict, fields: dict, forbidden: list[str] | None = None, 
         "blocked": bool(issues),
         "issues": issues,
         "facts": facts,
+        "fiche": gate,
     }

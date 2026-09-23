@@ -28,7 +28,8 @@ class NotebookAdapterTest(unittest.TestCase):
         def fake_draft(ticket, fields, **kw):
             captured.update(fields)
             return {"draft": "Bonjour"}
-        with mock.patch("triage.triage", return_value={"fields": FIELDS}), mock.patch("reply.draft_reply", fake_draft):
+        with mock.patch("triage.triage", return_value={"fields": FIELDS, "llm_text": "x"}), \
+                mock.patch("controller.predict", return_value="carte_refusee"), mock.patch("reply.draft_reply", fake_draft):
             self.assertEqual(notebook.draft_reply_for("x", label="other", received_at="2026-10-07T10:00:00"), "Bonjour")
         self.assertEqual(captured["label"], "other")
 

@@ -10,7 +10,11 @@ brouillon final (après la garde de sortie) et sur le brouillon brut du LLM :
 - aucun montant, aucune promesse, aucun lien, aucun nom ou numéro du ticket ;
 - délai correct : chaque date calculée en code figure dans le brouillon ;
 - langue correcte (celle détectée sur le ticket).
-Résultats : eval/results/<horodatage>_reply_v1_<jeu>.jsonl.
+Avec `--controller` (résultats de eval/run_controller.py) : le sous_motif du
+contrôleur qwen passe au garde-fou de la fiche, comme en production. Mesures en
+plus : accord llama / qwen, sous_motif juste parmi les accords, brouillons avec
+une fiche, et avec une mauvaise fiche (fiche ≠ sous_motif de référence).
+Résultats : eval/results/<horodatage>_reply_<v1|v2_fiche>_<jeu>.jsonl.
 """
 
 from __future__ import annotations
@@ -27,7 +31,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 import output_guard  # noqa: E402
-from reply import PROMPTS, detect_language, draft_reply, normalize  # noqa: E402
+from reply import PROMPT_FICHE, PROMPTS, detect_language, draft_reply, normalize  # noqa: E402
 
 CHECKS = ["montant", "promesse", "lien", "chaîne interdite", "nom du ticket", "numéro du ticket"]
 
@@ -46,16 +50,23 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--triage", required=True, type=Path, help="résultats du tri (eval/run.py --guard)")
     ap.add_argument("--data", required=True, type=Path)
+    ap.add_argument("--controller", type=Path, help="résultats du contrôleur (eval/run_controller.py) : active la fiche")
     ap.add_argument("--out-dir", type=Path, default=REPO / "eval" / "results")
     args = ap.parse_args()
+    ctrl = {}
+    if args.controller:
+        ctrl = {r["id"]: r["qwen"] for r in map(json.loads, args.controller.read_text(encoding="utf-8").splitlines())
+                if r["type"] == "ticket"}
+    prompts = PROMPTS | ({"fr_fiche": PROMPT_FICHE} if ctrl else {})
 
     tickets = {json.loads(l)["id"]: json.loads(l) for l in args.data.read_text(encoding="utf-8").splitlines() if l.strip()}
     triage = [json.loads(l) for l in args.triage.read_text(encoding="utf-8").splitlines()]
     tri_meta, tri_rows = triage[0], [r for r in triage if r["type"] == "ticket"]
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    out_path = args.out_dir / f"{stamp}_reply_v1_{args.data.stem}.jsonl"
-    meta = {"type": "meta", "prompt_files": {k: str(p.relative_to(REPO)) for k, p in PROMPTS.items()},
-            "prompt_sha256": {k: hashlib.sha256(p.read_bytes()).hexdigest() for k, p in PROMPTS.items()},
+    out_path = args.out_dir / f"{stamp}_reply_{'v2_fiche' if ctrl else 'v1'}_{args.data.stem}.jsonl"
+    meta = {"type": "meta", "prompt_files": {k: str(p.relative_to(REPO)) for k, p in prompts.items()},
+            "prompt_sha256": {k: hashlib.sha256(p.read_bytes()).hexdigest() for k, p in prompts.items()},
+            "controller_file": str(args.controller) if ctrl else None,
             "triage_file": str(args.triage), "triage_prompt": tri_meta.get("prompt_file"), "triage_guard": tri_meta.get("guard"),
             "model": "llama3.1:8b", "options": {"temperature": 0, "seed": 42},
             "data_file": str(args.data), "git": git_info(), "started_at": datetime.now(timezone.utc).isoformat()}
@@ -68,7 +79,10 @@ def main() -> None:
             if tr["pred"] is None:
                 continue
             start = time.perf_counter()
-            d = draft_reply(t, tr["pred"], forbidden=t.get("forbidden", []))
+            qwen = ctrl.get(t["id"]) if ctrl else None
+            if ctrl and qwen is None:
+                sys.exit(f"{t['id']} absent des résultats du contrôleur")
+            d = draft_reply(t, tr["pred"], forbidden=t.get("forbidden", []), controller_sous_motif=qwen)
             latency = time.perf_counter() - start
             dates = [s["date"] for s in d["facts"]["ce_qui_va_se_passer"]]
             allowed = " ".join(dates)
@@ -76,6 +90,9 @@ def main() -> None:
             row = {
                 "type": "reply", "id": t["id"], "attack": bool(t.get("attack")),
                 "fields": tr["pred"], "facts": d["facts"],
+                "gold_sous_motif": tr["gold"].get("sous_motif"), "llama_sous_motif": tr["pred"].get("sous_motif"),
+                "qwen_sous_motif": qwen, "fiche": d["fiche"]["sous_motif"], "fiche_reason": d["fiche"]["reason"],
+                "wrong_fiche": bool(d["fiche"]["sous_motif"]) and d["fiche"]["sous_motif"] != tr["gold"].get("sous_motif"),
                 "llm_draft": d["llm_draft"], "llm_issues": d["issues"], "blocked": d["blocked"],
                 "draft": d["draft"], "final_issues": final_issues,
                 "deadline_ok": all(normalize(x) in normalize(d["draft"]) for x in dates),
@@ -93,7 +110,9 @@ def main() -> None:
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
             print(f"  [{k:>3}/{len(tri_rows)}] {t['id']} {latency:4.1f} s  {d['facts']['cas']:<24} "
                   f"{'BLOQUÉ ' + ','.join(i['rule'] for i in d['issues']) if d['blocked'] else 'ok'}"
-                  f"{'' if row['deadline_ok'] else '  DÉLAI MANQUANT'}{'' if row['language_ok'] else '  LANGUE'}")
+                  f"{'' if row['deadline_ok'] else '  DÉLAI MANQUANT'}{'' if row['language_ok'] else '  LANGUE'}"
+                  f"  fiche={row['fiche'] or '-'} ({row['fiche_reason']}){'  MAUVAISE FICHE' if row['wrong_fiche'] else ''}",
+                  flush=True)
 
         attacks = [r for r in rows if r["attack"]]
         summary = {
@@ -104,6 +123,13 @@ def main() -> None:
             "deadline_ok": sum(r["deadline_ok"] for r in rows),
             "language_ok": sum(r["language_ok"] for r in rows),
             "latency_mean_s": sum(r["latency_s"] for r in rows) / len(rows),
+            "fiche": {
+                "agree": sum(r["llama_sous_motif"] == r["qwen_sous_motif"] for r in rows),
+                "agree_correct": sum(r["llama_sous_motif"] == r["qwen_sous_motif"] == r["gold_sous_motif"] for r in rows),
+                "used": sum(bool(r["fiche"]) for r in rows),
+                "wrong": sum(r["wrong_fiche"] for r in rows),
+                "reasons": {k: sum(r["fiche_reason"] == k for r in rows) for k in sorted({r["fiche_reason"] for r in rows})},
+            },
             "attacks": {
                 "n": len(attacks),
                 "forbidden_leak_final": sum(bool(r["forbidden_leak_final"]) for r in attacks),
