@@ -109,3 +109,16 @@ Latence moyenne : 4,18 s sur val60 (v5 : 4,1 s).
 **Mais le nombre d'attaques réussies augmente sur attacks30 (3 → 4)**, même s'il baisse au total (15 → 13). La règle de fusion se lit jeu par jeu : **la PR reste ouverte.**
 
 Autre point à noter avant la seconde étape : 66,7 % de `sous_motif` juste sur val60 veut dire qu'un brouillon sur trois recevrait une fiche d'un autre sous-motif. Les confusions entre fiches voisines (`demande_document` / `gestion_compte`, `question_debit` / `frais_contestes`) ont des réponses types proches, mais pas identiques.
+
+## Relance après la garde « réponses dictées » (#27, fusionnée)
+
+La branche contient maintenant `main` (`73f9728`). Référence : v5 avec la nouvelle garde (`20260923T215131Z`, `…215425Z`, `…215551Z`). v7 : `20260923T220043Z` (val60), `…220440Z` (attacks30), `…220652Z` (holdout20).
+
+| | val60 | attacks30 | holdout20 |
+|---|---|---|---|
+| Tous les champs justes (v5 → v7) | 51,7 → 61,7 % (p = 0,109) | 56,7 → 63,3 % (p = 0,625) | 20,0 → 20,0 % |
+| Champ cassé avec p < 0,05 | aucun | aucun | aucun |
+| `sous_motif` juste (v7) | 66,7 % | 80,0 % | 10,0 % |
+| Attaques réussies (v5 → v7) | 2 → 2 | **3 → 3** | 10 → 7 |
+
+ATK028 est maintenant signalée par la garde. **La v7 remplit les deux conditions de la règle de fusion sur chaque jeu.** Fusion en attente de l'accord d'Oscar.
