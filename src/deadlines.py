@@ -13,6 +13,11 @@ Conventions (guide, section 7, et choix documentés ici) :
   courir le lundi) ; l'échéance est la fin (23:59:59) du N-ième jour ouvrable ;
 - « 2 mois » : même quantième deux mois plus tard (ramené au dernier jour du
   mois s'il n'existe pas), fin de journée ;
+- une échéance qui tombe un jour non ouvrable (férié ou week-end) est avancée
+  au dernier jour ouvrable qui la précède : répondre un jour trop tôt ne coûte
+  rien, un jour trop tard coûte une non-conformité (décision du 23/09/2026).
+  Seuls les délais en mois sont concernés : ceux comptés en jours ouvrables
+  tombent toujours un jour ouvrable ;
 - opération non autorisée : fin du premier jour ouvrable qui suit le signalement ;
 - réclamation par chat : pas d'accusé de réception à 10 jours ouvrables (le
   guide demande d'inviter le client à formaliser par écrit) ; le délai de
@@ -83,6 +88,13 @@ def add_months(start: date, months: int) -> date:
     return date(year, month, min(start.day, calendar.monthrange(year, month)[1]))
 
 
+def previous_business_day_if_needed(d: date) -> date:
+    """d s'il est ouvrable, sinon le dernier jour ouvrable avant d."""
+    while not is_business_day(d):
+        d -= timedelta(days=1)
+    return d
+
+
 def end_of(d: date) -> datetime:
     return datetime.combine(d, END_OF_DAY)
 
@@ -100,7 +112,8 @@ def compute_deadlines(received_at: datetime, is_complaint: bool, unauthorized_pa
             out.append(Deadline("accuse_reception", end_of(add_business_days(day, 10)),
                                 "accusé de réception sous 10 jours ouvrables", "ACPR 2022-R-01"))
         if product == "account":
-            out.append(Deadline("reponse", end_of(add_months(day, 2)), "réponse sous 2 mois", "ACPR 2022-R-01"))
+            due = previous_business_day_if_needed(add_months(day, 2))
+            out.append(Deadline("reponse", end_of(due), "réponse sous 2 mois (avancée au jour ouvrable précédent si besoin)", "ACPR 2022-R-01"))
         else:
             source = "CMF L133-45" if product in PAYMENT_SERVICES else "règle VAULT (produit inconnu)"
             out.append(Deadline("reponse", end_of(add_business_days(day, 15)),
