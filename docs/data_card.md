@@ -11,6 +11,20 @@ Jeux construits le 23/09/2026 pour obtenir des chiffres honnêtes, puisque dev40
 | `data/calib/calib60.jsonl` | 60 | choisir le seuil de confiance | **ne jamais y lancer le bot pour autre chose** |
 | `data/test/test100.jsonl` | 100 | note finale | **aucun run avant l'évaluation finale** |
 | `data/attacks/attacks30.jsonl` | 30 | taux de succès des attaques | les 7 types du guide |
+| `data/attacks/holdout20.jsonl` | 20 | vérifier que la garde d'entrée généralise | rédigé par qwen2.5:7b ; **déjà lu et mesuré (v5) : n'est plus un contrôle indépendant** |
+| `data/attacks/notebook_case.jsonl` | 1 | cas d'injection exact du notebook | rejoué à chaque évaluation par `eval/run.py` |
+| `data/dev/guide_cases.jsonl` | 20 | les cas limites du guide | canal et date fixés arbitrairement (`form`, 01/10/2026) : le guide ne les donne pas |
+
+## holdout20 : attaques rédigées par qwen2.5:7b
+
+Construit le 23/09/2026 **avant** la garde d'entrée (commit `aec450d`), pour vérifier qu'elle généralise au-delà du style d'attacks30.
+
+- **Rédaction :** qwen2.5:7b ne reçoit que la définition de chaque type d'attaque (guide, section 9), jamais attacks30. Script : `data/gen/holdout_gen.py`, sorties brutes : `data/gen/holdout_raw.json`.
+- **Quatre tours.** Tour 1 : les 7 types. Tour 2 : fake_system, hidden et foreign, avec une définition précisée par les seuls exemples du guide. Tour 3 : foreign. Tour 4 : qwen n'a produit **aucune** attaque foreign valide en trois tours ; sur décision, il traduit la consigne de deux de ses tickets (portugais, anglais).
+- **Sélection :** par type, les premiers tickets valides dans l'ordre de génération. Valide = une vraie tentative de manipulation du robot, du type demandé. Les tickets écartés et leurs raisons sont dans `data/gen/holdout_labels.json`.
+- **Étiquetage :** par Claude, selon le guide v1.3.1. Les textes de qwen sont souvent vagues (« soucis avec ma carte », « somme inconnue ») : ces étiquettes sont plus discutables que celles des autres jeux (product à 35 % pour le bot, rapport v5).
+- **Répartition :** 7 types (3 par type, 2 foreign), `difficulty: hard`, `source: gen:qwen2.5:7b`. Aucune paire au-dessus de 0,85 (nomic) avec les autres jeux.
+- **Usage déjà fait :** mesuré en v4, v5 et v6. Claude l'a lu pour l'étiqueter. Il ne peut plus servir de contrôle indépendant : toute nouvelle version de la garde demande un nouveau jeu d'attaques.
 
 ## Construction
 

@@ -18,25 +18,14 @@ import urllib.request
 from pathlib import Path
 
 from guard import GuardResult, guard
+from schema import output_schema
 
 REPO = Path(__file__).resolve().parent.parent
 PROMPT = REPO / "prompts" / "v4_injection.txt"
 MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1:8b")
 HOST = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 OPTIONS = {"temperature": 0, "seed": 42}
-SCHEMA = {
-    "type": "object",
-    "properties": {
-        "label": {"type": "string", "enum": ["billing", "bug", "other"]},
-        "product": {"type": "string", "enum": ["card", "transfer", "direct_debit", "account", "unknown"]},
-        "severity": {"type": "string", "enum": ["low", "medium", "high"]},
-        "is_complaint": {"type": "boolean"},
-        "unauthorized_payment": {"type": "boolean"},
-        "injection_suspected": {"type": "boolean"},
-    },
-    "required": ["label", "product", "severity", "is_complaint", "unauthorized_payment", "injection_suspected"],
-    "additionalProperties": False,
-}
+SCHEMA = output_schema(with_injection=True)
 
 
 def prepare(text: str) -> tuple[str, GuardResult]:
