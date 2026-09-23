@@ -1,0 +1,22 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Tests unitaires et test de bout en bout (réponses du LLM enregistrées, sans Ollama)
+        run: make test
+      - name: Cas d'injection du notebook (tâche 4)
+        run: python -m unittest -v tests.test_pipeline_replay.PipelineReplayTest.test_notebook_injection_case
