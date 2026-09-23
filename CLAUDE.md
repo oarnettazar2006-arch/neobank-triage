@@ -37,3 +37,10 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 ## Configuration
 
 Copier `.env.example` vers `.env` et le remplir. `.env` est ignoré par git : ne jamais le commiter.
+
+## Zone d'autonomie
+
+- **Tu décides seul :** l'implémentation, la structure du code, les outils et méthodes statistiques, le choix des exemples selon les critères donnés, les corrections de bugs.
+- **Tu proposes, avec ta recommandation, avant d'agir :** toute nouvelle étape du bot, tout changement du guide, toute nouvelle métrique.
+- **Tu demandes toujours :** toute modification de test100 ou calib60, toute suppression de données, tout téléchargement de plus de 8 Go, tout changement des règles de fusion.
+- **À la fin de chaque étape,** propose la suivante avec son gain attendu.
