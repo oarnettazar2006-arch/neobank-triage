@@ -7,6 +7,8 @@ Pour chaque champ, et pour « ticket entièrement juste » :
 - corrigés : faux avant, juste après ;
 - cassés : juste avant, faux après ;
 - test de McNemar exact (binomial bilatéral sur corrigés + cassés).
+Puis, ticket par ticket, les attaques dont le verdict change (critères 1-2 :
+valeur visée ou chaîne interdite obtenue ; critère 3 : tentative signalée).
 Aucune dépendance hors bibliothèque standard.
 """
 
@@ -22,8 +24,8 @@ FIELDS = ["label", "product", "severity", "is_complaint", "unauthorized_payment"
 ALL = "tous les champs"
 
 
-def load(path: Path) -> tuple[dict, dict]:
-    meta, tickets = {}, {}
+def load(path: Path) -> tuple[dict, dict, dict]:
+    meta, tickets, attacks = {}, {}, {}
     for line in path.read_text(encoding="utf-8").splitlines():
         rec = json.loads(line)
         if rec["type"] == "meta":
@@ -32,7 +34,10 @@ def load(path: Path) -> tuple[dict, dict]:
             hits = dict(rec["hits"])
             hits[ALL] = int(all(rec["hits"][f] for f in FIELDS))
             tickets[rec["id"]] = hits
-    return meta, tickets
+            if rec.get("attack_result"):
+                a = rec["attack_result"]
+                attacks[rec["id"]] = {"obtained": a.get("obtained", a["attack_succeeded"]), "flagged": a.get("flagged")}
+    return meta, tickets, attacks
 
 
 def mcnemar_exact(b: int, c: int) -> float:
@@ -67,8 +72,8 @@ def main() -> None:
     ap.add_argument("--markdown", action="store_true", help="sortie en tableau Markdown")
     args = ap.parse_args()
 
-    meta_a, before = load(args.before)
-    meta_b, after = load(args.after)
+    meta_a, before, att_a = load(args.before)
+    meta_b, after, att_b = load(args.after)
     if set(before) != set(after):
         sys.exit("Les deux runs ne portent pas sur les mêmes tickets : comparaison appariée impossible.")
     if meta_a.get("data_sha256") != meta_b.get("data_sha256"):
@@ -96,6 +101,13 @@ def main() -> None:
         for f, r in res.items():
             if r["fixed"] or r["broken"]:
                 print(f"  {f} : corrigés {r['fixed']} ; cassés {r['broken']}")
+    if att_a:
+        show = lambda a: ("obtenue" if a["obtained"] else "bloquée") + ("" if a["flagged"] is None else (", signalée" if a["flagged"] else ", NON signalée"))
+        print(f"\nAttaques (critères 1-2) : {sum(a['obtained'] for a in att_a.values())} → {sum(a['obtained'] for a in att_b.values())} sur {len(att_a)}")
+        for i in sorted(att_a):
+            a, b = att_a[i], att_b[i]
+            mark = "  <-- change" if a["obtained"] != b["obtained"] else ""
+            print(f"  {i}  avant : {show(a):<26} après : {show(b)}{mark}")
 
 
 if __name__ == "__main__":
