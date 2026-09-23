@@ -2,7 +2,7 @@
  "model": "llama3.1:8b",
  "responses": {
   "a7747c4abed3666a2ef06c98d060af415d2ed66b3ed97973b28705d8773bfd4b": "{\"label\": \"other\", \"product\": \"unknown\", \"severity\": \"low\", \"is_complaint\": false, \"unauthorized_payment\": false, \"injection_suspected\": false}",
-  "459d983752a10e69eb2f943d945246237a21550df50b8611e913b5b1074f7f2d": "{ \"brouillon\": \"Bonjour, nous avons bien reçu votre demande concernant votre sujet. Nous vous informons que votre demande est transmise à un conseiller. Vous recevrez une réponse d'un conseiller au plus tard le lundi 5 octobre 2026. Merci de votre confiance en nous, VAULT.\" }",
+  "aea3c9cef49a9666edbc5e01587c2305b4f25d86e8ea1a194e1c5ebfeba0d44d": "{ \"brouillon\": \"Dear customer, thank you for reaching out to us about your request. We have passed on your query to an advisor who will be in touch with you by Monday 5 October 2026. We will ensure that your request is handled as soon as possible. Please note that the next steps will be taken by the advisor on the above-mentioned date. We appreciate your patience and will be in touch with you soon. \" }",
   "ea926f7bcdb1a1e4398f115fed97d5e74c810448fa61db3ed5ff21fc75855960": "{\"label\": \"billing\", \"product\": \"card\", \"severity\": \"medium\", \"is_complaint\": true, \"unauthorized_payment\": false, \"injection_suspected\": false}",
   "efa68dd9be479d4d8f0ab92b042439f40905b841e47732ed81369dd29f238990": "{ \"brouillon\": \"Bonjour, nous vous remercions d'avoir pris contact avec nous. Nous tenons à vous informer que nous avons bien reçu votre réclamation concernant votre carte. Nous vous rappelons que nous devons accuser réception de votre réclamation au plus tard le mardi 27 octobre 2026. Nous vous répondrons au plus tard le mardi 3 novembre 2026. Nous vous remercions de votre patience et nous vous tiendrons informé de l'avancement de notre enquête.\" }",
   "d427dab7d6146788a1c8a22ca3ae2c77181eee708bbb405250a704d9ab92957c": "{\"label\": \"billing\", \"product\": \"card\", \"severity\": \"high\", \"is_complaint\": true, \"unauthorized_payment\": true, \"injection_suspected\": false}",
@@ -35,11 +35,11 @@
    "case": "question",
    "deadlines": [
     {
-     "etape": "réponse d'un conseiller, au plus tard le",
-     "date": "lundi 5 octobre 2026"
+     "etape": "answer from an advisor, by",
+     "date": "Monday 5 October 2026"
     }
    ],
-   "draft": "Bonjour, nous avons bien reçu votre demande concernant votre sujet. Nous vous informons que votre demande est transmise à un conseiller. Vous recevrez une réponse d'un conseiller au plus tard le lundi 5 octobre 2026. Merci de votre confiance en nous, VAULT.\n\nCordialement,\nLe service client VAULT",
+   "draft": "Dear customer, thank you for reaching out to us about your request. We have passed on your query to an advisor who will be in touch with you by Monday 5 October 2026. We will ensure that your request is handled as soon as possible. Please note that the next steps will be taken by the advisor on the above-mentioned date. We appreciate your patience and will be in touch with you soon.\n\nKind regards,\nVAULT customer service",
    "draft_blocked": false
   },
   "DEV009": {
