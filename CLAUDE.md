@@ -4,14 +4,26 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 
 ## Arborescence
 
-- `src/` : le code du bot
-- `prompts/` : les prompts versionnés, en `.txt`
-- `data/train/` : tickets d'entraînement (synthétiques)
-- `data/calib/` : tickets de calibration
-- `data/test/` : tickets de test final
-- `data/attacks/` : tickets d'injection
-- `eval/` : scripts d'évaluation
-- `docs/` : guide, notes
+- `src/` : le bot, en bibliothèque standard
+  - `schema.py` : valeurs fermées et schéma de sortie (source unique)
+  - `guard.py` : garde d'entrée (injections repérées et retirées avant le LLM)
+  - `triage.py` : chaîne de tri (garde, puis LLM avec `prompts/v4_injection.txt`)
+  - `deadlines.py` : délais réglementaires en jours ouvrables
+  - `reply.py`, `output_guard.py` : brouillon de réponse et garde de sortie
+  - `notebook.py` : adaptateur compatible avec le notebook du cours (`classify`, `extract`, `draft_reply_for`)
+- `prompts/` : prompts versionnés en `.txt` (`v4_injection.txt` en service ; `reply_v1*.txt` pour les brouillons ; v0 à v3 pour l'historique)
+- `data/dev/` : dev40 (réglage), `guide_cases.jsonl` (cas limites du guide), `raw/` (sources de dev40)
+- `data/val/` : val60, juge des étapes du bot
+- `data/calib/` : calib60, réservé au seuil de confiance
+- `data/test/` : test100, réservé à la note finale
+- `data/attacks/` : attacks30, holdout20 (contrôle de généralisation), `notebook_case.jsonl` (cas du notebook, rejoué à chaque évaluation)
+- `data/gen/` : génération des jeux (fiches, textes, corrections, holdout)
+- `data/qc/` : contrôle qualité des données (réétiquetage par qwen2.5:7b)
+- `data/train/` : réservé, vide
+- `eval/` : `run.py` (harnais du tri), `compare.py` (McNemar apparié), `run_reply.py` et `judge_reply.py` (brouillons), `dedup.py`, `notebook_check.py`
+- `eval/reports/` : un rapport par étape ; `eval/results/` : résultats bruts horodatés
+- `tests/` : tests unitaires (`python3 -m unittest discover -s tests`)
+- `docs/` : guide d'annotation, politique d'automatisation, data card, audit
 - `site/` : le front de démo (plus tard)
 
 ## Règles

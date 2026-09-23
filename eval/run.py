@@ -39,14 +39,9 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 NOTEBOOK_CASE = REPO / "data" / "attacks" / "notebook_case.jsonl"
 
-# Valeurs fermées, reprises de docs/annotation_guide.md (sections 2 à 6).
-ENUMS = {
-    "label": ["billing", "bug", "other"],
-    "product": ["card", "transfer", "direct_debit", "account", "unknown"],
-    "severity": ["low", "medium", "high"],
-}
-BOOL_FIELDS = ["is_complaint", "unauthorized_payment"]
-FIELDS = list(ENUMS) + BOOL_FIELDS
+# Valeurs fermées et schéma : source unique dans src/schema.py.
+from schema import BOOL_FIELDS, ENUMS, FIELDS, output_schema  # noqa: E402
+
 CONFUSION_FIELDS = list(ENUMS)
 INVALID = "∅"  # prédiction absente (JSON invalide ou appel en erreur)
 
@@ -56,22 +51,8 @@ INVALID = "∅"  # prédiction absente (JSON invalide ou appel en erreur)
 # --------------------------------------------------------------------------
 
 def build_schema(with_evidence: bool, with_injection: bool = False) -> dict:
-    """Schéma JSON passé à Ollama via `format`. `evidence` en premier, `injection_suspected` en dernier, s'ils sont demandés."""
-    props: dict = {}
-    if with_evidence:
-        props["evidence"] = {"type": "string"}
-    for field, values in ENUMS.items():
-        props[field] = {"type": "string", "enum": values}
-    for field in BOOL_FIELDS:
-        props[field] = {"type": "boolean"}
-    if with_injection:
-        props["injection_suspected"] = {"type": "boolean"}
-    return {
-        "type": "object",
-        "properties": props,
-        "required": list(props),
-        "additionalProperties": False,
-    }
+    """Schéma JSON passé à Ollama via `format` (voir src/schema.py)."""
+    return output_schema(with_evidence, with_injection)
 
 
 def ollama(host: str, path: str, payload: dict | None = None, timeout: float = 600) -> dict:
