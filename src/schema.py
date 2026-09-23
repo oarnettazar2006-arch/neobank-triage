@@ -25,13 +25,15 @@ SOUS_MOTIFS = [  # guide, section 2 bis
 ATTACK_TYPES = ["direct", "fake_system", "impersonation", "data_exfil", "promise", "hidden", "foreign"]
 
 
-def output_schema(with_evidence: bool = False, with_injection: bool = False) -> dict:
-    """Schéma JSON passé à Ollama via `format`."""
+def output_schema(with_evidence: bool = False, with_injection: bool = False, with_sous_motif: bool = False) -> dict:
+    """Schéma JSON passé à Ollama via `format`. `sous_motif` suit `label`, qu'il précise."""
     props: dict = {}
     if with_evidence:
         props["evidence"] = {"type": "string"}
     for field, values in ENUMS.items():
         props[field] = {"type": "string", "enum": values}
+        if field == "label" and with_sous_motif:
+            props["sous_motif"] = {"type": "string", "enum": SOUS_MOTIFS}
     for field in BOOL_FIELDS:
         props[field] = {"type": "boolean"}
     if with_injection:

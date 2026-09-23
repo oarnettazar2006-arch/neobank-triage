@@ -50,9 +50,9 @@ INVALID = "∅"  # prédiction absente (JSON invalide ou appel en erreur)
 # Schéma et appel au modèle
 # --------------------------------------------------------------------------
 
-def build_schema(with_evidence: bool, with_injection: bool = False) -> dict:
+def build_schema(with_evidence: bool, with_injection: bool = False, with_sous_motif: bool = False) -> dict:
     """Schéma JSON passé à Ollama via `format` (voir src/schema.py)."""
-    return output_schema(with_evidence, with_injection)
+    return output_schema(with_evidence, with_injection, with_sous_motif)
 
 
 def ollama(host: str, path: str, payload: dict | None = None, timeout: float = 600) -> dict:
@@ -270,6 +270,8 @@ def main() -> None:
     ap.add_argument("--injection", action="store_true", help="ajoute un champ injection_suspected en fin de schéma")
     ap.add_argument("--no-notebook-case", action="store_true",
                     help="ne pas rejouer le cas d'injection du notebook (data/attacks/notebook_case.jsonl)")
+    ap.add_argument("--sous-motif", action="store_true",
+                    help="ajoute un champ sous_motif après label, noté à part (hors « tous les champs »)")
     ap.add_argument("--guard", action="store_true",
                     help="évalue la chaîne src/triage.py : garde d'entrée, puis LLM (implique --injection)")
     ap.add_argument("--seed", type=int, default=42)
@@ -286,7 +288,8 @@ def main() -> None:
     if "{ticket}" not in template:
         sys.exit(f"{args.prompt} ne contient pas le marqueur {{ticket}}")
     tickets = [json.loads(line) for line in args.data.read_text(encoding="utf-8").splitlines() if line.strip()]
-    schema = build_schema(args.evidence, args.injection)
+    schema = build_schema(args.evidence, args.injection, args.sous_motif)
+    scored = FIELDS + ["sous_motif"] if args.sous_motif else FIELDS
     options = {"temperature": args.temperature, "seed": args.seed}
 
     digest = model_digest(args.host, args.model)
@@ -326,11 +329,11 @@ def main() -> None:
         def evaluate(t: dict) -> dict:
             llm_input, g = triage.prepare(t["input"]) if args.guard else (t["input"], None)
             res = classify(args.host, args.model, template.replace("{ticket}", llm_input), schema, options)
-            gold = {f: t[f] for f in FIELDS}
+            gold = {f: t[f] for f in scored}
             pred = res["parsed"]
             if g is not None and pred is not None:
                 pred = triage.finalize(pred, g)
-            hits = {f: int(pred is not None and pred[f] == gold[f]) for f in FIELDS}
+            hits = {f: int(pred is not None and pred[f] == gold[f]) for f in scored}
             row = {"type": "ticket", "id": t["id"], "attack": bool(t.get("attack")),
                    "rule_tested": t.get("rule_tested"), "difficulty": t.get("difficulty"),
                    "gold": gold, "pred": pred, "hits": hits, "raw": res["raw"],
@@ -349,14 +352,14 @@ def main() -> None:
             rows.append(row)
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
             status = "ok" if pred is not None else f"ERREUR {res['error']}"
-            wrong = [f for f in FIELDS if not hits[f]] if pred is not None else []
+            wrong = [f for f in scored if not hits[f]] if pred is not None else []
             print(f"  [{i:>3}/{len(tickets)}] {t['id']} {res['latency_s']:5.1f} s  {status}"
                   + (f"  faux : {', '.join(wrong)}" if wrong else ""))
 
         rng = random.Random(args.seed)
         n = len(rows)
         accuracy = {}
-        for f in FIELDS:
+        for f in scored:
             hits = [r["hits"][f] for r in rows]
             lo, hi = bootstrap_ci(hits, args.bootstrap, rng)
             accuracy[f] = {"value": sum(hits) / n, "ci95": [lo, hi]}

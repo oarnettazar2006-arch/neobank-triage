@@ -21,6 +21,7 @@ from math import comb
 from pathlib import Path
 
 FIELDS = ["label", "product", "severity", "is_complaint", "unauthorized_payment"]
+EXTRA = ["sous_motif"]  # comparé seulement si les deux runs le notent ; hors « tous les champs »
 ALL = "tous les champs"
 
 
@@ -52,7 +53,8 @@ def mcnemar_exact(b: int, c: int) -> float:
 def compare(before: dict, after: dict) -> dict:
     ids = sorted(before)
     out = {}
-    for f in FIELDS + [ALL]:
+    extra = [f for f in EXTRA if all(f in before[i] and f in after[i] for i in ids)]
+    for f in FIELDS + extra + [ALL]:
         fixed = [i for i in ids if not before[i][f] and after[i][f]]
         broken = [i for i in ids if before[i][f] and not after[i][f]]
         out[f] = {

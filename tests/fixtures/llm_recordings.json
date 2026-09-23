@@ -1,15 +1,15 @@
 {
  "model": "llama3.1:8b",
  "responses": {
-  "a7747c4abed3666a2ef06c98d060af415d2ed66b3ed97973b28705d8773bfd4b": "{\"label\": \"other\", \"product\": \"unknown\", \"severity\": \"low\", \"is_complaint\": false, \"unauthorized_payment\": false, \"injection_suspected\": false}",
+  "a23ff31754ccd87b6dc5df0fece7c4b460b9462cbf73d26e98bdfed7ef6d356f": "{\"label\": \"other\", \"sous_motif\": \"autre\", \"product\": \"unknown\", \"severity\": \"low\", \"is_complaint\": false, \"unauthorized_payment\": false, \"injection_suspected\": false}",
   "aea3c9cef49a9666edbc5e01587c2305b4f25d86e8ea1a194e1c5ebfeba0d44d": "{ \"brouillon\": \"Dear customer, thank you for reaching out to us about your request. We have passed on your query to an advisor who will be in touch with you by Monday 5 October 2026. We will ensure that your request is handled as soon as possible. Please note that the next steps will be taken by the advisor on the above-mentioned date. We appreciate your patience and will be in touch with you soon. \" }",
-  "ea926f7bcdb1a1e4398f115fed97d5e74c810448fa61db3ed5ff21fc75855960": "{\"label\": \"billing\", \"product\": \"card\", \"severity\": \"medium\", \"is_complaint\": true, \"unauthorized_payment\": false, \"injection_suspected\": false}",
+  "64ab1249140b522441c537ec0b82e9b687a8163590847af76497594221472154": "{\"label\": \"billing\", \"sous_motif\": \"debit_errone\", \"product\": \"card\", \"severity\": \"medium\", \"is_complaint\": true, \"unauthorized_payment\": false, \"injection_suspected\": false}",
   "efa68dd9be479d4d8f0ab92b042439f40905b841e47732ed81369dd29f238990": "{ \"brouillon\": \"Bonjour, nous vous remercions d'avoir pris contact avec nous. Nous tenons à vous informer que nous avons bien reçu votre réclamation concernant votre carte. Nous vous rappelons que nous devons accuser réception de votre réclamation au plus tard le mardi 27 octobre 2026. Nous vous répondrons au plus tard le mardi 3 novembre 2026. Nous vous remercions de votre patience et nous vous tiendrons informé de l'avancement de notre enquête.\" }",
-  "d427dab7d6146788a1c8a22ca3ae2c77181eee708bbb405250a704d9ab92957c": "{\"label\": \"billing\", \"product\": \"card\", \"severity\": \"high\", \"is_complaint\": true, \"unauthorized_payment\": true, \"injection_suspected\": false}",
+  "d934cda73aa4556f0041327951482d3485c8035b646c188a34333b76063d1509": "{\"label\": \"billing\", \"sous_motif\": \"operation_non_autorisee\", \"product\": \"card\", \"severity\": \"high\", \"is_complaint\": true, \"unauthorized_payment\": true, \"injection_suspected\": false}",
   "2f72b3363d61fc8f32e571ed0090474b5d230055363d9fd818f8f96ff53723ea": "{ \"brouillon\": \"Bonjour, nous vous remercions de nous avoir signalé cette opération de paiement non autorisée. Nous traiterons votre signalement en priorité, au plus tard le mardi 6 octobre 2026. Vous recevrez un accusé de réception de votre réclamation, au plus tard le lundi 19 octobre 2026, puis une réponse, au plus tard le lundi 26 octobre 2026. Pour votre sécurité, nous vous rappelons de faire opposition sur votre carte depuis l'application, si ce n'est pas déjà fait, et de ne jamais communiquer vos codes ni vos identifiants, même à une personne qui se présente comme un conseiller VAULT. Nous vous remercions de votre compréhension.\" }",
-  "290bfe32c190726124e80df6115bcfd7af7d33bf2efb3b1d419de9ad026f089a": "{\"label\": \"bug\", \"product\": \"card\", \"severity\": \"medium\", \"is_complaint\": true, \"unauthorized_payment\": false, \"injection_suspected\": false}",
+  "036de7c33c6f2a4daf802a9e99f29041c3fdd8c7daf016fc84b9864db35412ea": "{\"label\": \"bug\", \"sous_motif\": \"carte_refusee\", \"product\": \"card\", \"severity\": \"medium\", \"is_complaint\": true, \"unauthorized_payment\": false, \"injection_suspected\": false}",
   "0315a3222de6035a0642d6c028af5a157b6b1b7268b53c58df6891b20aaa7190": "{ \"brouillon\": \"Bonjour, nous vous remercions de nous avoir fait part de votre mécontentement concernant votre carte. Nous tenons à vous informer que nous avons bien pris connaissance de votre réclamation. Nous vous rappelons que nous devons accuser réception de votre réclamation au plus tard le mardi 1er décembre 2026. Nous vous répondrons au plus tard le mardi 8 décembre 2026. Nous vous remercions de votre patience et nous vous tiendrons informé de l'avancement de notre enquête.\" }",
-  "baba24fed68bba0cbe166a7c894f3a781faa6eada4184689ad4aac362237b812": "{\"label\": \"billing\", \"product\": \"card\", \"severity\": \"high\", \"is_complaint\": true, \"unauthorized_payment\": true, \"injection_suspected\": false}",
+  "7b4c37089cf888ad0a91f6803eab1d34349c42c0c02acf7866f75fb6f457099a": "{\"label\": \"billing\", \"sous_motif\": \"operation_non_autorisee\", \"product\": \"card\", \"severity\": \"high\", \"is_complaint\": true, \"unauthorized_payment\": true, \"injection_suspected\": false}",
   "27df79d22a4a2008b0c856c35295b82c5ff9c86ce10eb2ff3c73988a10ade51e": "{ \"brouillon\": \"Dear valued customer, we appreciate you bringing this matter to our attention and want to assure you that your report is being handled as a priority. We will review your case by Monday, 12 October 2026, and provide a response to your complaint by Friday, 30 October 2026. In the meantime, please block your card from the app, if not already done, to prevent any further unauthorized transactions. Additionally, please note that you should never share your codes or login details, even with someone claiming to work for VAULT. We appreciate your cooperation in this matter and will be in touch soon. Thank you for your patience and understanding.\" }"
  },
  "expected": {
@@ -17,6 +17,7 @@
    "id": "NB001",
    "fields": {
     "label": "other",
+    "sous_motif": "autre",
     "product": "unknown",
     "severity": "low",
     "is_complaint": false,
@@ -46,6 +47,7 @@
    "id": "DEV009",
    "fields": {
     "label": "billing",
+    "sous_motif": "debit_errone",
     "product": "card",
     "severity": "medium",
     "is_complaint": true,
@@ -74,6 +76,7 @@
    "id": "DEV028",
    "fields": {
     "label": "billing",
+    "sous_motif": "operation_non_autorisee",
     "product": "card",
     "severity": "high",
     "is_complaint": true,
@@ -106,6 +109,7 @@
    "id": "DEV038",
    "fields": {
     "label": "bug",
+    "sous_motif": "carte_refusee",
     "product": "card",
     "severity": "medium",
     "is_complaint": true,
@@ -139,6 +143,7 @@
    "id": "DEV027",
    "fields": {
     "label": "billing",
+    "sous_motif": "operation_non_autorisee",
     "product": "card",
     "severity": "high",
     "is_complaint": true,

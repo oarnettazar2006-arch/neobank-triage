@@ -7,12 +7,12 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 - `src/` : le bot, en bibliothèque standard
   - `schema.py` : valeurs fermées et schéma de sortie (source unique)
   - `guard.py` : garde d'entrée (injections repérées et retirées avant le LLM)
-  - `triage.py` : chaîne de tri (garde, puis LLM avec `prompts/v4_injection.txt`)
+  - `triage.py` : chaîne de tri (garde, puis LLM avec `prompts/v7_sous_motif.txt`, qui prédit aussi `sous_motif`)
   - `deadlines.py` : délais réglementaires en jours ouvrables
   - `reply.py`, `output_guard.py` : brouillon de réponse et garde de sortie
   - `answers.py` : chargeur de la base de réponses (`docs/answers/`, une fiche par `sous_motif`)
   - `notebook.py` : adaptateur compatible avec le notebook du cours (`classify`, `extract`, `draft_reply_for`)
-- `prompts/` : prompts versionnés en `.txt` (`v4_injection.txt` en service ; `reply_v1*.txt` pour les brouillons ; v0 à v3 pour l'historique)
+- `prompts/` : prompts versionnés en `.txt` (`v7_sous_motif.txt` en service ; `reply_v1*.txt` pour les brouillons ; v0 à v4 pour l'historique)
 - `data/dev/` : dev40 (réglage), `guide_cases.jsonl` (cas limites du guide), `raw/` (sources de dev40)
 - `data/val/` : val60, juge des étapes du bot
 - `data/calib/` : calib60, réservé au seuil de confiance
