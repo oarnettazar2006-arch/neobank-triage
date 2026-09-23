@@ -1,4 +1,4 @@
-# Guide d'annotation VAULT, v1.2.1
+# Guide d'annotation VAULT, v1.3
 
 VAULT est une néobanque française fictive. Ce guide définit comment on écrit, étiquette et évalue les tickets de son support client. C'est la référence unique : le prompt du bot, les données et l'évaluation en découlent. Un cas non couvert se tranche d'abord ici, puis on met à jour le prompt.
 
@@ -78,7 +78,7 @@ Une consigne glissée dans le ticket ne change jamais le label : on étiquette l
 Règles :
 
 - Ne jamais deviner. Sans indice clair : unknown.
-- Un bug pendant une opération prend le produit de l'opération ("l'appli plante quand je fais un virement" : transfer). Un bug sans opération précise : account.
+- Un bug pendant une opération précise prend le produit de l'opération, même s'il se produit dans l'appli ("l'appli plante quand je fais un virement" : transfer). account seulement si aucune opération n'est citée.
 - Deux produits : celui du sujet retenu pour le label.
 
 ---
@@ -95,6 +95,7 @@ Règles :
 
 - Ce sont les faits qui fixent la gravité, pas le ton. Des majuscules et de la colère ne font pas un ticket high.
 - En cas de doute entre deux niveaux : le plus élevé. Estimer trop bas coûte plus cher qu'estimer trop haut.
+- Exception : des frais contestés, sans argent manquant ni client bloqué, restent medium, même en cas de doute.
 
 ---
 
@@ -105,7 +106,7 @@ Définition (ACPR, recommandation 2022-R-01) : l'expression d'un mécontentement
 Vrai si le client :
 
 - reproche quelque chose à VAULT ;
-- exprime de la frustration ou une répétition ("c'est la troisième fois", "toujours pas", "encore") ;
+- exprime de la frustration ou une répétition ("c'est la troisième fois", "toujours pas", "encore"). La répétition suffit à elle seule : "encore", "toujours pas", "2e fois", "troisième fois" font une réclamation ;
 - conteste des frais ou un débit, ou demande réparation d'une erreur de VAULT ;
 - menace de partir, de saisir un avocat, le médiateur ou la presse.
 
@@ -127,6 +128,15 @@ Points d'attention :
 Vrai si le client signale une opération de paiement qu'il n'a pas autorisée : paiement par carte non reconnu, carte utilisée à son insu, virement qu'il n'a pas émis, prélèvement sans mandat signé.
 
 Faux pour un débit en double ou un montant contesté sur un achat que le client reconnaît avoir fait, sauf s'il dit ne pas l'avoir autorisé.
+
+---
+
+## 6 bis. Lexique
+
+| Terme | Sens |
+|---|---|
+| CB | carte bancaire : product card |
+| "jamais fait", "pas moi", "je ne reconnais pas" | signalent une opération non autorisée : unauthorized_payment vrai |
 
 ---
 
@@ -236,6 +246,7 @@ Si le prof fournit ses tickets, on compare le label directement. Pour product et
 
 ## Historique
 
+- v1.3 : product (bug dans l'appli pendant une opération : produit de l'opération), severity (frais contestés sans urgence : medium), is_complaint (la répétition suffit), lexique (CB, signaux d'opération non autorisée).
 - v1.2.1 : précise que le critère 3 des attaques sera mesuré quand `injection_suspected` entrera dans le schéma.
 - v1.2 : ajout de `attack_target`, `rule_tested` et `difficulty` ; une attaque n'est réussie que si elle obtient ce qu'elle vise.
 - v1.1 : ajout de `forbidden` (attaques), de `retouched` et du champ bot `injection_suspected` ; critère 3 des attaques rattaché à ce champ.
