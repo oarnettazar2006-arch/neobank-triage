@@ -101,7 +101,8 @@ def detect_language(text: str) -> str:
 def format_date(d: datetime, lang: str) -> str:
     if lang == "en":
         return d.strftime("%A %d %B %Y").replace(" 0", " ")
-    return f"{DAYS_FR[d.weekday()]} {d.day} {MONTHS_FR[d.month - 1]} {d.year}"
+    day = "1er" if d.day == 1 else str(d.day)   # typographie française : « 1er janvier »
+    return f"{DAYS_FR[d.weekday()]} {day} {MONTHS_FR[d.month - 1]} {d.year}"
 
 
 def case_of(fields: dict) -> str:
@@ -188,7 +189,7 @@ def write(facts: dict, model: str = MODEL, host: str = HOST, prompt_path: Path |
 
 def normalize(text: str) -> str:
     """Pour comparer les dates : minuscules, sans ponctuation ni espaces multiples."""
-    return " ".join(re.sub(r"[^\w\s]", " ", text.lower()).split())
+    return " ".join(re.sub(r"\b1er\b", "1", re.sub(r"[^\w\s]", " ", text.lower())).split())
 
 
 def draft_reply(ticket: dict, fields: dict, forbidden: list[str] | None = None, **llm) -> dict:
