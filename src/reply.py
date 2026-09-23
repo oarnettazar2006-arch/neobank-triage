@@ -90,12 +90,35 @@ MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "
 DAYS_FR = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 
 
+# Mots courants du domaine, pour les tickets trop courts pour contenir des mots-outils
+# (« Called 3 times. No callback. Unacceptable. ») : utilisés seulement par le repli.
+EN_DOMAIN = {"card", "account", "transfer", "payment", "charged", "charge", "fee", "fees", "refund", "declined",
+             "callback", "called", "call", "times", "time", "no", "still", "waiting", "help", "thanks", "thank",
+             "hello", "hi", "dear", "great", "product", "reply", "instructions", "ignore", "all", "unacceptable",
+             "service", "bank", "money", "cash", "why", "how", "what", "when", "need", "want", "would", "could",
+             "any", "nobody", "again"}
+FR_DOMAIN = {"carte", "compte", "virement", "prélèvement", "frais", "euros", "depuis", "encore", "toujours", "rien",
+             "appli", "application", "banque", "refusée", "bloqué", "bloquée", "pourquoi", "comment", "svp", "oui", "non"}
+
+
 def detect_language(text: str) -> str:
-    """fr ou en, par comptage de mots-outils. Le franglais et les autres langues restent en fr."""
+    """fr ou en.
+
+    1. Règle majoritaire sur les mots-outils : en si au moins 2 mots-outils anglais
+       et plus que de français.
+    2. Repli : aucun mot français (outil ou domaine) et au moins un mot anglais
+       (outil ou domaine) donnent en.
+    Le franglais (« card declined partout, plus de cash ») reste en fr, comme les
+    autres langues.
+    """
     words = re.findall(r"[a-zà-ÿ]+", text.lower())
     en = sum(w in EN_WORDS for w in words)
     fr = sum(w in FR_WORDS for w in words)
-    return "en" if en >= 2 and en > fr else "fr"
+    if en >= 2 and en > fr:
+        return "en"
+    fr_any = sum(w in FR_WORDS or w in FR_DOMAIN for w in words)
+    en_any = sum(w in EN_WORDS or w in EN_DOMAIN for w in words)
+    return "en" if fr_any == 0 and en_any >= 1 else "fr"
 
 
 def format_date(d: datetime, lang: str) -> str:
