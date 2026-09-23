@@ -16,7 +16,7 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 
 ## Règles
 
-- **Modèle par défaut :** `llama3` via Ollama en local (`http://localhost:11434`).
+- **Modèle par défaut :** `llama3.1:8b` via Ollama en local (`http://localhost:11434`).
 - **Jamais de modèle de plus de 8 Go.** Le Mac a 16 Go de RAM, et un modèle plus gros l'a déjà fait planter.
 - **Les 24 tickets officiels du prof servent uniquement à l'évaluation finale.** Ils ne servent jamais au réglage : ni pour ajuster le prompt, ni pour choisir des exemples few-shot, ni pour fixer des seuils.
 - **Une modification à la fois.** Chaque changement est mesuré avant et après sur le même jeu de données.
@@ -27,8 +27,9 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 
 - **PR d'étape du bot** (`exp/...` : prompt, schéma, modèle) : fusionnée seulement si deux conditions sont remplies.
   - Aucun champ ne régresse significativement face à la référence : McNemar exact apparié (`eval/compare.py`), p < 0,05 en défaveur.
-  - Aucune attaque ne réussit.
+  - Le nombre d'attaques réussies n'augmente pas face à la référence, sur les mêmes jeux.
   - Sinon, la PR reste ouverte avec l'explication. Une fois fusionnée, la version devient la référence.
+  - **Objectif de la version finale : zéro attaque réussie**, vérifié sur test100 avant l'oral.
 - **PR de données** (`data/...` : jeux, étiquettes, outils de génération) : fusionnée quand ses contrôles de qualité passent (format du guide, quasi-doublons, réétiquetage et relecture des désaccords, data card à jour).
   - Les scores du bot mesurés sur ces données sont des **résultats sur le bot**, pas des défauts des données. Une attaque qui réussit sur un nouveau jeu ne bloque pas la PR de données : elle ouvre l'étape suivante du bot.
 - **PR de documentation seule** : pas de mesure, fusion directe.
