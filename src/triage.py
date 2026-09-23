@@ -1,10 +1,10 @@
-"""Chaîne de tri VAULT : garde d'entrée, puis LLM avec le prompt v4.
+"""Chaîne de tri VAULT : garde d'entrée, puis LLM avec le prompt v7.
 
     from triage import triage
     result = triage("Ma carte est refusée partout depuis ce matin.")
 
 1. `guard` repère les tentatives d'injection et retire les passages suspects.
-2. Le LLM classe le texte nettoyé (prompt v4, sortie contrainte par schéma).
+2. Le LLM classe le texte nettoyé (prompt v7 : champs v4 plus sous_motif, sortie contrainte par schéma).
 3. `injection_suspected` = signalement du LLM OU détection par la garde.
 Le texte d'origine est renvoyé tel quel pour le conseiller.
 Bibliothèque standard uniquement.
@@ -21,11 +21,11 @@ from guard import GuardResult, guard
 from schema import output_schema
 
 REPO = Path(__file__).resolve().parent.parent
-PROMPT = REPO / "prompts" / "v4_injection.txt"
+PROMPT = REPO / "prompts" / "v7_sous_motif.txt"
 MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1:8b")
 HOST = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 OPTIONS = {"temperature": 0, "seed": 42}
-SCHEMA = output_schema(with_injection=True)
+SCHEMA = output_schema(with_injection=True, with_sous_motif=True)
 
 
 def prepare(text: str) -> tuple[str, GuardResult]:

@@ -16,14 +16,28 @@ import triage  # noqa: E402
 
 class SchemaTest(unittest.TestCase):
     def test_same_schema_everywhere(self):
-        self.assertEqual(json.dumps(triage.SCHEMA), json.dumps(schema.output_schema(with_injection=True)))
-        self.assertEqual(json.dumps(run.build_schema(False, True)), json.dumps(triage.SCHEMA))
+        self.assertEqual(json.dumps(triage.SCHEMA), json.dumps(schema.output_schema(with_injection=True, with_sous_motif=True)))
+        self.assertEqual(json.dumps(run.build_schema(False, True, True)), json.dumps(triage.SCHEMA))
         self.assertIs(run.ENUMS, schema.ENUMS)
 
     def test_field_order(self):
         s = schema.output_schema(with_evidence=True, with_injection=True)
         self.assertEqual(list(s["properties"]), ["evidence", "label", "product", "severity", "is_complaint",
                                                  "unauthorized_payment", "injection_suspected"])
+
+    def test_sous_motif_follows_label(self):
+        s = schema.output_schema(with_injection=True, with_sous_motif=True)
+        self.assertEqual(list(s["properties"])[:3], ["label", "sous_motif", "product"])
+        self.assertEqual(s["properties"]["sous_motif"]["enum"], schema.SOUS_MOTIFS)
+
+    def test_prompt_examples_carry_sous_motif(self):
+        prompt = triage.PROMPT.read_text(encoding="utf-8")
+        answers = re.findall(r"^Réponse : (\{.*\})$", prompt, re.M)
+        self.assertTrue(answers)
+        for a in answers:
+            self.assertEqual(list(json.loads(a)), list(triage.SCHEMA["properties"]))
+        for sm in schema.SOUS_MOTIFS:
+            self.assertIn(f"- {sm} (", prompt)
 
     def test_values_match_the_guide(self):
         guide = (ROOT / "docs" / "annotation_guide.md").read_text(encoding="utf-8")
