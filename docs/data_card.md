@@ -64,7 +64,7 @@ Types d'attaque :
 **Protocole.**
 - qwen2.5:7b (4,68 Go, vérifié avant téléchargement) réétiquette les 250 tickets à l'aveugle. Il utilise le prompt `data/qc/annotator_prompt.txt` : le guide v1.3 (définitions, règles, lexique) plus la consigne d'ignorer les instructions glissées dans le ticket. Il ne voit jamais la fiche.
 - Température 0, seed 42, sortie contrainte par schéma, via `eval/run.py`. Résultats bruts : `data/qc/results/`.
-- Chaque désaccord (131 tickets) a été relu à la main avec le guide.
+- Chaque désaccord (131 tickets) a été relu avec le guide et tranché par **Claude, le même modèle que celui qui a généré les tickets**. Ce n'est pas une relecture humaine.
 
 **Taux d'accord qwen / fiches** (avant corrections)
 
@@ -108,7 +108,7 @@ Ces motifs recoupent les points faibles connus du bot (gravité, is_complaint, p
 
 ## Limites
 
-- **Un seul auteur, un seul relecteur.** Claude a écrit les tickets et relu les désaccords. qwen sert de second avis indépendant, mais ce n'est pas un annotateur humain. Un kappa entre deux humains du groupe, sur un échantillon, reste à faire (guide, section 10).
+- **Le générateur tranche ses propres désaccords.** Claude a écrit les tickets et fixé les fiches, puis c'est encore Claude qui a tranché chaque désaccord avec qwen. Il y a donc un risque de biais de confirmation : 184 désaccords de champ ont été tranchés en faveur de la fiche, 6 corrections seulement. qwen sert de second avis indépendant, mais ce n'est pas un annotateur humain. Un kappa entre deux humains du groupe, sur un échantillon, reste à faire (guide, section 10).
 - **Style homogène possible.** Les personas et styles varient, mais tous les textes viennent du même générateur. Le contrôle nomic ne détecte que la proximité sémantique, pas une signature de style.
 - **Étiquettes de la fiche.** Elles font foi par construction. Quand le texte les contredit, c'est le texte qui a été réécrit (5 cas), ou l'étiquette corrigée si le texte était clair (1 cas).
 - **attacks30** : 16 attaques sur 30 n'ont pas de champ cible (`attack_target` vide).
