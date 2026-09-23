@@ -10,6 +10,10 @@ JSONL au format de docs/annotation_guide.md. Le modèle est appelé via l'API
 Ollama (/api/chat), avec température 0, seed fixe et une sortie contrainte par
 `format` = schéma JSON. Aucune dépendance hors bibliothèque standard.
 
+Le cas d'injection exact du notebook (data/attacks/notebook_case.jsonl) est
+rejoué à chaque évaluation, dans une section à part (--no-notebook-case pour
+l'omettre).
+
 Sorties : un rapport dans le terminal et un fichier JSONL horodaté dans
 eval/results/ (une ligne `meta`, une ligne `ticket` par ticket, une ligne
 `summary`).
@@ -33,6 +37,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
+NOTEBOOK_CASE = REPO / "data" / "attacks" / "notebook_case.jsonl"
 
 # Valeurs fermées, reprises de docs/annotation_guide.md (sections 2 à 6).
 ENUMS = {
@@ -282,6 +287,8 @@ def main() -> None:
     ap.add_argument("--model", required=True, help="nom du modèle Ollama, ex. llama3.1:8b")
     ap.add_argument("--evidence", action="store_true", help="ajoute un champ evidence en tête du schéma")
     ap.add_argument("--injection", action="store_true", help="ajoute un champ injection_suspected en fin de schéma")
+    ap.add_argument("--no-notebook-case", action="store_true",
+                    help="ne pas rejouer le cas d'injection du notebook (data/attacks/notebook_case.jsonl)")
     ap.add_argument("--guard", action="store_true",
                     help="évalue la chaîne src/triage.py : garde d'entrée, puis LLM (implique --injection)")
     ap.add_argument("--seed", type=int, default=42)
@@ -335,7 +342,7 @@ def main() -> None:
     rows = []
     with out_path.open("w", encoding="utf-8") as out:
         out.write(json.dumps(meta, ensure_ascii=False) + "\n")
-        for i, t in enumerate(tickets, 1):
+        def evaluate(t: dict) -> dict:
             llm_input, g = triage.prepare(t["input"]) if args.guard else (t["input"], None)
             res = classify(args.host, args.model, template.replace("{ticket}", llm_input), schema, options)
             gold = {f: t[f] for f in FIELDS}
@@ -353,6 +360,11 @@ def main() -> None:
                 row["evidence_verbatim"] = bool(pred["evidence"]) and pred["evidence"] in t["input"]
             if row["attack"]:
                 row["attack_result"] = attack_result(row, t)
+            return row, res
+
+        for i, t in enumerate(tickets, 1):
+            row, res = evaluate(t)
+            pred, hits = row["pred"], row["hits"]
             rows.append(row)
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
             status = "ok" if pred is not None else f"ERREUR {res['error']}"
@@ -393,6 +405,18 @@ def main() -> None:
         if args.evidence:
             verbatim = [r.get("evidence_verbatim", False) for r in rows]
             summary["evidence_verbatim_rate"] = sum(verbatim) / n
+        # Tâche 4 du notebook : le cas d'injection exact est rejoué à chaque évaluation,
+        # à part, pour ne pas changer les métriques du jeu évalué.
+        nb_case = None
+        if not args.no_notebook_case:
+            nb = json.loads(NOTEBOOK_CASE.read_text(encoding="utf-8").splitlines()[0])
+            nb_row, _ = evaluate(nb)
+            nb_row["type"] = "notebook_case"
+            out.write(json.dumps(nb_row, ensure_ascii=False) + "\n")
+            a = nb_row["attack_result"]
+            nb_case = {"id": nb["id"], "pred": nb_row["pred"], "fields_ok": a["fields_ok"], "obtained": a["obtained"],
+                       "flagged": a["flagged"], "attack_succeeded": a["attack_succeeded"]}
+        summary["notebook_case"] = nb_case
         out.write(json.dumps(summary, ensure_ascii=False) + "\n")
 
     # Rapport
@@ -425,6 +449,11 @@ def main() -> None:
             print(f"  attaques non signalées : {', '.join(inj['missed'])}")
         if inj["false_positives"]:
             print(f"  faux positifs : {', '.join(inj['false_positives'])}")
+    if nb_case:
+        verdict = "RÉUSSIE" if nb_case["attack_succeeded"] else "bloquée"
+        print(f"\nCas d'injection du notebook ({nb_case['id']}) : {verdict} — obtenue : {'oui' if nb_case['obtained'] else 'non'}, "
+              f"signalée : {'-' if nb_case['flagged'] is None else ('oui' if nb_case['flagged'] else 'NON')}, "
+              f"champs tous justes : {'oui' if nb_case['fields_ok'] else 'non'}")
     print(f"\nRésultats : {rel(out_path)}")
 
 
