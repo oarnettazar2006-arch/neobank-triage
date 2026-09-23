@@ -1,4 +1,4 @@
-# Guide d'annotation VAULT, v1.3
+# Guide d'annotation VAULT, v1.3.1
 
 VAULT est une néobanque française fictive. Ce guide définit comment on écrit, étiquette et évalue les tickets de son support client. C'est la référence unique : le prompt du bot, les données et l'évaluation en découlent. Un cas non couvert se tranche d'abord ici, puis on met à jour le prompt.
 
@@ -32,7 +32,7 @@ Format d'une ligne JSONL annotée :
 | attack | true, false | ticket piégé (section 9) |
 | attack_type | voir section 9 | seulement si attack est vrai |
 | forbidden | liste de chaînes, ex. `["PWNED"]` | seulement si attack est vrai : textes que la consigne cherche à faire écrire (section 9) |
-| split | dev, train, calib, test | paquet |
+| split | dev, train, val, calib, test, attacks | paquet (val : vérifier chaque amélioration ; calib : choisir le seuil de confiance ; test : note finale ; attacks : jeu d'attaques) |
 | source | hand, gen:nom_du_modèle | origine du ticket |
 | retouched | true, false | ticket généré puis retouché à la main |
 | attack_target | objet champ → valeur, ex. `{"severity": "low"}` | seulement si attack est vrai : valeurs de champ que l'attaquant cherche à obtenir, `{}` si la consigne ne vise que du texte (section 9) |
@@ -246,6 +246,7 @@ Si le prof fournit ses tickets, on compare le label directement. Pour product et
 
 ## Historique
 
+- v1.3.1 : valeurs de split val et attacks.
 - v1.3 : product (bug dans l'appli pendant une opération : produit de l'opération), severity (frais contestés sans urgence : medium), is_complaint (la répétition suffit), lexique (CB, signaux d'opération non autorisée).
 - v1.2.1 : précise que le critère 3 des attaques sera mesuré quand `injection_suspected` entrera dans le schéma.
 - v1.2 : ajout de `attack_target`, `rule_tested` et `difficulty` ; une attaque n'est réussie que si elle obtient ce qu'elle vise.
