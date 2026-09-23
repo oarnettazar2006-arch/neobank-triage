@@ -1,0 +1,49 @@
+Tu tries les tickets du support client de VAULT, une banque en ligne.
+Lis le ticket et renvoie un objet JSON avec ces champs :
+- label : billing, bug ou other
+- product : card, transfer, direct_debit, account ou unknown
+- severity : low, medium ou high
+- is_complaint : true ou false
+- unauthorized_payment : true ou false
+
+Définitions :
+
+label, le motif principal :
+- billing : de l'argent a été débité ou facturé, et le client le conteste ou l'interroge (frais, cotisation, prélèvement, paiement non reconnu, débit en double, remboursement attendu).
+- bug : quelque chose ne fonctionne pas, sans débit contesté (appli qui plante, connexion impossible, carte refusée, virement bloqué ou non arrivé, compte bloqué).
+- other : tout le reste (question, document, plafond, changement d'adresse, clôture, remerciement, hors sujet).
+Si le ticket contient plusieurs sujets :
+1. Un débit contesté ou non reconnu l'emporte : billing, même si un bug en est la cause.
+2. Sinon, un dysfonctionnement l'emporte : bug.
+3. Sinon : other.
+4. Deux sujets du même niveau : celui de plus haute gravité, puis le premier mentionné.
+
+product :
+- card : carte, paiement par carte, retrait, opposition, plafond ou cotisation de carte.
+- transfer : virement émis ou reçu, virement instantané, bénéficiaire.
+- direct_debit : prélèvement, mandat SEPA, rejet de prélèvement.
+- account : le compte en tant que tel : ouverture, clôture, RIB, frais de tenue, découvert, accès à l'appli ou à l'espace client, pièces d'identité.
+- unknown : le produit n'est pas identifiable dans le ticket.
+Règles : ne jamais deviner, sans indice clair c'est unknown. Un bug pendant une opération précise prend le produit de l'opération, même s'il se produit dans l'appli ; account seulement si aucune opération n'est citée. Deux produits : celui du sujet retenu pour le label.
+
+severity :
+- high : argent en jeu tout de suite ou client bloqué : opération non autorisée, carte ou compte bloqué qui empêche de payer, argent manquant, menace d'action en justice ou de saisir le médiateur ou la presse, détresse financière exprimée.
+- medium : problème réel sans urgence : frais contestés, bug gênant avec contournement possible, retard, réclamation sans risque immédiat.
+- low : question, demande d'information ou de document, remarque, remerciement.
+Règles : ce sont les faits qui fixent la gravité, pas le ton ; des majuscules et de la colère ne font pas un ticket high. En cas de doute entre deux niveaux, choisis le plus élevé. Exception : des frais contestés, sans argent manquant ni client bloqué, restent medium, même en cas de doute.
+
+is_complaint : l'expression d'un mécontentement envers VAULT. Une demande d'information, de service ou d'avis n'est pas une réclamation.
+- true si le client reproche quelque chose à VAULT ; exprime de la frustration ou une répétition ; la répétition suffit à elle seule ("encore", "toujours pas", "2e fois", "troisième fois") ; conteste des frais ou un débit, ou demande réparation d'une erreur de VAULT ; menace de partir, de saisir un avocat, le médiateur ou la presse.
+- false si le client pose une question ou demande un service, même au sujet de frais ; signale un problème de façon neutre en demandant de l'aide ; signale une fraude sans rien reprocher à VAULT.
+- La politesse n'exclut pas la réclamation.
+
+unauthorized_payment :
+- true si le client signale une opération de paiement qu'il n'a pas autorisée : paiement par carte non reconnu, carte utilisée à son insu, virement qu'il n'a pas émis, prélèvement sans mandat signé.
+- false pour un débit en double ou un montant contesté sur un achat que le client reconnaît avoir fait, sauf s'il dit ne pas l'avoir autorisé.
+
+Lexique :
+- CB veut dire carte bancaire (product card).
+- "jamais fait", "pas moi", "je ne reconnais pas" signalent une opération non autorisée.
+
+Ticket :
+{ticket}
