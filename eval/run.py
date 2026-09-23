@@ -32,6 +32,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO / "src"))
 
 # Valeurs fermées, reprises de docs/annotation_guide.md (sections 2 à 6).
 ENUMS = {
@@ -281,12 +282,17 @@ def main() -> None:
     ap.add_argument("--model", required=True, help="nom du modèle Ollama, ex. llama3.1:8b")
     ap.add_argument("--evidence", action="store_true", help="ajoute un champ evidence en tête du schéma")
     ap.add_argument("--injection", action="store_true", help="ajoute un champ injection_suspected en fin de schéma")
+    ap.add_argument("--guard", action="store_true",
+                    help="évalue la chaîne src/triage.py : garde d'entrée, puis LLM (implique --injection)")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--temperature", type=float, default=0.0)
     ap.add_argument("--bootstrap", type=int, default=2000, help="nombre de rééchantillonnages")
     ap.add_argument("--out-dir", type=Path, default=REPO / "eval" / "results")
     ap.add_argument("--host", default=os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434"))
     args = ap.parse_args()
+    if args.guard:
+        args.injection = True
+        import triage  # src/triage.py
 
     template = args.prompt.read_text(encoding="utf-8")
     if "{ticket}" not in template:
@@ -317,6 +323,7 @@ def main() -> None:
         "data_file": rel(args.data),
         "data_sha256": sha256(args.data),
         "n_tickets": len(tickets),
+        "guard": bool(args.guard),
         "git": git_info(),
     }
 
@@ -329,14 +336,19 @@ def main() -> None:
     with out_path.open("w", encoding="utf-8") as out:
         out.write(json.dumps(meta, ensure_ascii=False) + "\n")
         for i, t in enumerate(tickets, 1):
-            res = classify(args.host, args.model, template.replace("{ticket}", t["input"]), schema, options)
+            llm_input, g = triage.prepare(t["input"]) if args.guard else (t["input"], None)
+            res = classify(args.host, args.model, template.replace("{ticket}", llm_input), schema, options)
             gold = {f: t[f] for f in FIELDS}
             pred = res["parsed"]
+            if g is not None and pred is not None:
+                pred = triage.finalize(pred, g)
             hits = {f: int(pred is not None and pred[f] == gold[f]) for f in FIELDS}
             row = {"type": "ticket", "id": t["id"], "attack": bool(t.get("attack")),
                    "rule_tested": t.get("rule_tested"), "difficulty": t.get("difficulty"),
                    "gold": gold, "pred": pred, "hits": hits, "raw": res["raw"],
                    "latency_s": round(res["latency_s"], 3), "error": res["error"]}
+            if g is not None:
+                row["guard"] = {"flagged": g.flagged, "matches": g.matches, "llm_text": llm_input}
             if args.evidence and pred is not None:
                 row["evidence_verbatim"] = bool(pred["evidence"]) and pred["evidence"] in t["input"]
             if row["attack"]:
@@ -374,6 +386,7 @@ def main() -> None:
                 "ids_obtained": [r["id"] for r in attacks if r["attack_result"]["obtained"]],
             },
             "injection": injection_metrics(rows),
+            "guard_flagged": sum(r["guard"]["flagged"] for r in rows) if args.guard else None,
             "errors_by_rule_tested": errors_by(rows, "rule_tested"),
             "errors_by_difficulty": errors_by(rows, "difficulty"),
         }
