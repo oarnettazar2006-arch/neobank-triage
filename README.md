@@ -21,6 +21,7 @@ make triage CSV=mes_tickets.csv BROUILLON=1       # + rédacteur et garde de sor
 - **Sortie** : `<nom>_triage.csv` à côté de l'entrée. Il reprend les colonnes d'entrée et ajoute `categorie_predite`, `produit_predit`, `severite_predite`, `sous_motif`, `reclamation`, `injection_suspectee`, `echeance` (la plus proche, calculée en code) et `controle` (accord ou non entre le tri et le contrôleur). Avec `BROUILLON=1`, il ajoute aussi `fiche`, `brouillon` et `brouillon_bloque`.
 - **Rapport** : si des bonnes réponses sont présentes, `<nom>_triage.md` donne la précision par champ, le taux de tickets entièrement justes et les matrices de confusion.
 - **Pipeline** : le pipeline et les prompts sont ceux du chat. Les étapes s'enchaînent sur tout le fichier : tous les tris, puis tous les contrôles, puis tous les brouillons. Un seul modèle est chargé à la fois. La progression et le temps restant estimé s'affichent pendant le calcul.
+- **Temps mesuré** sur demo15, Mac 16 Go, Ollama local, départ à froid : 1 min 35 s, soit 6,3 s par ticket (tri 1 min 09 s, contrôle 26 s). Résultats : catégorie 14/15, produit 14/15, gravité 13/15, tickets entièrement justes 11/15. Les prédictions sont identiques à celles de l'évaluation v7 de référence sur ces 15 tickets.
 
 ## Architecture
 

@@ -296,7 +296,8 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     seconds = progress.elapsed
     write_csv(out, columns, rows, preds, delimiter)
-    print(f"\n{len(rows)} tickets en {duration(seconds)} ({seconds / len(rows):.1f} s par ticket)", file=sys.stderr)
+    print(f"\n{len(rows)} tickets en {duration(seconds)} ({seconds / len(rows):.1f} s par ticket)".replace(".", ","),
+          file=sys.stderr)
     for step, s in progress.step_times.items():
         print(f"  {step:<10} {duration(s)}", file=sys.stderr)
     print(f"CSV : {out}", file=sys.stderr)
