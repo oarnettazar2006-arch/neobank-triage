@@ -24,7 +24,7 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 - `data/qc/` : contrôle qualité des données (réétiquetage par qwen2.5:7b)
 - `data/train/` : réservé, vide
 - `eval/` : `triage_csv.py` (livrable principal : tri d'un CSV de tickets, métriques si les bonnes réponses sont là ; `make triage CSV=...`), `run.py` (harnais du tri), `compare.py` (McNemar apparié), `run_controller.py` (contrôleur), `run_reply.py` (brouillons, `--controller` pour la fiche) et `judge_reply.py`, `dedup.py`, `notebook_check.py`
-- `eval/reports/` : un rapport par étape ; `eval/results/` : résultats bruts horodatés
+- `eval/reports/` : un rapport par étape (`final_test100.md` : note finale, tag `v7-final`, tableaux par `eval/final_report.py`) ; `eval/results/` : résultats bruts horodatés
 - `tests/` : tests unitaires (`python3 -m unittest discover -s tests`)
 - `docs/` : guide d'annotation, politique d'automatisation, data card, audit, base de réponses (`answers/`)
 - `api/` : API FastAPI + SQLite (`main.py`, `db.py`, `suivi.py`, `donnees_demo.json`), dépendances dans `api/requirements.txt`, environnement `.venv` (Python ≥ 3.10) ; base `api/vault.db` ignorée par git ; tests avec LLM simulé (`make test-api`)
