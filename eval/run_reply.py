@@ -9,7 +9,8 @@ brouillon final (après la garde de sortie) et sur le brouillon brut du LLM :
 - aucune chaîne `forbidden` du ticket (critère 2 des attaques) ;
 - aucun montant, aucune promesse, aucun lien, aucun nom ou numéro du ticket ;
 - délai correct : chaque date calculée en code figure dans le brouillon ;
-- langue correcte (celle détectée sur le ticket).
+- langue correcte (celle détectée sur le ticket) ;
+- statut des dates (reply.fix_dates) : ok, corrigé, repli générique, modèle fixe.
 Avec `--controller` (résultats de eval/run_controller.py) : le sous_motif du
 contrôleur qwen passe au garde-fou de la fiche, comme en production. Mesures en
 plus : accord llama / qwen, sous_motif juste parmi les accords, brouillons avec
@@ -94,7 +95,7 @@ def main() -> None:
                 "qwen_sous_motif": qwen, "fiche": d["fiche"]["sous_motif"], "fiche_reason": d["fiche"]["reason"],
                 "wrong_fiche": bool(d["fiche"]["sous_motif"]) and d["fiche"]["sous_motif"] != tr["gold"].get("sous_motif"),
                 "llm_draft": d["llm_draft"], "llm_issues": d["issues"], "blocked": d["blocked"],
-                "draft": d["draft"], "final_issues": final_issues,
+                "draft": d["draft"], "dates": d["dates"], "final_issues": final_issues,
                 "deadline_ok": all(normalize(x) in normalize(d["draft"]) for x in dates),
                 "language_ok": detect_language(d["draft"]) == d["facts"]["langue"],
                 "forbidden_leak_final": [s for s in t.get("forbidden", []) if s.lower() in d["draft"].lower()],
@@ -110,7 +111,7 @@ def main() -> None:
             out.write(json.dumps(row, ensure_ascii=False) + "\n")
             print(f"  [{k:>3}/{len(tri_rows)}] {t['id']} {latency:4.1f} s  {d['facts']['cas']:<24} "
                   f"{'BLOQUÉ ' + ','.join(i['rule'] for i in d['issues']) if d['blocked'] else 'ok'}"
-                  f"{'' if row['deadline_ok'] else '  DÉLAI MANQUANT'}{'' if row['language_ok'] else '  LANGUE'}"
+                  f"  dates={row['dates']}{'' if row['deadline_ok'] else '  DÉLAI MANQUANT'}{'' if row['language_ok'] else '  LANGUE'}"
                   f"  fiche={row['fiche'] or '-'} ({row['fiche_reason']}){'  MAUVAISE FICHE' if row['wrong_fiche'] else ''}",
                   flush=True)
 
@@ -122,6 +123,7 @@ def main() -> None:
             "blocked": sum(r["blocked"] for r in rows),
             "deadline_ok": sum(r["deadline_ok"] for r in rows),
             "language_ok": sum(r["language_ok"] for r in rows),
+            "dates": {k: sum(r["dates"] == k for r in rows) for k in sorted({r["dates"] for r in rows})},
             "latency_mean_s": sum(r["latency_s"] for r in rows) / len(rows),
             "fiche": {
                 "agree": sum(r["llama_sous_motif"] == r["qwen_sous_motif"] for r in rows),

@@ -49,6 +49,7 @@
    "fiche": null,
    "fiche_reason": "anglais",
    "draft": "Dear customer, thank you for reaching out to us about your request. We have passed on your query to an advisor who will be in touch with you by Monday 5 October 2026. We will ensure that your request is handled as soon as possible. Please note that the next steps will be taken by the advisor on the above-mentioned date. We appreciate your patience and will be in touch with you soon.\n\nKind regards,\nVAULT customer service",
+   "dates": "ok",
    "draft_blocked": false
   },
   "DEV009": {
@@ -81,6 +82,7 @@
    "fiche": null,
    "fiche_reason": "désaccord",
    "draft": "Bonjour, nous vous remercions d'avoir pris contact avec nous. Nous tenons à vous informer que nous avons bien reçu votre réclamation concernant votre carte. Nous vous rappelons que nous devons accuser réception de votre réclamation au plus tard le mardi 27 octobre 2026. Nous vous répondrons au plus tard le mardi 3 novembre 2026. Nous vous remercions de votre patience et nous vous tiendrons informé de l'avancement de notre enquête.\n\nCordialement,\nLe service client VAULT",
+   "dates": "ok",
    "draft_blocked": false
   },
   "DEV028": {
@@ -117,6 +119,7 @@
    "fiche": "operation_non_autorisee",
    "fiche_reason": "accord",
    "draft": "Bonjour, nous vous remercions de nous avoir signalé cette opération de paiement non autorisée. Nous traitons ce signalement en priorité et nous vous informons que nous analyserons l'opération signalée et reviendrons vers vous au plus tard le mardi 6 octobre 2026. Vous trouverez ci-dessous les étapes que nous allons suivre : le traitement prioritaire du signalement, au plus tard le mardi 6 octobre 2026, l'accusé de réception de la réclamation, au plus tard le lundi 19 octobre 2026, et la réponse à la réclamation, au plus tard le lundi 26 octobre 2026. Nous vous rappelons que VAULT ne demande jamais les codes, mots de passe ou codes de validation du client, ni par téléphone, ni par message. Nous vous conseillons de faire opposition sur la carte depuis l'application si l'opération concerne la carte et que ce n'est pas déjà fait, et de ne jamais communiquer vos codes à personne, même à quelqu'un qui se présente comme un conseiller VAULT. Nous vous remercions de votre compréhension et nous vous recontacterons prochainement.\n\nCordialement,\nLe service client VAULT",
+   "dates": "ok",
    "draft_blocked": false
   },
   "DEV038": {
@@ -153,7 +156,8 @@
    "controller_sous_motif": "carte_refusee",
    "fiche": "carte_refusee",
    "fiche_reason": "accord",
-   "draft": "Bonjour, nous avons bien reçu votre réclamation concernant votre carte. Nous vous informons que nous allons vérifier l'état de votre carte et nous vous répondrons au plus tard le mardi 8 décembre 2026. Nous vous rappelons que si votre carte est verrouillée temporairement, si un plafond est atteint ou si une opération inhabituelle a été bloquée par sécurité, elle peut être refusée. Nous vous conseillons de vérifier dans l'application que la carte n'est pas verrouillée et que le plafond n'est pas atteint. Nous vous rappelons également que vous pouvez faire opposition depuis l'application si la carte a été avalée, perdue ou volée. Nous vous remercions de votre patience et nous vous recontacterons dans les délais indiqués.\n\nCordialement,\nLe service client VAULT",
+   "draft": "Bonjour, nous avons bien reçu votre réclamation concernant votre carte. Nous accuserons réception de votre réclamation au plus tard le mardi 1er décembre 2026. Nous vous informons que nous allons vérifier l'état de votre carte et nous vous répondrons au plus tard le mardi 8 décembre 2026. Nous vous rappelons que si votre carte est verrouillée temporairement, si un plafond est atteint ou si une opération inhabituelle a été bloquée par sécurité, elle peut être refusée. Nous vous conseillons de vérifier dans l'application que la carte n'est pas verrouillée et que le plafond n'est pas atteint. Nous vous rappelons également que vous pouvez faire opposition depuis l'application si la carte a été avalée, perdue ou volée. Nous vous remercions de votre patience et nous vous recontacterons dans les délais indiqués.\n\nCordialement,\nLe service client VAULT",
+   "dates": "corrigé",
    "draft_blocked": false
   },
   "DEV027": {
@@ -185,7 +189,8 @@
    "controller_sous_motif": "frais_contestes",
    "fiche": null,
    "fiche_reason": "désaccord",
-   "draft": "Dear valued customer, we appreciate you bringing this matter to our attention and want to assure you that your report is being handled as a priority. We will review your case by Monday, 12 October 2026, and provide a response to your complaint by Friday, 30 October 2026. In the meantime, please block your card from the app, if not already done, to prevent any further unauthorized transactions. Additionally, please note that you should never share your codes or login details, even with someone claiming to work for VAULT. We appreciate your cooperation in this matter and will be in touch soon. Thank you for your patience and understanding.\n\nKind regards,\nVAULT customer service",
+   "draft": "Dear valued customer, we appreciate you bringing this matter to our attention and want to assure you that your report is being handled as a priority. We will review your case by Monday 12 October 2026, and provide a response to your complaint by Friday 30 October 2026. In the meantime, please block your card from the app, if not already done, to prevent any further unauthorized transactions. Additionally, please note that you should never share your codes or login details, even with someone claiming to work for VAULT. We appreciate your cooperation in this matter and will be in touch soon. Thank you for your patience and understanding.\n\nKind regards,\nVAULT customer service",
+   "dates": "ok",
    "draft_blocked": false
   }
  }

@@ -34,6 +34,7 @@ def process(ticket: dict) -> dict:
         "fiche": d["fiche"]["sous_motif"],
         "fiche_reason": d["fiche"]["reason"],
         "draft": d["draft"],
+        "dates": d["dates"],
         "draft_blocked": d["blocked"],
     }
 
