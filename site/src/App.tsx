@@ -2,9 +2,12 @@ import { chargerCompte, chargerOperations, useRessource } from './api'
 import { Console } from './console/Console'
 import { Accueil } from './ecrans/Accueil'
 
-/** Deux surfaces : l'espace client (/) et la console conseiller (/console). */
+/** Deux surfaces : l'espace client (/) et la console conseiller (/console, /console/prompts). */
 export function App() {
-  return window.location.pathname.replace(/\/+$/, '') === '/console' ? <Console /> : <EspaceClient />
+  const chemin = window.location.pathname.replace(/\/+$/, '')
+  if (chemin === '/console') return <Console />
+  if (chemin === '/console/prompts') return <Console onglet="prompts" />
+  return <EspaceClient />
 }
 
 function EspaceClient() {

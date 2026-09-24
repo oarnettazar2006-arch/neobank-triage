@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, TableIcon, WarningCircleIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, GitDiffIcon, TableIcon, WarningCircleIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { useRessource, type Ressource } from '../api'
 import { BoutonTheme } from '../composants/BarreHaut'
@@ -7,6 +7,7 @@ import { Logo } from '../composants/Logo'
 import { Analyse } from './Analyse'
 import { arreterLot, chargerLot, creerLot, listerLots } from './api'
 import { Entree } from './Entree'
+import { Prompts } from './prompts/Prompts'
 import { duree } from './retenir'
 import { TableauTickets } from './TableauTickets'
 import type { Lot, LotResume, StatutLot } from './types'
@@ -71,22 +72,64 @@ function useLot(id: string | null, onFini: () => void): [Ressource<Lot> | null, 
   return [lot, () => setEssai((n) => n + 1)]
 }
 
-function BarreLaterale({ lots, actif, onChoisir }: { lots: Ressource<LotResume[]>; actif: string | null; onChoisir: (id: string) => void }) {
+export type Onglet = 'lot' | 'prompts'
+
+const ONGLETS: { cle: Onglet; href: string; libelle: string; titre: string; Icone: typeof TableIcon }[] = [
+  { cle: 'lot', href: '/console', libelle: 'Tri d’un lot', titre: 'Tri d’un lot', Icone: TableIcon },
+  { cle: 'prompts', href: '/console/prompts', libelle: 'Prompts', titre: 'Évolution des prompts', Icone: GitDiffIcon },
+]
+
+/** Onglets en tête, sur mobile : la barre latérale n'y est pas. */
+function OngletsMobiles({ onglet }: { onglet: Onglet }) {
+  return (
+    <nav aria-label="Console" className="flex gap-1 lg:hidden">
+      {ONGLETS.map((o) => (
+        <a
+          key={o.cle}
+          href={o.href}
+          aria-current={o.cle === onglet ? 'page' : undefined}
+          className={`pressable flex h-8 items-center rounded-full px-3 text-petit font-medium ${
+            o.cle === onglet ? 'bg-[rgb(var(--accent-rgb)/0.1)] text-accent' : 'text-text-2'
+          }`}
+        >
+          {o.libelle}
+        </a>
+      ))}
+    </nav>
+  )
+}
+
+function BarreLaterale({
+  lots,
+  actif,
+  onChoisir,
+  onglet,
+}: {
+  lots: Ressource<LotResume[]>
+  actif: string | null
+  onChoisir: (id: string) => void
+  onglet: Onglet
+}) {
   return (
     <aside className="sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface lg:flex">
       <div className="flex h-16 items-center gap-2 px-5">
         <Logo />
         <span className="text-petit text-text-2">Console</span>
       </div>
-      <nav aria-label="Console" className="px-3">
-        <a
-          href="/console"
-          aria-current="page"
-          className="pressable flex h-10 items-center gap-3 rounded-full bg-[rgb(var(--accent-rgb)/0.1)] px-3 text-petit font-medium text-accent"
-        >
-          <TableIcon size={20} weight="fill" aria-hidden="true" />
-          Tri d’un lot
-        </a>
+      <nav aria-label="Console" className="space-y-0.5 px-3">
+        {ONGLETS.map(({ cle, href, libelle, Icone }) => (
+          <a
+            key={cle}
+            href={href}
+            aria-current={cle === onglet ? 'page' : undefined}
+            className={`pressable flex h-10 items-center gap-3 rounded-full px-3 text-petit font-medium ${
+              cle === onglet ? 'bg-[rgb(var(--accent-rgb)/0.1)] text-accent' : 'survol text-text-2'
+            }`}
+          >
+            <Icone size={20} weight={cle === onglet ? 'fill' : 'regular'} aria-hidden="true" />
+            {libelle}
+          </a>
+        ))}
       </nav>
       <div className="mt-6 min-h-0 flex-1 overflow-y-auto px-3">
         <h2 className="px-3 pb-2 text-[0.75rem] font-medium text-text-2">Lots récents</h2>
@@ -207,18 +250,25 @@ function Progression({ lot, onArreter, onRelancer }: { lot: Lot; onArreter: () =
   )
 }
 
-/** Console conseiller (/console) : trier un CSV ou un ticket, suivre le tri, lire l'analyse. */
-export function Console() {
+/**
+ * Console conseiller. /console : trier un CSV ou un ticket, suivre le tri, lire l'analyse.
+ * /console/prompts : l'évolution des prompts de tri, de v0 à v7.
+ */
+export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
   const [lots, rechargerLots] = useRessource(listerLots)
-  const [lotId, setLotId] = useState<string | null>(lotDeLAdresse)
+  const [lotId, setLotId] = useState<string | null>(() => (onglet === 'lot' ? lotDeLAdresse() : null))
   const [source, setSource] = useState<{ id: string; nom: string; contenu: string } | null>(null)
   const [lot, rechargerLot] = useLot(lotId, rechargerLots)
 
   useEffect(() => {
-    document.title = 'Console · VAULT'
-  }, [])
+    document.title = onglet === 'prompts' ? 'Prompts · Console · VAULT' : 'Console · VAULT'
+  }, [onglet])
 
   const choisir = (id: string) => {
+    if (onglet !== 'lot') {
+      window.location.assign(`/console?lot=${encodeURIComponent(id)}`)
+      return
+    }
     setLotId(id)
     ecrireAdresse(id)
   }
@@ -249,7 +299,7 @@ export function Console() {
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]">
-      <BarreLaterale lots={lots} actif={lotId} onChoisir={choisir} />
+      <BarreLaterale lots={lots} actif={lotId} onChoisir={choisir} onglet={onglet} />
       <div className="min-w-0">
         <header className="sticky top-0 z-20 border-b border-line bg-surface">
           <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-4 px-5 lg:px-8">
@@ -257,13 +307,16 @@ export function Console() {
               <span className="lg:hidden">
                 <Logo />
               </span>
-              <h1 className="text-[1.0625rem] font-semibold text-text">Tri d’un lot</h1>
+              <h1 className="hidden text-[1.0625rem] font-semibold text-text lg:block">
+                {ONGLETS.find((o) => o.cle === onglet)!.titre}
+              </h1>
+              <OngletsMobiles onglet={onglet} />
             </span>
             <BoutonTheme />
           </div>
         </header>
         <main className="mx-auto max-w-[1280px] space-y-8 px-5 pt-6 pb-16 lg:px-8">
-          <Entree onLance={lance} />
+          {onglet === 'prompts' ? <Prompts /> : <Entree onLance={lance} />}
 
           {lot?.etat === 'chargement' && (
             <div aria-busy="true" aria-label="Chargement du lot" className="bloc space-y-3 p-5">
@@ -295,7 +348,7 @@ export function Console() {
               />
             </>
           )}
-          {!lotId && (
+          {onglet === 'lot' && !lotId && (
             <p className="text-center text-petit text-text-2">
               Déposez un CSV ou écrivez un ticket : le tri, l’analyse et les métriques s’affichent ici.
             </p>
