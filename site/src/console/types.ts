@@ -72,6 +72,8 @@ export interface Validation {
   brouillons: number
   en_attente: number
   decides: number
+  /** Brouillon rejeté, réponse du conseiller pas encore partie. */
+  a_rediger: number
   valides_sans_modification: number
   valides_modifies: number
   rejetes: number
@@ -233,8 +235,10 @@ export interface EcheanceBrouillon {
   texte: string
   /** « 21/10 » */
   court: string
+  /** Proche : il reste 20 % du délai ou moins, au moins 1 jour ouvré (règle de l'API). */
   delai: 'normal' | 'proche' | 'depasse' | null
   jours_ouvres_restants: number | null
+  jours_ouvres_total: number | null
 }
 
 export interface Decision {
@@ -269,7 +273,12 @@ export interface Brouillon {
   brouillon_bloque: boolean
   passages_retires: Retrait[]
   trace: ({ lot: string; n: number } | { ref: string }) & { disponible: boolean }
-  decision: Decision | null
+  /** a_valider : brouillon du bot à relire ; a_rediger : brouillon rejeté, le conseiller rédige la réponse. */
+  etat: 'a_valider' | 'a_rediger'
+  rejet: { motif: string; decide_le: string; decide_le_texte: string } | null
+  /** Valeurs du tri du bot ; categorie, produit et severite portent les corrections du conseiller. */
+  bot: Record<Colonne, string>
+  corrections: { champ: Colonne; valeur_bot: string; valeur_conseiller: string; corrige_le: string }[]
 }
 
 export interface FileBrouillons {

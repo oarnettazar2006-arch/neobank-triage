@@ -1,6 +1,6 @@
 """Brouillons à valider : la file du conseiller, ses décisions et ses corrections.
 
-La file réunit tous les tickets qui ont un brouillon et pas encore de décision :
+La file réunit tous les tickets qui ont un brouillon et dont la réponse n'est pas encore partie :
 - ceux des lots lancés avec brouillon (ou dont les brouillons ont été générés
   ensuite, `generer`) ; clé `LOT-XXXXXX-3` pour le ticket 3 du lot ;
 - ceux du chat de l'espace client (pipeline complet) ; clé = la référence `VLT-XXXXXX`.
@@ -11,7 +11,10 @@ calculés en code (src/deadlines.py), comme pour le client.
 
 Décision : « valide » (le brouillon, éventuellement modifié, part chez le client ;
 un ticket du chat passe au statut « Réponse envoyée ») ou « rejete » avec un
-motif. Le conseiller peut corriger catégorie, produit et gravité. Un texte
+motif. Rejeter le brouillon ne rejette pas la demande du client (décision
+d'Oscar, 24/09/2026) : le ticket reste dans la file, « Réponse à rédiger », et
+un ticket du chat passe à « En cours d'examen » ; le conseiller rédige alors la
+réponse et la valide. Le conseiller peut corriger catégorie, produit et gravité. Un texte
 modifié repasse la garde de sortie (src/output_guard.py) : ses alertes sont
 montrées et enregistrées, elles ne bloquent pas. Rien ici ne change le bot.
 """
@@ -42,7 +45,6 @@ from . import db, suivi, trace
 CLE = r"^(?:LOT-[A-HJ-NP-Z2-9]{6}-[1-9][0-9]{0,2}|VLT-[A-HJ-NP-Z2-9]{6})$"
 CHAMPS = {"categorie": "label", "produit": "product", "severite": "severity"}   # champ corrigeable -> champ du schéma
 ORDRE_GRAVITE = {"high": 0, "medium": 1, "low": 2}
-STATUT_ENVOYEE = "Réponse envoyée"
 MOTIFS = ["Informations fausses ou inventées", "Ne répond pas à la demande", "Ton inadapté",
           "Ticket suspect : réponse à faire à la main", "Autre"]
 _Echeance = namedtuple("_Echeance", "due")
@@ -59,11 +61,11 @@ class Refus(Exception):
 # --- Les tickets qui ont un brouillon --------------------------------------------------
 
 
-def _echeance(due: datetime | None, kind: str | None, maintenant: datetime) -> dict | None:
+def _echeance(due: datetime | None, kind: str | None, recu: str, maintenant: datetime) -> dict | None:
     if due is None:
         return None
     return {"kind": kind, "iso": due.isoformat(), "texte": reply.format_date(due, "fr"), "court": f"{due:%d/%m}",
-            **suivi.delai([_Echeance(due)], maintenant)}
+            **suivi.delai([_Echeance(due)], maintenant, datetime.fromisoformat(recu))}
 
 
 def _du_lot(lot: dict, k: int, maintenant: datetime) -> dict | None:
@@ -88,7 +90,7 @@ def _du_lot(lot: dict, k: int, maintenant: datetime) -> dict | None:
         "origine": {"lot": lot["id"], "nom": lot["nom"], "n": k + 1},
         "id": ligne.get("id") or f"#{k + 1}", "texte": ligne["ticket"],
         "canal": ligne.get("canal") or "form", "recu_le": recu,
-        "fields": fields, "echeance": _echeance(due, kind, maintenant),
+        "fields": fields, "echeance": _echeance(due, kind, recu, maintenant),
         "fiche": pred.get("fiche") or None,
         "fiche_raison": redaction["fiche"]["reason"] if redaction else pred.get("controle"),
         "brouillon": pred["brouillon"], "brouillon_bloque": pred.get("brouillon_bloque") == "oui",
@@ -106,7 +108,7 @@ def _du_chat(ticket: dict, maintenant: datetime) -> dict | None:
         "cle": ticket["ref"], "source": "chat", "origine": {"ref": ticket["ref"], "statut": ticket["statut"]},
         "id": ticket["ref"], "texte": ticket["texte"], "canal": ticket["canal"], "recu_le": ticket["recu_le"],
         "fields": res["fields"],
-        "echeance": _echeance(ds[0].due, ds[0].kind, maintenant) if ds else None,
+        "echeance": _echeance(ds[0].due, ds[0].kind, ticket["recu_le"], maintenant) if ds else None,
         "fiche": res["fiche"], "fiche_raison": res["fiche_reason"],
         "brouillon": res["draft"], "brouillon_bloque": res["draft_blocked"],
         "passages_retires": res["guard"]["matches"],
@@ -114,13 +116,27 @@ def _du_chat(ticket: dict, maintenant: datetime) -> dict | None:
     }
 
 
+def etat(decisions: list[dict]) -> str:
+    """a_valider (aucune décision), a_rediger (brouillon rejeté, réponse pas encore partie) ou envoye."""
+    faites = {d["decision"] for d in decisions}
+    return "envoye" if "valide" in faites else "a_rediger" if "rejete" in faites else "a_valider"
+
+
 def tous(maintenant: datetime) -> list[dict]:
-    """Tous les tickets qui ont un brouillon, avec leur décision (ou None)."""
+    """Tous les tickets qui ont un brouillon, avec leurs décisions, leurs corrections et leur état."""
     decisions = db.decisions()
     out = [e for lot in db.lots_complets() for k in range(len(lot["lignes"])) if (e := _du_lot(lot, k, maintenant))]
     out += [e for t in db.all_tickets() if (e := _du_chat(t, maintenant))]
     for e in out:
-        e["decision"] = decisions.get(e["cle"])
+        d = decisions.get(e["cle"], {"liste": [], "corrections": []})
+        e["decisions"], e["corrections"], e["etat"] = d["liste"], d["corrections"], etat(d["liste"])
+        # Les corrections du conseiller s'appliquent à l'affichage et à l'ordre de la file ;
+        # `fields_bot` garde le tri du bot (garde de sortie, comparaison des corrections).
+        e["fields_bot"] = e["fields"]
+        e["fields"] = {**e["fields"], **{CHAMPS[c["champ"]]: c["valeur_conseiller"] for c in d["corrections"]}}
+        e["rejet"] = next(({"motif": x["motif"], "decide_le": x["decide_le"],
+                            "decide_le_texte": f"{datetime.fromisoformat(x['decide_le']):%d/%m à %H:%M}"}
+                           for x in d["liste"] if x["decision"] == "rejete"), None)
     return out
 
 
@@ -142,7 +158,9 @@ def _ligne(e: dict) -> dict:
     """Ce que la vue Brouillons affiche d'un ticket (codes du schéma ; libellés côté front)."""
     f = e["fields"]
     recu = datetime.fromisoformat(e["recu_le"])
-    return {**{k: v for k, v in e.items() if k != "fields"},
+    bot = e["fields_bot"]
+    return {**{k: v for k, v in e.items() if k not in ("fields", "fields_bot", "decisions")},
+            "bot": {c: bot[champ] for c, champ in CHAMPS.items()},
             "recu_le_texte": f"{recu:%d/%m} à {recu:%H:%M}",
             "categorie": f["label"], "produit": f["product"], "severite": f["severity"],
             "sous_motif": f.get("sous_motif"), "reclamation": bool(f["is_complaint"]),
@@ -152,7 +170,7 @@ def _ligne(e: dict) -> dict:
 def file(maintenant: datetime) -> dict:
     """GET /brouillons : la file triée par urgence et les chiffres de validation."""
     elements = tous(maintenant)
-    attente = sorted((e for e in elements if e["decision"] is None), key=urgence)
+    attente = sorted((e for e in elements if e["etat"] != "envoye"), key=urgence)
     return {"file": [_ligne(e) for e in attente], "validation": stats(elements), "motifs": MOTIFS}
 
 
@@ -160,13 +178,15 @@ def file(maintenant: datetime) -> dict:
 
 
 def stats(elements: list[dict]) -> dict:
-    """Part des brouillons validés sans modification, modifiés, rejetés ; corrections par champ."""
-    ds = [e["decision"] for e in elements if e["decision"]]
+    """Sort des brouillons du bot (première décision de chaque ticket) : validés sans modification,
+    modifiés, rejetés ; réponses encore à rédiger après un rejet ; corrections par champ."""
+    ds = [e["decisions"][0] for e in elements if e["decisions"]]
     corrections = {c: 0 for c in CHAMPS}
-    for d in ds:
-        for c in d["corrections"]:
+    for e in elements:
+        for c in e["corrections"]:
             corrections[c["champ"]] += 1
     return {"brouillons": len(elements), "en_attente": len(elements) - len(ds), "decides": len(ds),
+            "a_rediger": sum(e["etat"] == "a_rediger" for e in elements),
             "valides_sans_modification": sum(d["decision"] == "valide" and not d["modifie"] for d in ds),
             "valides_modifies": sum(d["decision"] == "valide" and d["modifie"] for d in ds),
             "rejetes": sum(d["decision"] == "rejete" for d in ds),
@@ -184,7 +204,7 @@ def alertes(e: dict, texte: str) -> list[dict]:
     """La garde de sortie du bot, relancée sur le texte du conseiller. Les dates d'échéance
     calculées pour ce ticket sont permises, comme pour le brouillon du bot."""
     ticket = {"input": e["texte"], "received_at": e["recu_le"], "channel": e["canal"]}
-    faits = reply.build_facts(ticket, e["fields"])
+    faits = reply.build_facts(ticket, e["fields_bot"])
     permis = " ".join(x["date"] for x in faits["echeances"])
     return output_guard.check(texte, e["texte"], allowed_text=permis)
 
@@ -204,8 +224,10 @@ def _normal(texte: str) -> str:
 def decider(cle: str, demande: dict, maintenant: datetime) -> dict:
     """Valide ou rejette ; corrections des champs ; statut « Réponse envoyée » pour un ticket du chat validé."""
     e = un(cle, maintenant)
-    if e["decision"]:
-        raise Refus(409, "ce ticket a déjà une décision")
+    if e["etat"] == "envoye":
+        raise Refus(409, "la réponse à ce ticket est déjà partie")
+    if e["etat"] == "a_rediger" and demande["decision"] == "rejete":
+        raise Refus(409, "brouillon déjà rejeté : rédigez la réponse puis validez-la")
     decision, texte, motif = demande["decision"], demande["texte"], (demande.get("motif") or "").strip()
     if decision == "rejete" and not motif:
         raise Refus(422, "un rejet demande un motif")
@@ -213,20 +235,25 @@ def decider(cle: str, demande: dict, maintenant: datetime) -> dict:
         raise Refus(422, "le brouillon est vide")
     if decision == "valide" and e["fields"]["injection_suspected"] and not demande.get("relu"):
         raise Refus(422, "ticket suspect : cochez « J'ai relu le ticket signalé » avant de valider")
-    corrections = []
+    # `corrections` donne la valeur retenue par le conseiller pour chaque champ envoyé : différente du bot,
+    # c'est une correction ; égale au bot, une correction antérieure de ce champ est annulée.
+    corrections, annulees = [], []
     for champ, valeur in (demande.get("corrections") or {}).items():
         schema = CHAMPS.get(champ)
         if schema is None or valeur not in ENUMS[schema]:
             raise Refus(422, f"correction invalide : {champ} = {valeur}")
-        if valeur != e["fields"][schema]:
-            corrections.append({"champ": champ, "valeur_bot": e["fields"][schema], "valeur_conseiller": valeur})
+        if valeur != e["fields_bot"][schema]:
+            corrections.append({"champ": champ, "valeur_bot": e["fields_bot"][schema], "valeur_conseiller": valeur})
+        else:
+            annulees.append(champ)
     modifie = _normal(texte) != _normal(e["brouillon"])
     d = {"cle": cle, "source": e["source"], "decision": decision, "motif": motif or None,
          "brouillon_bot": e["brouillon"], "brouillon_final": texte, "modifie": modifie,
          "alertes": alertes(e, texte) if modifie else [], "decide_le": maintenant.isoformat()}
-    envoi = (e["origine"]["ref"], STATUT_ENVOYEE) if e["source"] == "chat" and decision == "valide" else None
-    if not db.enregistrer_decision(d, corrections, envoi):
-        raise Refus(409, "ce ticket a déjà une décision")
+    statut = suivi.STATUT_ENVOYEE if decision == "valide" else suivi.STATUT_EXAMEN
+    envoi = (e["origine"]["ref"], statut) if e["source"] == "chat" else None
+    if not db.enregistrer_decision(d, corrections, envoi, annulees):
+        raise Refus(409, "décision déjà prise sur ce ticket")
     return {**d, "corrections": corrections}
 
 
@@ -241,15 +268,17 @@ def export_corrections(maintenant: datetime, lot_id: str | None = None) -> str:
     buf = io.StringIO(newline="")
     w = csv.DictWriter(buf, fieldnames=COLONNES_EXPORT)
     w.writeheader()
-    for e in sorted(tous(maintenant), key=lambda x: x["decision"]["decide_le"] if x["decision"] else ""):
-        d = e["decision"]
-        if not d or (lot_id and e["origine"].get("lot") != lot_id):
+    lignes = []
+    for e in tous(maintenant):
+        if lot_id and e["origine"].get("lot") != lot_id:
             continue
-        for c in d["corrections"]:
-            w.writerow({"cle": e["cle"], "source": e["source"], "lot": e["origine"].get("lot", ""), "id": e["id"],
-                        "ticket": e["texte"], "champ": c["champ"], "valeur_bot": c["valeur_bot"],
-                        "valeur_conseiller": c["valeur_conseiller"], "decision": d["decision"],
-                        "corrige_le": c["corrige_le"]})
+        for c in e["corrections"]:
+            d = next((x for x in e["decisions"] if x["decide_le"] == c["corrige_le"]), None)
+            lignes.append({"cle": e["cle"], "source": e["source"], "lot": e["origine"].get("lot", ""), "id": e["id"],
+                           "ticket": e["texte"], "champ": c["champ"], "valeur_bot": c["valeur_bot"],
+                           "valeur_conseiller": c["valeur_conseiller"], "decision": d["decision"] if d else "",
+                           "corrige_le": c["corrige_le"]})
+    w.writerows(sorted(lignes, key=lambda x: (x["corrige_le"], x["cle"], x["champ"])))
     return buf.getvalue()
 
 

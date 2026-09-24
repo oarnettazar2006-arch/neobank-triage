@@ -18,7 +18,8 @@
     "texte": "vendredi 25 septembre 2026",
     "court": "25/09",
     "delai": "proche",
-    "jours_ouvres_restants": 1
+    "jours_ouvres_restants": 1,
+    "jours_ouvres_total": 1
    },
    "fiche": "operation_non_autorisee",
    "fiche_raison": "accord",
@@ -30,7 +31,14 @@
     "n": 4,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "billing",
+    "produit": "card",
+    "severite": "high"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "billing",
    "produit": "card",
@@ -57,7 +65,8 @@
     "texte": "jeudi 8 octobre 2026",
     "court": "08/10",
     "delai": "normal",
-    "jours_ouvres_restants": 10
+    "jours_ouvres_restants": 10,
+    "jours_ouvres_total": 10
    },
    "fiche": "carte_refusee",
    "fiche_raison": "accord",
@@ -69,7 +78,14 @@
     "n": 15,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "bug",
+    "produit": "card",
+    "severite": "high"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "bug",
    "produit": "card",
@@ -96,7 +112,8 @@
     "texte": "jeudi 8 octobre 2026",
     "court": "08/10",
     "delai": "normal",
-    "jours_ouvres_restants": 10
+    "jours_ouvres_restants": 10,
+    "jours_ouvres_total": 10
    },
    "fiche": "compte_bloque",
    "fiche_raison": "accord",
@@ -108,7 +125,14 @@
     "n": 2,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "bug",
+    "produit": "account",
+    "severite": "high"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "bug",
    "produit": "account",
@@ -135,7 +159,8 @@
     "texte": "jeudi 8 octobre 2026",
     "court": "08/10",
     "delai": "normal",
-    "jours_ouvres_restants": 10
+    "jours_ouvres_restants": 10,
+    "jours_ouvres_total": 10
    },
    "fiche": "debit_errone",
    "fiche_raison": "accord",
@@ -147,7 +172,14 @@
     "n": 3,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "billing",
+    "produit": "direct_debit",
+    "severite": "high"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "billing",
    "produit": "direct_debit",
@@ -173,7 +205,8 @@
     "texte": "jeudi 8 octobre 2026",
     "court": "08/10",
     "delai": "normal",
-    "jours_ouvres_restants": 10
+    "jours_ouvres_restants": 10,
+    "jours_ouvres_total": 10
    },
    "fiche": null,
    "fiche_raison": "désaccord",
@@ -184,7 +217,14 @@
     "ref": "VLT-J86GSF",
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "billing",
+    "produit": "direct_debit",
+    "severite": "high"
+   },
    "recu_le_texte": "24/09 à 19:17",
    "categorie": "billing",
    "produit": "direct_debit",
@@ -211,7 +251,8 @@
     "texte": "jeudi 8 octobre 2026",
     "court": "08/10",
     "delai": "normal",
-    "jours_ouvres_restants": 10
+    "jours_ouvres_restants": 10,
+    "jours_ouvres_total": 10
    },
    "fiche": null,
    "fiche_raison": "désaccord",
@@ -223,7 +264,14 @@
     "n": 13,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "bug",
+    "produit": "transfer",
+    "severite": "medium"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "bug",
    "produit": "transfer",
@@ -250,7 +298,8 @@
     "texte": "jeudi 8 octobre 2026",
     "court": "08/10",
     "delai": "normal",
-    "jours_ouvres_restants": 10
+    "jours_ouvres_restants": 10,
+    "jours_ouvres_total": 10
    },
    "fiche": "probleme_prelevement",
    "fiche_raison": "accord",
@@ -262,7 +311,14 @@
     "n": 5,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "bug",
+    "produit": "direct_debit",
+    "severite": "medium"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "bug",
    "produit": "direct_debit",
@@ -289,7 +345,8 @@
     "texte": "jeudi 8 octobre 2026",
     "court": "08/10",
     "delai": "normal",
-    "jours_ouvres_restants": 10
+    "jours_ouvres_restants": 10,
+    "jours_ouvres_total": 10
    },
    "fiche": "virement_non_arrive",
    "fiche_raison": "accord",
@@ -301,7 +358,14 @@
     "n": 6,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "bug",
+    "produit": "transfer",
+    "severite": "medium"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "bug",
    "produit": "transfer",
@@ -328,7 +392,8 @@
     "texte": "jeudi 8 octobre 2026",
     "court": "08/10",
     "delai": "normal",
-    "jours_ouvres_restants": 10
+    "jours_ouvres_restants": 10,
+    "jours_ouvres_total": 10
    },
    "fiche": null,
    "fiche_raison": "anglais",
@@ -340,7 +405,14 @@
     "n": 9,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "other",
+    "produit": "unknown",
+    "severite": "low"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "other",
    "produit": "unknown",
@@ -366,8 +438,9 @@
     "iso": "2026-09-28T23:59:59",
     "texte": "lundi 28 septembre 2026",
     "court": "28/09",
-    "delai": "proche",
-    "jours_ouvres_restants": 2
+    "delai": "normal",
+    "jours_ouvres_restants": 2,
+    "jours_ouvres_total": 2
    },
    "fiche": "carte_refusee",
    "fiche_raison": "accord",
@@ -384,7 +457,14 @@
     "n": 8,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "bug",
+    "produit": "card",
+    "severite": "medium"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "bug",
    "produit": "card",
@@ -409,8 +489,9 @@
     "iso": "2026-09-28T23:59:59",
     "texte": "lundi 28 septembre 2026",
     "court": "28/09",
-    "delai": "proche",
-    "jours_ouvres_restants": 2
+    "delai": "normal",
+    "jours_ouvres_restants": 2,
+    "jours_ouvres_total": 2
    },
    "fiche": "carte_refusee",
    "fiche_raison": "accord",
@@ -430,7 +511,14 @@
     "ref": "VLT-RGSZYX",
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "bug",
+    "produit": "card",
+    "severite": "medium"
+   },
    "recu_le_texte": "24/09 à 19:19",
    "categorie": "bug",
    "produit": "card",
@@ -456,8 +544,9 @@
     "iso": "2026-09-28T23:59:59",
     "texte": "lundi 28 septembre 2026",
     "court": "28/09",
-    "delai": "proche",
-    "jours_ouvres_restants": 2
+    "delai": "normal",
+    "jours_ouvres_restants": 2,
+    "jours_ouvres_total": 2
    },
    "fiche": "question_carte",
    "fiche_raison": "accord",
@@ -469,7 +558,14 @@
     "n": 1,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "other",
+    "produit": "card",
+    "severite": "low"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "other",
    "produit": "card",
@@ -495,8 +591,9 @@
     "iso": "2026-09-28T23:59:59",
     "texte": "lundi 28 septembre 2026",
     "court": "28/09",
-    "delai": "proche",
-    "jours_ouvres_restants": 2
+    "delai": "normal",
+    "jours_ouvres_restants": 2,
+    "jours_ouvres_total": 2
    },
    "fiche": null,
    "fiche_raison": "désaccord",
@@ -508,7 +605,14 @@
     "n": 10,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "other",
+    "produit": "unknown",
+    "severite": "low"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "other",
    "produit": "unknown",
@@ -534,8 +638,9 @@
     "iso": "2026-09-28T23:59:59",
     "texte": "lundi 28 septembre 2026",
     "court": "28/09",
-    "delai": "proche",
-    "jours_ouvres_restants": 2
+    "delai": "normal",
+    "jours_ouvres_restants": 2,
+    "jours_ouvres_total": 2
    },
    "fiche": null,
    "fiche_raison": "désaccord",
@@ -547,7 +652,14 @@
     "n": 11,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "other",
+    "produit": "transfer",
+    "severite": "low"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "other",
    "produit": "transfer",
@@ -573,8 +685,9 @@
     "iso": "2026-09-28T23:59:59",
     "texte": "lundi 28 septembre 2026",
     "court": "28/09",
-    "delai": "proche",
-    "jours_ouvres_restants": 2
+    "delai": "normal",
+    "jours_ouvres_restants": 2,
+    "jours_ouvres_total": 2
    },
    "fiche": "demande_document",
    "fiche_raison": "accord",
@@ -586,7 +699,14 @@
     "n": 12,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "other",
+    "produit": "account",
+    "severite": "low"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "other",
    "produit": "account",
@@ -612,8 +732,9 @@
     "iso": "2026-09-28T23:59:59",
     "texte": "lundi 28 septembre 2026",
     "court": "28/09",
-    "delai": "proche",
-    "jours_ouvres_restants": 2
+    "delai": "normal",
+    "jours_ouvres_restants": 2,
+    "jours_ouvres_total": 2
    },
    "fiche": null,
    "fiche_raison": "désaccord",
@@ -625,7 +746,14 @@
     "n": 14,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "other",
+    "produit": "account",
+    "severite": "low"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "other",
    "produit": "account",
@@ -651,8 +779,9 @@
     "iso": "2026-09-28T23:59:59",
     "texte": "lundi 28 septembre 2026",
     "court": "28/09",
-    "delai": "proche",
-    "jours_ouvres_restants": 2
+    "delai": "normal",
+    "jours_ouvres_restants": 2,
+    "jours_ouvres_total": 2
    },
    "fiche": null,
    "fiche_raison": "désaccord",
@@ -664,7 +793,14 @@
     "n": 7,
     "disponible": true
    },
-   "decision": null,
+   "corrections": [],
+   "etat": "a_valider",
+   "rejet": null,
+   "bot": {
+    "categorie": "billing",
+    "produit": "card",
+    "severite": "low"
+   },
    "recu_le_texte": "24/09 à 19:07",
    "categorie": "billing",
    "produit": "card",
@@ -678,6 +814,7 @@
   "brouillons": 17,
   "en_attente": 17,
   "decides": 0,
+  "a_rediger": 0,
   "valides_sans_modification": 0,
   "valides_modifies": 0,
   "rejetes": 0,

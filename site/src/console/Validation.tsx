@@ -12,7 +12,8 @@ export function retenirDecisions(v: Validation): string {
   const tel = v.valides_sans_modification
   return (
     `${tel} brouillon${s(tel)} sur ${v.decides} (${pctRond(tel, v.decides)}) envoyé${s(tel)} tel${s(tel)} quel${s(tel)} ; ` +
-    `${v.valides_modifies} retouché${s(v.valides_modifies)}, ${v.rejetes} rejeté${s(v.rejetes)}.`
+    `${v.valides_modifies} retouché${s(v.valides_modifies)}, ${v.rejetes} rejeté${s(v.rejetes)}` +
+    (v.a_rediger ? ` (${v.a_rediger} réponse${s(v.a_rediger)} encore à rédiger).` : '.')
   )
 }
 

@@ -62,13 +62,14 @@ CREATE TABLE IF NOT EXISTS traces (
 """
 SCHEMA_DECISIONS = """
 CREATE TABLE IF NOT EXISTS decisions (
-    cle             TEXT PRIMARY KEY,      -- LOT-XXXXXX-3 (ticket 3 du lot) ou VLT-XXXXXX (chat)
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    cle             TEXT NOT NULL,         -- LOT-XXXXXX-3 (ticket 3 du lot) ou VLT-XXXXXX (chat)
     source          TEXT NOT NULL,         -- lot, chat
-    decision        TEXT NOT NULL,         -- valide, rejete
+    decision        TEXT NOT NULL,         -- valide, rejete (un rejet peut être suivi d'une validation)
     motif           TEXT,                  -- motif du rejet
     brouillon_bot   TEXT NOT NULL,         -- brouillon remis par le bot
     brouillon_final TEXT NOT NULL,         -- texte du conseiller au moment de la décision
-    modifie         INTEGER NOT NULL,      -- 1 si le conseiller a changé le texte
+    modifie         INTEGER NOT NULL,      -- 1 si le texte diffère du brouillon du bot
     alertes         TEXT NOT NULL,         -- JSON : garde de sortie relancée sur le texte modifié
     decide_le       TEXT NOT NULL          -- ISO, heure locale, à la seconde
 )
@@ -81,7 +82,7 @@ CREATE TABLE IF NOT EXISTS corrections (
     valeur_bot         TEXT NOT NULL,
     valeur_conseiller  TEXT NOT NULL,
     corrige_le         TEXT NOT NULL,
-    PRIMARY KEY (cle, champ)
+    PRIMARY KEY (cle, champ)             -- la dernière correction d'un champ l'emporte
 )
 """
 LOT_JSON = ("colonnes", "lignes", "predictions")
@@ -102,6 +103,16 @@ def init() -> None:
         con.execute(SCHEMA)
         con.execute(SCHEMA_LOTS)
         con.execute(SCHEMA_TRACES)
+        # Base de la première version de la PR 4 (une décision par ticket, clé primaire `cle`) : on la
+        # recopie dans la table à plusieurs décisions par ticket.
+        colonnes = {r[1]: r[5] for r in con.execute("PRAGMA table_info(decisions)")}
+        if colonnes and "id" not in colonnes:
+            con.execute("ALTER TABLE decisions RENAME TO decisions_v1")
+            con.execute(SCHEMA_DECISIONS)
+            con.execute("INSERT INTO decisions (cle, source, decision, motif, brouillon_bot, brouillon_final, modifie, "
+                        "alertes, decide_le) SELECT cle, source, decision, motif, brouillon_bot, brouillon_final, "
+                        "modifie, alertes, decide_le FROM decisions_v1 ORDER BY decide_le")
+            con.execute("DROP TABLE decisions_v1")
         con.execute(SCHEMA_DECISIONS)
         con.execute(SCHEMA_CORRECTIONS)
         # Base créée avant la colonne `brouillon` (console, PR 3) : on l'ajoute.
@@ -251,37 +262,47 @@ def get_trace(lot_id: str, k: int) -> dict:
 # --- Décisions du conseiller (vue Brouillons) --------------------------------------
 
 
-def enregistrer_decision(d: dict, corrections: list[dict], ref_statut: Optional[tuple[str, str]] = None) -> bool:
+def enregistrer_decision(d: dict, corrections: list[dict], ref_statut: Optional[tuple[str, str]] = None,
+                         annulees: tuple = ()) -> bool:
     """Décision, corrections et, pour un ticket du chat, nouveau statut client, dans une seule
-    transaction. False si le ticket a déjà une décision."""
+    transaction. False si la décision n'est plus possible : réponse déjà envoyée, ou deuxième rejet."""
+    con = connect()
+    con.isolation_level = None   # BEGIN IMMEDIATE : la vérification et l'écriture ne se séparent pas
     try:
-        with closing(connect()) as con, con:
-            con.execute("INSERT INTO decisions (cle, source, decision, motif, brouillon_bot, brouillon_final, modifie, "
-                        "alertes, decide_le) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (d["cle"], d["source"], d["decision"], d["motif"], d["brouillon_bot"], d["brouillon_final"],
-                         int(d["modifie"]), json.dumps(d["alertes"], ensure_ascii=False), d["decide_le"]))
-            con.executemany("INSERT INTO corrections (cle, champ, valeur_bot, valeur_conseiller, corrige_le) "
-                            "VALUES (?, ?, ?, ?, ?)",
-                            [(d["cle"], c["champ"], c["valeur_bot"], c["valeur_conseiller"], d["decide_le"])
-                             for c in corrections])
-            if ref_statut:
-                con.execute("UPDATE tickets SET statut = ? WHERE ref = ?", (ref_statut[1], ref_statut[0]))
+        con.execute("BEGIN IMMEDIATE")
+        deja = {r[0] for r in con.execute("SELECT decision FROM decisions WHERE cle = ?", (d["cle"],))}
+        if "valide" in deja or (d["decision"] == "rejete" and "rejete" in deja):
+            con.execute("ROLLBACK")
+            return False
+        con.execute("INSERT INTO decisions (cle, source, decision, motif, brouillon_bot, brouillon_final, modifie, "
+                    "alertes, decide_le) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (d["cle"], d["source"], d["decision"], d["motif"], d["brouillon_bot"], d["brouillon_final"],
+                     int(d["modifie"]), json.dumps(d["alertes"], ensure_ascii=False), d["decide_le"]))
+        con.executemany("INSERT OR REPLACE INTO corrections (cle, champ, valeur_bot, valeur_conseiller, corrige_le) "
+                        "VALUES (?, ?, ?, ?, ?)",
+                        [(d["cle"], c["champ"], c["valeur_bot"], c["valeur_conseiller"], d["decide_le"])
+                         for c in corrections])
+        con.executemany("DELETE FROM corrections WHERE cle = ? AND champ = ?", [(d["cle"], c) for c in annulees])
+        if ref_statut:
+            con.execute("UPDATE tickets SET statut = ? WHERE ref = ?", (ref_statut[1], ref_statut[0]))
+        con.execute("COMMIT")
         return True
-    except sqlite3.IntegrityError:
-        return False
+    except Exception:
+        con.execute("ROLLBACK")
+        raise
+    finally:
+        con.close()
 
 
 def decisions() -> dict:
-    """{cle: décision}, avec ses corrections."""
+    """{cle: décisions dans l'ordre}, et les corrections du ticket (la dernière valeur de chaque champ)."""
     with closing(connect()) as con:
-        out = {}
-        for r in con.execute("SELECT * FROM decisions"):
+        out: dict = {}
+        for r in con.execute("SELECT * FROM decisions ORDER BY id"):
             d = dict(r)
             d["alertes"] = json.loads(d["alertes"])
             d["modifie"] = bool(d["modifie"])
-            d["corrections"] = []
-            out[d["cle"]] = d
+            out.setdefault(d["cle"], {"liste": [], "corrections": []})["liste"].append(d)
         for r in con.execute("SELECT * FROM corrections ORDER BY corrige_le, cle, champ"):
-            if r["cle"] in out:
-                out[r["cle"]]["corrections"].append(dict(r))
+            out.setdefault(r["cle"], {"liste": [], "corrections": []})["corrections"].append(dict(r))
     return out

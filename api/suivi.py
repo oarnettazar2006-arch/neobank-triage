@@ -14,7 +14,12 @@ from reply import format_date
 
 CANAL = "form"   # le chat de l'espace client crée un ticket écrit (décision d'Oscar, 2026-09-24)
 STATUT_RECU = "Reçue"
-PROCHE = 2       # échéance proche : 2 jours ouvrés (DESIGN.md 9)
+STATUT_EXAMEN = "En cours d'examen"   # brouillon rejeté : un conseiller rédige la réponse
+STATUT_ENVOYEE = "Réponse envoyée"
+# Échéance proche (DESIGN.md 9, décision d'Oscar du 24/09/2026) : il reste 20 % du délai ou moins,
+# jamais moins d'un jour ouvré.
+PART_PROCHE = 0.2
+MIN_PROCHE = 1
 
 # Étapes du pipeline, dans l'ordre. Des codes, pas des libellés : le client ne voit pas de jargon interne (DESIGN.md 9).
 ETAPES = ["garde_entree", "tri", "delais", "controleur", "redaction", "garde_sortie"]
@@ -47,15 +52,26 @@ def jours_ouvres_entre(debut: date, fin: date) -> int:
     return n
 
 
-def delai(ds: list, maintenant: datetime) -> dict:
-    """Situation de l'échéance la plus proche : normal, proche ou depasse."""
+def seuil_proche(total: int) -> float:
+    """Jours ouvrés restants à partir desquels l'échéance est proche : 20 % du délai, au moins 1."""
+    return max(MIN_PROCHE, PART_PROCHE * total)
+
+
+def delai(ds: list, maintenant: datetime, recu: datetime) -> dict:
+    """Situation de l'échéance la plus proche : normal, proche ou depasse.
+
+    Le délai total est compté en jours ouvrés de la réception à l'échéance ; l'échéance est
+    proche quand il en reste 20 % ou moins (au moins 1 jour ouvré) : 1 jour sur 2, 2 sur 10,
+    3 sur 15, 8 sur un délai de 2 mois."""
     if not ds:
-        return {"delai": None, "jours_ouvres_restants": None}
+        return {"delai": None, "jours_ouvres_restants": None, "jours_ouvres_total": None}
     due = ds[0].due
+    total = jours_ouvres_entre(recu.date(), due.date())
     if maintenant > due:
-        return {"delai": "depasse", "jours_ouvres_restants": 0}
+        return {"delai": "depasse", "jours_ouvres_restants": 0, "jours_ouvres_total": total}
     restants = jours_ouvres_entre(maintenant.date(), due.date())
-    return {"delai": "proche" if restants <= PROCHE else "normal", "jours_ouvres_restants": restants}
+    return {"delai": "proche" if restants <= seuil_proche(total) else "normal",
+            "jours_ouvres_restants": restants, "jours_ouvres_total": total}
 
 
 def message_client(ticket: dict) -> str:
@@ -86,7 +102,7 @@ def vue_client(ticket: dict, maintenant: datetime) -> dict:
         "recu_le": {"iso": ticket["recu_le"], "texte": format_date(recu, "fr")},
         "echeances": [{"kind": d.kind, "libelle": LIBELLE_ECHEANCE[d.kind], "iso": d.due.isoformat(),
                        "texte": format_date(d.due, "fr")} for d in ds],
-        **delai(ds, maintenant),
+        **delai(ds, maintenant, recu),
         "etapes": [{"nom": nom, "fait": nom in faites, "fini_le": faites.get(nom)} for nom in ETAPES],
         "message_client": message_client(ticket) if ticket["traitement"] in ("termine", "erreur") else None,
     }
@@ -116,5 +132,5 @@ def vue_console(ticket: dict, maintenant: datetime) -> dict:
         "fiche": res["fiche"] if res else None,
         "brouillon": res["draft"] if res else None,
         "echeance": {"kind": ds[0].kind, "iso": ds[0].due.isoformat()} if ds else None,
-        **delai(ds, maintenant),
+        **delai(ds, maintenant, datetime.fromisoformat(ticket["recu_le"])),
     }

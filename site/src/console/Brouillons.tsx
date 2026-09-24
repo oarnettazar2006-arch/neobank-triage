@@ -137,6 +137,7 @@ function File({ file, choisi, onChoisir }: { file: Brouillon[]; choisi: string |
                           <span className="montant truncate font-medium text-text">{b.id}</span>
                           {b.reclamation && <Badge ton="accent">Réclamation</Badge>}
                           {b.suspect && <Badge ton="danger">Suspect</Badge>}
+                          {b.etat === 'a_rediger' && <Badge ton="neutre">Réponse à rédiger</Badge>}
                         </span>
                         <span className="line-clamp-1 text-text">{b.texte}</span>
                         <span className="truncate text-[0.75rem] text-text-2">
@@ -222,7 +223,9 @@ export function Detail({
   motifs: string[]
   onDecide: (message: string) => void
 }) {
-  const [texte, setTexte] = useState(b.brouillon)
+  const aRediger = b.etat === 'a_rediger'
+  // Brouillon rejeté : le conseiller rédige la réponse ; le brouillon du bot reste consultable.
+  const [texte, setTexte] = useState(aRediger ? '' : b.brouillon)
   const [valeurs, setValeurs] = useState<Record<Colonne, string>>({
     categorie: b.categorie,
     produit: b.produit,
@@ -238,7 +241,7 @@ export function Detail({
 
   // Texte modifié : la garde de sortie repasse sur le nouveau texte, 400 ms après la dernière frappe.
   useEffect(() => {
-    if (!modifie) return
+    if (!modifie || !texte.trim()) return
     const controle = new AbortController()
     const minuterie = setTimeout(() => {
       verifierBrouillon(b.cle, texte, controle.signal).then(
@@ -253,7 +256,8 @@ export function Detail({
   }, [b.cle, texte, modifie])
   const alertes = modifie && verif?.texte === texte ? verif.alertes : []
 
-  const corrections = Object.fromEntries(COLONNES.filter((c) => valeurs[c] !== b[c]).map((c) => [c, valeurs[c]]))
+  // Les trois valeurs retenues partent toujours : égale à celle du bot, une valeur annule une correction antérieure.
+  const corrections = valeurs
   const motifFinal = motif === 'Autre' ? precision.trim() && `Autre : ${precision.trim()}` : motif
 
   async function decider(decision: 'valide' | 'rejete') {
@@ -268,8 +272,8 @@ export function Detail({
       })
       const n = d.corrections.length
       onDecide(
-        (decision === 'valide' ? `${b.id} : réponse envoyée` : `${b.id} : brouillon rejeté`) +
-          (d.modifie && decision === 'valide' ? ', texte modifié' : '') +
+        (decision === 'valide' ? `${b.id} : réponse envoyée` : `${b.id} : brouillon rejeté, réponse à rédiger`) +
+          (d.modifie && decision === 'valide' && !aRediger ? ', texte modifié' : '') +
           (n ? `, ${n} correction${s(n)} enregistrée${s(n)}` : '') +
           '.',
       )
@@ -295,6 +299,7 @@ export function Detail({
               Suspect
             </Badge>
           )}
+          {aRediger && <Badge ton="neutre">Réponse à rédiger</Badge>}
         </div>
         <p className="text-petit text-text-2">
           <Origine b={b} />
@@ -329,7 +334,7 @@ export function Detail({
       <Rubrique titre="Tri du bot · corrigez si besoin">
         <div className="grid grid-cols-3 gap-2">
           {COLONNES.map((c) => {
-            const corrige = valeurs[c] !== b[c]
+            const corrige = valeurs[c] !== b.bot[c]
             return (
               <label key={c} className="min-w-0 space-y-1">
                 <span className="block text-[0.75rem] text-text-2">
@@ -346,7 +351,7 @@ export function Detail({
                   {Object.keys(VALEURS[c]).map((code) => (
                     <option key={code} value={code}>
                       {libelle(c, code)}
-                      {code === b[c] ? ' (bot)' : ''}
+                      {code === b.bot[c] ? ' (bot)' : ''}
                     </option>
                   ))}
                 </select>
@@ -376,10 +381,23 @@ export function Detail({
         </p>
       </Rubrique>
 
+      {aRediger && b.rejet && (
+        <div className="space-y-2 rounded-[10px] bg-surface-2 px-3 py-2.5 text-petit text-text">
+          <p>
+            <span className="font-medium">Brouillon du bot rejeté</span> le {b.rejet.decide_le_texte} : {b.rejet.motif}.
+            La demande du client reste ouverte : rédigez la réponse ci-dessous.
+          </p>
+          <details>
+            <summary className="cursor-pointer text-[0.75rem] font-medium text-accent">Voir le brouillon rejeté</summary>
+            <p className="mt-2 text-petit whitespace-pre-wrap text-text-2">{b.brouillon}</p>
+          </details>
+        </div>
+      )}
+
       <Rubrique
-        titre="Brouillon"
+        titre={aRediger ? 'Réponse du conseiller' : 'Brouillon'}
         droite={
-          modifie ? (
+          aRediger ? undefined : modifie ? (
             <button type="button" onClick={() => setTexte(b.brouillon)} className="text-[0.75rem] font-medium text-accent hover:underline">
               Revenir au brouillon du bot
             </button>
@@ -394,7 +412,8 @@ export function Detail({
           </p>
         )}
         <textarea
-          aria-label="Brouillon de réponse"
+          aria-label={aRediger ? 'Réponse à rédiger' : 'Brouillon de réponse'}
+          placeholder={aRediger ? 'Rédigez la réponse au client…' : undefined}
           value={texte}
           onChange={(e) => setTexte(e.target.value)}
           rows={10}
@@ -436,16 +455,18 @@ export function Detail({
               onClick={() => void decider('valide')}
               className="pressable h-8 rounded-full bg-accent px-4 text-petit font-medium text-on-accent disabled:opacity-50"
             >
-              {occupe ? 'Envoi…' : 'Valider et envoyer'}
+              {occupe ? 'Envoi…' : aRediger ? 'Envoyer la réponse' : 'Valider et envoyer'}
             </button>
-            <button
-              type="button"
-              disabled={occupe}
-              onClick={() => setRejet(true)}
-              className="pressable h-8 rounded-full border border-danger px-4 text-petit font-medium text-danger disabled:opacity-50"
-            >
-              Rejeter
-            </button>
+            {!aRediger && (
+              <button
+                type="button"
+                disabled={occupe}
+                onClick={() => setRejet(true)}
+                className="pressable h-8 rounded-full border border-danger px-4 text-petit font-medium text-danger disabled:opacity-50"
+              >
+                Rejeter
+              </button>
+            )}
           </div>
         ) : (
           <fieldset className="space-y-3 rounded-[12px] border border-danger p-3">

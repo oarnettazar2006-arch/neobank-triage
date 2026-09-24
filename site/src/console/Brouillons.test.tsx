@@ -8,7 +8,8 @@ import type { Brouillon, FileBrouillons, Validation } from './types'
 import { retenirCorrections, retenirDecisions } from './Validation'
 
 // Réponse réelle de GET /brouillons : demo15 trié puis « Générer les brouillons », et deux messages
-// du chat (une réclamation, la tentative d'injection), sur Ollama, avant toute décision.
+// du chat (une réclamation, la tentative d'injection), sur Ollama, avant toute décision
+// (file recalculée avec la règle d'échéance proche relative, à l'heure de la première capture).
 const FILE = file as unknown as FileBrouillons
 const net = (s: string) => s.replace(/[\u202f\u00a0]/g, ' ')
 const trouver = (id: string) => FILE.file.find((b) => b.id === id)!
@@ -39,6 +40,13 @@ describe('file des brouillons (réelle)', () => {
     expect(html).toContain('1 j ouvré<')
     expect(html).toContain('10 j ouvrés')
     expect(html.match(/>Suspect<\/span>/g)).toHaveLength(2)
+  })
+
+  it('échéance proche relative : seule celle à qui il reste 20 % du délai ou moins est signalée', () => {
+    const proches = FILE.file.filter((b) => b.echeance?.delai === 'proche')
+    expect(proches.map((b) => b.id)).toEqual(['VAL009'])   // 1 jour ouvré sur 1
+    expect(FILE.file.find((b) => b.id === 'VAL001')!.echeance).toMatchObject({ jours_ouvres_restants: 2, jours_ouvres_total: 2, delai: 'normal' })
+    expect(html.match(/text-danger"><svg/g) ?? []).toHaveLength(1)
   })
 
   it('chiffres de validation et export des corrections', () => {
@@ -76,6 +84,27 @@ describe('détail d’un brouillon', () => {
     expect(html).toMatch(/<button type="button" disabled=""[^>]*>Valider et envoyer<\/button>/)
   })
 
+  it('brouillon rejeté : réponse à rédiger, brouillon du bot consultable, pas de second rejet', () => {
+    const b: Brouillon = {
+      ...trouver('VAL036'),
+      etat: 'a_rediger',
+      rejet: { motif: 'Ne répond pas à la demande', decide_le: '2026-09-24T19:30:41', decide_le_texte: '24/09 à 19:30' },
+      severite: 'medium',
+    }
+    const html = detail(b)
+    expect(html).toContain('Réponse à rédiger')
+    expect(html).toContain('Brouillon du bot rejeté</span> le 24/09 à 19:30 : Ne répond pas à la demande.')
+    expect(html).toContain('Voir le brouillon rejeté')
+    expect(html).toContain('placeholder="Rédigez la réponse au client…"')
+    expect(html).toContain('Envoyer la réponse')
+    expect(html).not.toContain('>Rejeter<')
+    // Gravité corrigée par le conseiller : la liste montre sa valeur, et marque celle du bot.
+    expect(html).toContain('Gravité<span class="font-medium text-accent"> · corrigé</span>')
+    expect(html).toContain('Faible (bot)')
+    const ligne = vue(null).split('VAL036')[1]!.split('</tr>')[0]!
+    expect(ligne).not.toContain('Réponse à rédiger')   // dans la fixture, VAL036 n'est pas encore rejeté
+  })
+
   it('pas de fiche : la raison est dite', () => {
     const b = FILE.file.find((x) => !x.fiche && x.fiche_raison === 'désaccord')!
     expect(detail(b)).toContain('Pas de fiche : brouillon générique')
@@ -100,7 +129,7 @@ describe('détail d’un brouillon', () => {
 
 describe('validation dans l’analyse du lot', () => {
   const v: Validation = {
-    brouillons: 15, en_attente: 10, decides: 5, valides_sans_modification: 3, valides_modifies: 1, rejetes: 1,
+    brouillons: 15, en_attente: 10, decides: 5, a_rediger: 0, valides_sans_modification: 3, valides_modifies: 1, rejetes: 1,
     corrections: { categorie: 1, produit: 0, severite: 2 },
   }
 
