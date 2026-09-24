@@ -13,6 +13,12 @@
   et métriques ; POST /lots/{id}/arreter ; GET /lots/{id}/export.csv ;
 - GET  /lots/{id}/tickets/{n}/trace : les six étapes du ticket n, enregistrées
   pendant le lot (api/trace.py), sans relancer aucun modèle ;
+- GET  /tickets/{ref}/trace : la même trace pour un ticket du chat ;
+- GET  /brouillons : la file des brouillons à valider (lots et chat), triée par
+  urgence ; POST /brouillons/{cle}/verifier (garde de sortie sur un texte
+  modifié), POST /brouillons/{cle}/decision (valider ou rejeter, corrections) ;
+  GET /corrections.csv ; POST /lots/{id}/brouillons (générer les brouillons
+  d'un lot lancé sans) ;
 - GET  /evolution : l'histoire des prompts de tri v0 à v7 (eval/evolution.json,
   écrit par eval/build_evolution.py), pour l'onglet « Prompts » de la console.
 
@@ -31,7 +37,9 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Path as Chemin
+from typing import Literal, Optional
+
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Path as Chemin, Query
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
@@ -40,7 +48,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import pipeline  # noqa: E402
 
-from . import db, lots, suivi, trace  # noqa: E402
+from . import brouillons, db, lots, suivi, trace  # noqa: E402
+from deadlines import compute_deadlines  # noqa: E402
 
 EVOLUTION = Path(__file__).resolve().parent.parent / "eval" / "evolution.json"
 DONNEES = json.loads((Path(__file__).resolve().parent / "donnees_demo.json").read_text(encoding="utf-8"))
@@ -97,8 +106,9 @@ def nouvelle_reference() -> str:
 
 
 def traiter(ref: str) -> None:
-    """Tâche de fond : le pipeline complet, étape par étape, sur le ticket enregistré."""
+    """Tâche de fond : le pipeline complet, étape par étape, sur le ticket enregistré, tracé comme un lot."""
     t = db.get(ref)
+    traceur = trace.Traceur(ref)
     with VERROU:
         db.set_traitement(ref, "en_cours")
 
@@ -108,8 +118,12 @@ def traiter(ref: str) -> None:
                 db.add_etape(ref, "delais", maintenant().isoformat())
 
         try:
-            out = pipeline.process({"id": ref, "input": t["texte"], "channel": t["canal"], "received_at": t["recu_le"]},
-                                   on_step=etape)
+            with traceur.ecoute(), traceur.autour_du_pipeline():
+                out = pipeline.process({"id": ref, "input": t["texte"], "channel": t["canal"],
+                                        "received_at": t["recu_le"]}, on_step=etape)
+            f = out["fields"]
+            traceur("délais", 0, lambda: compute_deadlines(datetime.fromisoformat(t["recu_le"]), f["is_complaint"],
+                                                           f["unauthorized_payment"], f["product"], t["canal"]))
         except Exception as e:   # Ollama arrêté, JSON invalide… : le ticket reste, le conseiller le reprendra
             db.set_traitement(ref, "erreur", f"{type(e).__name__}: {e}"[:500])
             return
@@ -192,7 +206,7 @@ def liste_lots() -> list:
 
 @app.get("/lots/{lot_id}")
 def lot(lot_id: str = Chemin(pattern=lots.ID)) -> dict:
-    return lots.vue(_lot(lot_id))
+    return lots.vue(_lot(lot_id), maintenant())
 
 
 @app.post("/lots/{lot_id}/arreter", status_code=202)
@@ -210,6 +224,14 @@ def trace_ticket(lot_id: str = Chemin(pattern=lots.ID), n: int = Chemin(ge=1)) -
     return trace.vue(lot, n)
 
 
+@app.get("/tickets/{ref}/trace")
+def trace_chat(ref: str = Chemin(pattern=REF)) -> dict:
+    t = db.get(ref)
+    if t is None:
+        raise HTTPException(404, "référence inconnue")
+    return trace.vue_chat(t)
+
+
 @app.get("/lots/{lot_id}/export.csv")
 def export_lot(lot_id: str = Chemin(pattern=lots.ID)) -> Response:
     lot = _lot(lot_id)
@@ -218,6 +240,68 @@ def export_lot(lot_id: str = Chemin(pattern=lots.ID)) -> Response:
     nom = re.sub(r"[^A-Za-z0-9_-]", "", Path(lot["nom"]).stem) or "tickets"
     return Response(lots.export(lot), media_type="text/csv; charset=utf-8",
                     headers={"Content-Disposition": f'attachment; filename="{nom}_triage.csv"'})
+
+
+# --- Console : brouillons à valider ---------------------------------------------------
+
+
+class Texte(BaseModel):
+    texte: str = Field(max_length=10_000)
+
+
+class Decision(BaseModel):
+    decision: Literal["valide", "rejete"]
+    texte: str = Field(max_length=10_000)
+    motif: Optional[str] = Field(default=None, max_length=500)
+    corrections: dict[str, str] = Field(default_factory=dict)
+    relu: bool = False   # « J'ai relu le ticket signalé », obligatoire pour valider un ticket suspect
+
+
+def _refus(e: brouillons.Refus) -> HTTPException:
+    return HTTPException(e.code, str(e))
+
+
+@app.get("/brouillons")
+def file_brouillons() -> dict:
+    return brouillons.file(maintenant())
+
+
+@app.post("/brouillons/{cle}/verifier")
+def verifier_brouillon(t: Texte, cle: str = Chemin(pattern=brouillons.CLE)) -> dict:
+    try:
+        return brouillons.verifier(cle, t.texte, maintenant())
+    except brouillons.Refus as e:
+        raise _refus(e) from None
+
+
+@app.post("/brouillons/{cle}/decision", status_code=201)
+def decider_brouillon(d: Decision, cle: str = Chemin(pattern=brouillons.CLE)) -> dict:
+    try:
+        return brouillons.decider(cle, d.model_dump(), maintenant())
+    except brouillons.Refus as e:
+        raise _refus(e) from None
+
+
+@app.get("/corrections.csv")
+def export_corrections(lot: Optional[str] = Query(default=None, pattern=lots.ID)) -> Response:
+    nom = f"corrections_{lot}" if lot else "corrections"
+    return Response(brouillons.export_corrections(maintenant(), lot), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{nom}.csv"'})
+
+
+def generer_brouillons(lot_id: str) -> None:
+    with VERROU:   # un seul pipeline à la fois
+        brouillons.generer(lot_id)
+
+
+@app.post("/lots/{lot_id}/brouillons", status_code=202)
+def brouillons_du_lot(taches: BackgroundTasks, lot_id: str = Chemin(pattern=lots.ID)) -> dict:
+    try:
+        ks = brouillons.preparer_generation(_lot(lot_id))
+    except brouillons.Refus as e:
+        raise _refus(e) from None
+    taches.add_task(generer_brouillons, lot_id)
+    return {"id": lot_id, "tickets": len(ks)}
 
 
 # --- Console : évolution des prompts ------------------------------------------------

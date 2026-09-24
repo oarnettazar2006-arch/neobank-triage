@@ -9,6 +9,12 @@ le temps du lot, et ne rend au bot que les octets reçus d'Ollama.
 
 `vue(lot, n)` assemble ensuite les six blocs de GET /lots/{id}/tickets/{n}/trace :
 garde d'entrée, tri llama, contrôleur qwen, rédacteur, garde de sortie, délais.
+
+Un ticket du chat passe par src/pipeline.py tel quel : `autour_du_pipeline`
+fait passer ses trois appels (tri, contrôleur, rédacteur) par le même
+`Traceur`, le temps du ticket, sans rien changer à ce qu'ils reçoivent ni
+renvoient. Sa trace est rangée sous sa référence (VLT-…), ticket 0 ;
+`vue_chat` la lit (GET /tickets/{ref}/trace).
 """
 
 from __future__ import annotations
@@ -22,7 +28,9 @@ from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 
 import answers  # noqa: E402  (src/, ajouté au chemin par api/main.py)
+import controller  # noqa: E402
 import reply  # noqa: E402
+import triage  # noqa: E402
 from deadlines import add_months, easter, holidays  # noqa: E402
 
 from . import db
@@ -76,6 +84,23 @@ class Traceur:
             yield self
         finally:
             urllib.request.urlopen = origine
+
+    @contextmanager
+    def autour_du_pipeline(self):
+        """Le temps d'un ticket du chat : tri, contrôleur et rédacteur de src/pipeline.py passent par ce traceur."""
+        origines = [(triage, "triage", "tri"), (controller, "predict", "contrôle"), (reply, "draft_reply", "brouillon")]
+        gardes = [(m, nom, getattr(m, nom)) for m, nom, _ in origines]
+
+        def enveloppe(fonction, etape):
+            return lambda *a, **kw: self(etape, 0, lambda: fonction(*a, **kw))
+
+        for (m, nom, fonction), (_, _, etape) in zip(gardes, origines):
+            setattr(m, nom, enveloppe(fonction, etape))
+        try:
+            yield self
+        finally:
+            for m, nom, fonction in gardes:
+                setattr(m, nom, fonction)
 
     def __call__(self, etape: str, k: int, appel):
         self.appels = []
@@ -283,3 +308,11 @@ def vue(lot: dict, n: int) -> dict:
                       _redacteur(t.get("brouillon"), bool(lot["brouillon"]), ligne["ticket"]),
                       _garde_sortie(t.get("brouillon"), bool(lot["brouillon"])),
                       _delais_bloc(t.get("delais"), ligne, lot["cree_le"], tri["champs"] if tri else None)]}
+
+
+def vue_chat(ticket: dict) -> dict:
+    """La trace d'un ticket du chat, dans la même forme qu'un ticket de lot (le chat rédige toujours un brouillon)."""
+    statut = {"en_attente": "en_attente", "en_cours": "en_cours", "termine": "termine", "erreur": "erreur"}
+    lot = {"id": ticket["ref"], "brouillon": 1, "cree_le": ticket["recu_le"], "statut": statut[ticket["traitement"]],
+           "lignes": [{"id": ticket["ref"], "ticket": ticket["texte"], "canal": ticket["canal"], "recu_le": ticket["recu_le"]}]}
+    return vue(lot, 1)

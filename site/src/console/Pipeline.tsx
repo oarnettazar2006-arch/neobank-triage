@@ -10,7 +10,7 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { Ressource } from '../api'
 import { ErreurBloc, Os } from '../composants/Etats'
-import { chargerTrace } from './api'
+import { chargerTrace, chargerTraceChat } from './api'
 import { VALEURS } from './libelles'
 import { autourDuTicket, jsonLisible, nombreDeLignes, secondesTexte, surligner, type Segment } from './trace'
 import type {
@@ -28,16 +28,24 @@ import type {
 const INTERVALLE = 2000
 const EN_COURS: StatutLot[] = ['en_attente', 'en_cours']
 
-/** Charge la trace, puis la relit toutes les 2 s tant que le lot tourne. */
-function useTrace(lotId: string, n: number): [Ressource<Trace>, () => void] {
+/** Le ticket dont on lit la trace : le ticket n d'un lot, ou un ticket du chat (référence VLT-…). */
+export type SourceTrace = { lot: string; n: number } | { ref: string }
+
+/** Charge la trace, puis la relit toutes les 2 s tant que le lot (ou le ticket du chat) tourne. */
+function useTrace(source: SourceTrace): [Ressource<Trace>, () => void] {
   const [lu, setLu] = useState<{ cle: string; trace: Ressource<Trace> } | null>(null)
   const [essai, setEssai] = useState(0)
-  const cle = `${lotId}/${n}`
+  const cle = 'ref' in source ? source.ref : `${source.lot}/${source.n}`
   useEffect(() => {
     const controle = new AbortController()
     let minuterie: ReturnType<typeof setTimeout> | undefined
+    const lire = (signal: AbortSignal) => {
+      if (cle.startsWith('VLT-')) return chargerTraceChat(cle, signal)
+      const [lot, n] = cle.split('/')
+      return chargerTrace(lot!, Number(n), signal)
+    }
     const charger = () =>
-      chargerTrace(lotId, n, controle.signal).then(
+      lire(controle.signal).then(
         (donnees) => {
           setLu({ cle, trace: { etat: 'pret', donnees } })
           if (EN_COURS.includes(donnees.statut_lot)) minuterie = setTimeout(charger, INTERVALLE)
@@ -51,14 +59,14 @@ function useTrace(lotId: string, n: number): [Ressource<Trace>, () => void] {
       controle.abort()
       clearTimeout(minuterie)
     }
-  }, [lotId, n, cle, essai])
+  }, [cle, essai])
   return [lu?.cle === cle ? lu.trace : { etat: 'chargement' }, () => setEssai((x) => x + 1)]
 }
 
 // --- Petits éléments ----------------------------------------------------------------
 
 /** Segments rendus en nœuds texte ; les passages marqués dans un <mark>, jamais du HTML. */
-function Segments({ segments, ton }: { segments: Segment[]; ton: 'danger' | 'accent' }) {
+export function Segments({ segments, ton }: { segments: Segment[]; ton: 'danger' | 'accent' }) {
   const marque =
     ton === 'danger'
       ? 'rounded-[3px] bg-[rgb(var(--danger-rgb)/0.12)] text-text underline decoration-danger decoration-dotted underline-offset-2'
@@ -569,9 +577,17 @@ export function VuePipeline({ trace }: { trace: Trace }) {
   )
 }
 
-/** Onglet Pipeline : le ticket n du lot, étape par étape. */
-export function Pipeline({ lotId, n, onRetour }: { lotId: string; n: number; onRetour: () => void }) {
-  const [trace, recharger] = useTrace(lotId, n)
+/** Onglet Pipeline : un ticket (d'un lot ou du chat), étape par étape. */
+export function Pipeline({
+  source,
+  onRetour,
+  retour = 'Retour au lot',
+}: {
+  source: SourceTrace
+  onRetour: () => void
+  retour?: string
+}) {
+  const [trace, recharger] = useTrace(source)
   return (
     <section aria-labelledby="titre-pipeline" className="space-y-4">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -581,11 +597,11 @@ export function Pipeline({ lotId, n, onRetour }: { lotId: string; n: number; onR
           className="pressable flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-petit font-medium text-text hover:bg-surface-2"
         >
           <ArrowLeftIcon size={16} aria-hidden="true" />
-          Retour au lot
+          {retour}
         </button>
         <h2 id="titre-pipeline" className="text-section font-semibold tracking-[-0.01em] text-text">
           Pipeline du ticket{' '}
-          <span className="montant">{trace.etat === 'pret' ? trace.donnees.id : `#${n}`}</span>
+          <span className="montant">{trace.etat === 'pret' ? trace.donnees.id : 'ref' in source ? source.ref : `#${source.n}`}</span>
         </h2>
       </div>
       {trace.etat === 'chargement' && (

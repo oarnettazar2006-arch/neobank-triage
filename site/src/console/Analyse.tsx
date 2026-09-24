@@ -1,7 +1,9 @@
 import { Barres, Chiffre, Figure, Grille, Pastille, type Case } from './graphiques'
 import { CHAMP, COLONNES, libelle, VALEURS } from './libelles'
 import { pct, pctRond, retenirConfusion, retenirCroise, retenirPrecision, retenirRepartition } from './retenir'
+import { urlCorrections } from './api'
 import type { Analyse as DonneesAnalyse, Colonne, MetriqueChamp, Metriques } from './types'
+import { ValidationChiffres } from './Validation'
 
 const s = (n: number) => (n > 1 ? 's' : '')
 
@@ -125,7 +127,7 @@ function Confusion({ col, f }: { col: Colonne; f: MetriqueChamp }) {
 }
 
 /** Les chiffres clés et les graphiques du lot, recalculés à chaque tri de ticket. */
-export function Analyse({ analyse, total }: { analyse: DonneesAnalyse; total: number }) {
+export function Analyse({ analyse, total, lotId }: { analyse: DonneesAnalyse; total: number; lotId?: string }) {
   const a = analyse
   const m = a.metriques
   const partiel = a.tickets < total
@@ -183,6 +185,20 @@ export function Analyse({ analyse, total }: { analyse: DonneesAnalyse; total: nu
               return f ? <Confusion key={c} col={c} f={f} /> : null
             })}
           </div>
+        </section>
+      )}
+
+      {a.validation && a.validation.brouillons > 0 && (
+        <section aria-labelledby="titre-validation" className="space-y-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="titre-validation" className="text-section font-semibold tracking-[-0.01em] text-text">
+              Validation par le conseiller
+            </h2>
+            <a href="/console/brouillons" className="text-petit font-medium text-accent hover:underline">
+              Ouvrir la file des brouillons
+            </a>
+          </div>
+          <ValidationChiffres v={a.validation} export={urlCorrections(lotId)} />
         </section>
       )}
     </>

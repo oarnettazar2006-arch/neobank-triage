@@ -25,7 +25,7 @@ import triage_csv  # noqa: E402
 from reply import format_date  # noqa: E402
 from schema import ENUMS  # noqa: E402
 
-from . import db, trace  # noqa: E402
+from . import brouillons, db, trace  # noqa: E402
 
 MAX_TICKETS = 200
 MAX_OCTETS = 2_000_000
@@ -168,8 +168,8 @@ def vue_resume(lot: dict) -> dict:
             "brouillon": bool(lot["brouillon"])}
 
 
-def vue(lot: dict) -> dict:
-    """GET /lots/{id} : progression, lignes (entrée et prédiction) et analyse."""
+def vue(lot: dict, maintenant: datetime) -> dict:
+    """GET /lots/{id} : progression, lignes (entrée et prédiction), analyse et validation par le conseiller."""
     preds = lot["predictions"]
     lignes = [{"n": n + 1, "id": r.get("id") or f"#{n + 1}", "ticket": r["ticket"],
                "attendu": {c: r[c] for c in triage_csv.GOLD if r.get(c)},
@@ -177,7 +177,8 @@ def vue(lot: dict) -> dict:
               for n, (r, p) in enumerate(zip(lot["lignes"], preds))]
     return {**vue_resume(lot), "etape": lot["etape"], "reste_s": lot["reste_s"], "secondes": lot["secondes"],
             "erreur": lot["erreur"], "etapes": etapes(lot["brouillon"]), "lignes": lignes,
-            "analyse": analyse(lot["lignes"], preds)}
+            "analyse": {**analyse(lot["lignes"], preds), "validation": brouillons.stats_lot(lot, maintenant)},
+            "brouillons_a_generer": len(brouillons.a_generer(lot)) if lot["statut"] not in ("en_attente", "en_cours") else 0}
 
 
 def export(lot: dict) -> str:

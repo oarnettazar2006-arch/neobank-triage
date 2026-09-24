@@ -1,11 +1,12 @@
-import { ArrowLeftIcon, GitDiffIcon, TableIcon, WarningCircleIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, GitDiffIcon, NotePencilIcon, TableIcon, WarningCircleIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { useRessource, type Ressource } from '../api'
 import { BoutonTheme } from '../composants/BarreHaut'
 import { ErreurBloc, Os } from '../composants/Etats'
 import { Logo } from '../composants/Logo'
 import { Analyse } from './Analyse'
-import { arreterLot, chargerLot, creerLot, listerLots } from './api'
+import { arreterLot, chargerLot, creerLot, ErreurApi, genererBrouillons, listerLots } from './api'
+import { Brouillons } from './Brouillons'
 import { Entree } from './Entree'
 import { Prompts } from './prompts/Prompts'
 import { duree } from './retenir'
@@ -33,9 +34,15 @@ function ticketDeLAdresse(): number | null {
   return Number.isInteger(n) && n >= 1 ? n : null
 }
 
+/** Un ticket du chat dont on lit la trace (?ref=VLT-XXXXXX), depuis la vue Brouillons. */
+function refDeLAdresse(): string | null {
+  return new URLSearchParams(window.location.search).get('ref')
+}
+
 function ecrireAdresse(id: string, ticket: number | null = null) {
   const url = new URL(window.location.href)
   url.searchParams.set('lot', id)
+  url.searchParams.delete('ref')
   if (ticket) url.searchParams.set('ticket', String(ticket))
   else url.searchParams.delete('ticket')
   window.history.replaceState(null, '', url)
@@ -80,11 +87,12 @@ function useLot(id: string | null, onFini: () => void): [Ressource<Lot> | null, 
   return [lot, () => setEssai((n) => n + 1)]
 }
 
-export type Onglet = 'lot' | 'prompts'
+export type Onglet = 'lot' | 'brouillons' | 'prompts'
 
-const ONGLETS: { cle: Onglet; href: string; libelle: string; titre: string; Icone: typeof TableIcon }[] = [
-  { cle: 'lot', href: '/console', libelle: 'Tri d’un lot', titre: 'Tri d’un lot', Icone: TableIcon },
-  { cle: 'prompts', href: '/console/prompts', libelle: 'Prompts', titre: 'Évolution des prompts', Icone: GitDiffIcon },
+const ONGLETS: { cle: Onglet; href: string; libelle: string; court: string; titre: string; Icone: typeof TableIcon }[] = [
+  { cle: 'lot', href: '/console', libelle: 'Tri d’un lot', court: 'Lot', titre: 'Tri d’un lot', Icone: TableIcon },
+  { cle: 'brouillons', href: '/console/brouillons', libelle: 'Brouillons', court: 'Brouillons', titre: 'Brouillons à valider', Icone: NotePencilIcon },
+  { cle: 'prompts', href: '/console/prompts', libelle: 'Prompts', court: 'Prompts', titre: 'Évolution des prompts', Icone: GitDiffIcon },
 ]
 
 /** Onglets en tête, sur mobile : la barre latérale n'y est pas. */
@@ -96,11 +104,11 @@ function OngletsMobiles({ onglet }: { onglet: Onglet }) {
           key={o.cle}
           href={o.href}
           aria-current={o.cle === onglet ? 'page' : undefined}
-          className={`pressable flex h-8 items-center rounded-full px-3 text-petit font-medium ${
+          className={`pressable flex h-8 items-center rounded-full px-3 whitespace-nowrap text-petit font-medium ${
             o.cle === onglet ? 'bg-[rgb(var(--accent-rgb)/0.1)] text-accent' : 'text-text-2'
           }`}
         >
-          {o.libelle}
+          {o.court}
         </a>
       ))}
     </nav>
@@ -176,6 +184,45 @@ function BarreLaterale({
         Espace client
       </a>
     </aside>
+  )
+}
+
+/** « Générer les brouillons » : pour un lot trié sans brouillon (le rédacteur n'a pas tourné). */
+function GenererBrouillons({ lot, onLance }: { lot: Lot; onLance: () => void }) {
+  const [etat, setEtat] = useState<{ envoi: boolean; erreur: string | null }>({ envoi: false, erreur: null })
+  const n = lot.brouillons_a_generer ?? 0
+  if (!n || EN_COURS.includes(lot.statut)) return null
+  const lancer = async () => {
+    setEtat({ envoi: true, erreur: null })
+    try {
+      await genererBrouillons(lot.id)
+      onLance()
+    } catch (e) {
+      setEtat({ envoi: false, erreur: e instanceof ErreurApi ? e.message : 'Le service ne répond pas.' })
+      return
+    }
+    setEtat({ envoi: false, erreur: null })
+  }
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3">
+      <p className="min-w-0 flex-1 text-petit text-text-2">
+        {n} ticket{n > 1 ? 's' : ''} sans brouillon : ce lot a été lancé sans le rédacteur. Les brouillons partent ensuite
+        dans la file à valider.
+      </p>
+      <button
+        type="button"
+        disabled={etat.envoi}
+        onClick={() => void lancer()}
+        className="pressable h-8 rounded-full border border-accent px-4 text-petit font-medium text-accent disabled:opacity-60"
+      >
+        {etat.envoi ? 'Lancement…' : 'Générer les brouillons'}
+      </button>
+      {etat.erreur && (
+        <p role="alert" className="w-full text-petit text-text">
+          Refusé : {etat.erreur}.
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -267,11 +314,13 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
   const [lots, rechargerLots] = useRessource(listerLots)
   const [lotId, setLotId] = useState<string | null>(() => (onglet === 'lot' ? lotDeLAdresse() : null))
   const [ticket, setTicket] = useState<number | null>(() => (onglet === 'lot' ? ticketDeLAdresse() : null))
+  const [refChat] = useState<string | null>(() => (onglet === 'lot' ? refDeLAdresse() : null))
   const [source, setSource] = useState<{ id: string; nom: string; contenu: string; brouillon: boolean } | null>(null)
   const [lot, rechargerLot] = useLot(lotId, rechargerLots)
 
   useEffect(() => {
-    document.title = onglet === 'prompts' ? 'Prompts · Console · VAULT' : 'Console · VAULT'
+    document.title =
+      onglet === 'prompts' ? 'Prompts · Console · VAULT' : onglet === 'brouillons' ? 'Brouillons · Console · VAULT' : 'Console · VAULT'
   }, [onglet])
 
   const choisir = (id: string) => {
@@ -334,7 +383,12 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
           </div>
         </header>
         <main className="mx-auto max-w-[1280px] space-y-8 px-5 pt-6 pb-16 lg:px-8">
-          {onglet === 'prompts' ? <Prompts /> : !ticket && <Entree onLance={lance} />}
+          {onglet === 'prompts' && <Prompts />}
+          {onglet === 'brouillons' && <Brouillons />}
+          {onglet === 'lot' && refChat && !lotId && (
+            <Pipeline source={{ ref: refChat }} retour="Retour aux brouillons" onRetour={() => window.location.assign('/console/brouillons')} />
+          )}
+          {onglet === 'lot' && !ticket && !refChat && <Entree onLance={lance} />}
 
           {lot?.etat === 'chargement' && (
             <div aria-busy="true" aria-label="Chargement du lot" className="bloc space-y-3 p-5">
@@ -356,12 +410,13 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
                   </span>
                 </div>
                 <Progression lot={l} onArreter={() => void arreter(l.id)} onRelancer={relancer} />
+                <GenererBrouillons lot={l} onLance={rechargerLot} />
               </section>
               {ticket && ticket <= l.tickets ? (
-                <Pipeline key={`${l.id}/${ticket}`} lotId={l.id} n={ticket} onRetour={() => ouvrir(l.id, null)} />
+                <Pipeline key={`${l.id}/${ticket}`} source={{ lot: l.id, n: ticket }} onRetour={() => ouvrir(l.id, null)} />
               ) : (
                 <>
-                  <Analyse analyse={l.analyse} total={l.tickets} />
+                  <Analyse analyse={l.analyse} total={l.tickets} lotId={l.id} />
                   <TableauTickets
                     lotId={l.id}
                     lignes={l.lignes}
@@ -373,7 +428,7 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
               )}
             </>
           )}
-          {onglet === 'lot' && !lotId && (
+          {onglet === 'lot' && !lotId && !refChat && (
             <p className="text-center text-petit text-text-2">
               Déposez un CSV ou écrivez un ticket : le tri, l’analyse et les métriques s’affichent ici.
             </p>
