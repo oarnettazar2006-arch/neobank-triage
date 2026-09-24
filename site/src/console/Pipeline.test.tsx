@@ -2,14 +2,17 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Entree, EXEMPLES } from './Entree'
 import { VuePipeline } from './Pipeline'
+import val60 from '../../../data/val/val60.jsonl?raw'
 import injection from './trace.injection.json'
+import limite from './trace.limite.json'
 import reclamation from './trace.reclamation.json'
 import type { Bloc, Trace } from './types'
 
-// Réponses réelles de GET /lots/{id}/tickets/1/trace pour les deux exemples de « Écrire un ticket »,
+// Réponses réelles de GET /lots/{id}/tickets/1/trace pour les trois exemples de « Écrire un ticket »,
 // triés en local sur Ollama avec brouillon (llama3.1:8b, qwen2.5:7b).
 const INJECTION = injection as unknown as Trace
 const RECLAMATION = reclamation as unknown as Trace
+const LIMITE = limite as unknown as Trace
 
 const net = (s: string) => s.replace(/[\u202f\u00a0]/g, ' ')
 const rendu = (t: Trace) => net(renderToStaticMarkup(<VuePipeline trace={t} />))
@@ -56,10 +59,23 @@ describe('pipeline d’un ticket (trace réelle)', () => {
     expect(html).toContain('Jours fériés pris en compte')
   })
 
-  it('réclamation implicite : le désaccord du contrôleur est affiché, pas de fiche', () => {
+  it('réclamation implicite (VAL022) : détectée, fiche utilisée, délais de réclamation', () => {
     const r = rendu(RECLAMATION)
+    const tri = RECLAMATION.blocs.find((b) => b.cle === 'tri') as Extract<Bloc, { cle: 'tri' }>
+    expect(tri.champs?.is_complaint).toBe(true)
+    expect(r).toContain('Accord avec le tri.')
+    expect(r).toContain('frais_contestes</code> utilisée')
+    expect(r).toContain('Accusé de réception de la réclamation')
+    expect(r).toContain('Réponse à la réclamation')
+  })
+
+  it('limite du bot : réclamation manquée, montrée telle quelle (désaccord, pas de fiche)', () => {
+    const r = rendu(LIMITE)
+    const tri = LIMITE.blocs.find((b) => b.cle === 'tri') as Extract<Bloc, { cle: 'tri' }>
+    expect(tri.champs?.is_complaint).toBe(false)
     expect(r).toContain('Désaccord avec le tri.')
     expect(r).toContain('Pas de fiche : brouillon générique')
+    expect(r).not.toContain('Accusé de réception de la réclamation')
   })
 
   it('lot sans brouillon : les blocs 4 et 5 le disent, sans boîte vide', () => {
@@ -92,11 +108,23 @@ describe('pipeline d’un ticket (trace réelle)', () => {
 })
 
 describe('écrire un ticket', () => {
-  it('propose deux exemples en un clic : réclamation implicite et tentative d’injection', () => {
+  it('propose trois exemples en un clic : réclamation implicite, tentative d’injection, limite du bot', () => {
     const html = renderToStaticMarkup(<Entree onLance={() => {}} />)
     expect(html).toContain('Réclamation implicite')
     expect(html).toContain('Tentative d’injection')
-    expect(EXEMPLES.map((e) => e.cle)).toEqual(['reclamation', 'injection'])
+    expect(html).toContain('Limite du bot')
+    expect(EXEMPLES.map((e) => e.cle)).toEqual(['reclamation', 'injection', 'limite'])
     expect(EXEMPLES[1]!.texte).toContain('[SYSTEM]')
+  })
+
+  it('la réclamation implicite est VAL022 de val60, mot pour mot, et les traces viennent des exemples', () => {
+    const tickets = val60
+      .trim()
+      .split('\n')
+      .map((l) => JSON.parse(l) as { id: string; input: string })
+    expect(EXEMPLES[0]!.texte).toBe(tickets.find((t) => t.id === 'VAL022')!.input)
+    expect(RECLAMATION.ticket).toBe(EXEMPLES[0]!.texte)
+    expect(INJECTION.ticket).toBe(EXEMPLES[1]!.texte)
+    expect(LIMITE.ticket).toBe(EXEMPLES[2]!.texte)
   })
 })
