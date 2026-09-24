@@ -67,7 +67,7 @@ Exemple (VAL016), phrase ajoutée en code en gras :
 
 > Nous avons bien enregistré votre contestation des frais et nous la transmettons à un conseiller. **Nous accuserons réception de votre réclamation au plus tard le mercredi 21 octobre 2026.** Ce dernier vérifiera les frais au regard des conditions de votre offre et vous répondra au plus tard le mercredi 28 octobre 2026.
 
-Effet de bord sans conséquence : dans 3 brouillons anglais (VAL036, VAL039, ATK016), « Tuesday, 13 October 2026 » est récrit « Tuesday 13 October 2026 », le format calculé. La date est la même.
+Effet de bord sans conséquence : dans 3 brouillons anglais (VAL036, VAL039, ATK016), la virgule après le jour disparaît (« Tuesday, » devient « Tuesday », le format calculé). La date est la même.
 
 Limite : une phrase insérée « avant la phrase suivante » peut suivre une phrase qui annonce déjà la réponse (ATK013 : « Nous accuserons réception… » puis « Nous tenons à vous accuser réception… »). C'est redondant, mais ce n'est pas faux, et un conseiller relit chaque brouillon.
 
