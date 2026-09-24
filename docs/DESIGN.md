@@ -181,7 +181,7 @@ Presque aucune.
 | **Carte VAULT** | En desktop, la carte entière : marine plein ; goutte et VAULT en haut à gauche ; pictogramme sans contact en haut à droite ; titulaire et « •••• 7310 » en bas à gauche ; « Débit » et l'expiration en bas à droite. Dessous : le nom, l'état et le bouton « Geler ». En mobile, une ligne dans un bloc : vignette de 64 × 40, nom, « •••• 7310, active » et « Geler ». |
 | **Résumé du mois** | Un bloc « Septembre ». Il montre « Dépensé » et « Reçu » en 24/600 tabulaire (le reçu en accent), puis les « Principaux postes » : trois lignes avec icône, catégorie et montant. Pas de barre de progression. |
 | **Bouton du chat** | Cercle en verre de 48 px (mobile, au-dessus de la navigation) ou 56 px (desktop, à 32 px des bords), icône bulle, avec l'ombre flottante. `aria-label` « Ouvrir l'assistance ». |
-| **Panneau du chat** | Un `<dialog>` modal : feuille en bas sur mobile (72 % de la hauteur), tiroir de 420 px à droite en desktop. En-tête « Assistance » et bouton de fermeture. Le corps est vide pour l'instant, avec une seule ligne « Bientôt disponible. ». Le voile est marine à 32 %, et Échap ferme le panneau. |
+| **Panneau du chat** | Un `<dialog>` modal : feuille en bas sur mobile (72 % de la hauteur), tiroir de 420 px à droite en desktop. En-tête « Assistance » et bouton de fermeture. Le corps est le fil du chat (section 6.2). Le voile est marine à 32 %, et Échap ferme le panneau. |
 
 ### 5.2 Console
 
@@ -247,9 +247,15 @@ Mobile (390 px) : dans l'ordre, le bandeau ; la barre du haut (logo, thème, not
 
 Captures de référence : `docs/design/captures/v2/` (desktop 1440 × 900, pleine page, avec le chat ouvert ; mobile 390 × 844 en haut et après défilement, avec le chat ouvert ; en clair et en sombre).
 
-### 6.2 Chat (à venir)
+### 6.2 Chat (livré)
 
-Le bouton et le panneau existent déjà (section 5.1). Le contenu viendra dans une PR à part. Il réutilisera les surfaces pleines : bulles du bot en `--surface-2`, bulles du client en accent, champ en pilule. Pas de verre.
+Surfaces pleines, pas de verre : bulles de VAULT en `--surface-2`, bulles du client en accent, champ en pilule (2 000 caractères au plus, comme l'API), bouton d'envoi rond en accent. Le fil est un `role="log"` annoncé poliment.
+
+1. Le client envoie son message : `POST /chat` crée le ticket (statut « Reçue ») et répond tout de suite.
+2. Pendant le tri, une bulle « Nous analysons votre demande ».
+3. Puis le **message fixe écrit par l'API** (`api/suivi.py`) : « Votre demande est enregistrée sous la référence X. Nos experts l'examinent. », plus les dates d'accusé de réception et de réponse pour une réclamation. Un ticket suspect reçoit le même message.
+
+Le client ne voit jamais le brouillon du bot : il est réservé au conseiller (`GET /tickets`). Pas encore de réponse directe du bot. Si le suivi ne répond plus, le chat garde le message de base renvoyé à la création.
 
 ### 6.3 Suivi d'une demande (à venir)
 
@@ -271,7 +277,7 @@ La liste et le détail gardent la structure du v1 : une file à gauche ; un tabl
 | **Carte gelée** | « Gelée » à la place de « Active », et le bouton devient « Dégeler ». | |
 | **Ticket suspect** | Rien de visible pour le client. | Ligne marquée, bandeau dans le détail, passages retirés surlignés, relecture obligatoire. |
 
-L'accueil de cette PR n'affiche que l'état chargé : les autres états sont spécifiés ici et arriveront avec l'API.
+L'accueil lit l'API et affiche les trois états. Le compte en erreur n'a qu'un bloc d'erreur, à la place du solde.
 
 ---
 
@@ -366,3 +372,4 @@ Le résumé du mois est fourni par l'API. Un test vérifie que les données de d
 | 2026-09-24 | v1.1 | Oscar : plus d'or (glace à la place), verre liquide sur la carte de suivi. |
 | 2026-09-24 | v1.2 | Oscar : verre sur tout élément interactif, composant Glass, page `/specimen` (PR #31). |
 | 2026-09-24 | **v2** | Oscar : la PR #31 fait maquette de téléphone en verre bulle, générique. Elle est fermée sans fusion. Nouvelle direction : **surfaces pleines, espace, un seul accent glacier, verre seulement sur la navigation et le chat, thème clair par défaut**. Structure inspirée des apps web Revolut et Qonto et d'apple.com. Police **Geist** (chiffres tabulaires). Premier écran : l'accueil client sur données fictives. Le composant Glass, `/specimen` et l'écran pilote sont supprimés. |
+| 2026-09-24 | v2.1 | API branchée (PR « feat/api-chat ») : accueil sur `GET /compte` et `GET /operations` avec états chargement, vide et erreur ; chat relié au vrai pipeline, message fixe au client. |

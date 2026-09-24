@@ -26,7 +26,9 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 - `eval/reports/` : un rapport par étape ; `eval/results/` : résultats bruts horodatés
 - `tests/` : tests unitaires (`python3 -m unittest discover -s tests`)
 - `docs/` : guide d'annotation, politique d'automatisation, data card, audit, base de réponses (`answers/`)
-- `site/` : le front (Vite, React, TypeScript, Tailwind), selon `docs/DESIGN.md` ; pour l'instant l'accueil client v2, sur données fictives (`npm run dev`, `npm run lint`, `npm run build`, `npm test`)
+- `api/` : API FastAPI + SQLite (`main.py`, `db.py`, `suivi.py`, `donnees_demo.json`), dépendances dans `api/requirements.txt`, environnement `.venv` (Python ≥ 3.10) ; base `api/vault.db` ignorée par git ; tests avec LLM simulé (`make test-api`)
+- `site/` : le front (Vite, React, TypeScript, Tailwind), selon `docs/DESIGN.md` ; l'accueil client v2 et le chat, sur l'API (`npm run dev`, `npm run lint`, `npm run build`, `npm test`)
+- `make demo` : l'API (port 8000) et le site ensemble, avec le vrai pipeline sur Ollama
 
 ## Règles
 

@@ -44,7 +44,7 @@ export function BandeauDemo() {
 }
 
 /** Barre du haut, en verre léger (DESIGN.md 4). */
-export function BarreHaut({ titre, initiales }: { titre: string; initiales: string }) {
+export function BarreHaut({ titre, initiales }: { titre: string; initiales?: string }) {
   return (
     <header className="verre sticky top-0 z-20 border-b border-[var(--verre-bord)]">
       <div className="mx-auto flex h-16 max-w-[1120px] items-center justify-between px-5 lg:px-10">

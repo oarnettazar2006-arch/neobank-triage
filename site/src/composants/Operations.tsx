@@ -16,8 +16,11 @@ export function Operations({ jours }: { jours: Jour[] }) {
           <CaretRightIcon size={14} weight="bold" aria-hidden="true" />
         </a>
       </div>
+      {jours.every((j) => j.operations.length === 0) && (
+        <p className="px-5 pt-6 pb-10 text-center text-corps text-text-2">Aucune opération pour l’instant.</p>
+      )}
       <div className="pb-3">
-        {jours.map((jour) => (
+        {jours.filter((j) => j.operations.length > 0).map((jour) => (
           <div key={jour.libelle} className="mt-2">
             <h3 className="px-5 py-2 text-petit font-medium text-text-2 lg:px-6">{jour.libelle}</h3>
             <ul>
