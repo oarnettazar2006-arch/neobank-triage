@@ -350,8 +350,8 @@ Mobile (375 px) :
 │▓ Réponse au plus tard le         ▓│
 │▓ jeudi 31 décembre 2026          ▓│  date en --legal
 │▓─────────────────────────────────▓│
-│▓ Question · Répondue             ›▓│
-│▓ Répondue le lundi 12 octobre 2026▓│
+│▓ Question · Réponse envoyée      ›▓│
+│▓ Envoyée le lundi 12 octobre 2026▓│
 │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
 └───────────────────────────────────┘
 ```
@@ -524,9 +524,19 @@ Mobile : les trois colonnes s'empilent dans l'ordre ticket, tri, brouillon. Les 
 | **Erreur** | Sur une surface opaque (jamais sur le verre) : icône d'alerte, « Le service ne répond pas. Réessayez dans un instant. », bouton secondaire « Réessayer ». Dans le chatbot, un message non envoyé garde son texte, et « Réessayer l'envoi » apparaît sous la bulle. | Bandeau opaque en haut du panneau concerné : filet gauche `--danger`, message, bouton « Réessayer ». Les données déjà affichées restent visibles. |
 | **Ticket suspect** | **Rien de visible pour le client.** On ne lui signale jamais une injection supposée. | Ligne `--row-suspect` avec l'icône bouclier, dans la file « Suspects » ; bandeau dans le détail ; passages retirés surlignés ; case de relecture obligatoire avant de valider (section 6.5). |
 | **Délai proche de l'échéance** | À 2 jours ouvrés restants ou moins (valeur donnée par l'API) : la carte de suivi garde la date en champagne, et une ligne « Échéance dans 2 jours ouvrés » s'ajoute sous le rail, avec une icône horloge. Pas de rouge côté client : le client n'a rien à faire, on ne l'alarme pas. | Badge vermillon « Échéance proche » ; le ticket entre aussi dans la file « Échéance proche ». |
-| **Échéance dépassée** | Rail plein. La ligne sous le rail devient « Échéance dépassée le jeudi 31 décembre 2026. Un conseiller traite votre demande. », avec icône et texte en `--text`. | Badge vermillon « Échéance dépassée » ; le ticket passe en tête de la file « À traiter ». |
+| **Échéance dépassée** | Rail plein. La ligne sous le rail devient « Échéance dépassée le jeudi 31 décembre 2026. Un conseiller traite votre demande. », avec icône et texte en `--text`. Dessous, sur une surface opaque : « Vous pouvez aussi saisir le médiateur de VAULT. C'est gratuit. », puis le bouton secondaire « Saisir le médiateur » (voir ci-dessous). C'est le seul cas où cette action apparaît. | Badge vermillon « Échéance dépassée » ; le ticket passe en tête de la file « À traiter ». |
 
-**Statuts du client** (trois valeurs, fournies par l'API) : « Reçue », « En cours d'examen », « Répondue ». Chacun a une icône Phosphor (tray, hourglass, check) en plus du texte.
+**Statuts du client** (trois valeurs, fournies par l'API) : « Reçue », « En cours d'examen », « Réponse envoyée ». Chacun a une icône Phosphor (tray, hourglass, check) en plus du texte.
+
+**Saisir le médiateur** (échéance dépassée seulement) : le bouton ouvre une feuille opaque, pas en verre, car c'est un texte long. Elle affiche, dans cet ordre :
+
+1. le titre « Saisir le médiateur » ;
+2. « Le médiateur examine gratuitement votre litige avec VAULT, de façon indépendante. Vous pouvez le saisir parce que le délai de réponse est dépassé. » ;
+3. le nom et les coordonnées du médiateur, fournis par l'API (`mediateur.nom`, `mediateur.adresse`, `mediateur.site`), rendus comme du texte. Aucune coordonnée n'est écrite en dur dans le front ;
+4. « Indiquez la référence de votre demande : VLT-… », avec la vraie référence ;
+5. le bouton secondaire « Fermer ».
+
+Aucun bouton de la feuille n’envoie quoi que ce soit : le client saisit le médiateur lui-même. La feuille apparaît sans animation (section 8), avec un voile `rgba(0,0,0,.48)` derrière elle.
 
 ---
 
@@ -580,7 +590,7 @@ C'est ce que la prochaine PR construit en premier, et rien d'autre.
 
 1. Le squelette Vite + React + TypeScript + Tailwind dans `site/`, avec les tokens de la section 2 sous forme de variables CSS reliées à Tailwind, et Manrope auto-hébergée.
 2. Les composants `FondVivant`, `SurfaceVerre` (avec ses trois replis), `BarreNavigation`, `CarteSuivi` (le rail, la perle, les jalons, le liseré) et `EtatChargement`, `EtatErreur`.
-3. L'écran `/suivi/:reference` avec ses états : chargement, chargé, erreur, échéance proche, échéance dépassée, deux échéances (réclamation).
+3. L'écran `/suivi/:reference` avec ses états : chargement, chargé, erreur, échéance proche, échéance dépassée (avec la feuille « Saisir le médiateur »), deux échéances (réclamation).
 4. **Les données viennent d'un fichier de maquette JSON**, qui a exactement la forme du contrat ci-dessous. L'API FastAPI est une PR à part.
 
 **Contrat de données** (tout vient de l'API ; le front ne calcule ni date, ni jours ouvrés) :
@@ -589,13 +599,14 @@ C'est ce que la prochaine PR construit en premier, et rien d'autre.
 |---|---|
 | `reference` | `"VLT-2026-004127"` |
 | `cas` | `"reclamation"` |
-| `statut` | `"en_cours"` (`recue`, `en_cours`, `repondue`) |
+| `statut` | `"en_cours"` (`recue`, `en_cours`, `reponse_envoyee`) |
+| `mediateur` | `{ "nom": "…", "adresse": "…", "site": "…" }`, utilisé seulement si l'échéance est dépassée |
 | `recu_le` | `{ "iso": "2026-11-02", "texte": "lundi 2 novembre 2026" }` |
 | `echeances` | `[{ "kind": "accuse_reception", "iso": "2026-11-16", "texte": "lundi 16 novembre 2026", "atteinte": true }, { "kind": "reponse", "iso": "2026-12-31", "texte": "jeudi 31 décembre 2026", "atteinte": false }]` |
 | `progression` | `0.42` (jours ouvrés écoulés / jours ouvrés totaux, calculé par `src/deadlines.py`) |
 | `jours_ouvres_restants` | `31` |
 
-**Logo :** le SVG n'existe pas encore. Pour le pilote, la barre affiche le mot « VAULT » en Manrope 700, 17 px, approche de +0,02 em, en `--text`, sans le symbole. Le remplacer par le SVG est une tâche à part, une fois le vecteur livré.
+**Logo :** le SVG n'existe pas encore. Pour le pilote, la barre affiche le mot « VAULT » en Manrope 700, 17 px, approche de +0,02 em, en `--text`, sans le symbole. Le remplacer par le SVG est une tâche à part, une fois le vecteur livré ; elle n'est pas planifiée.
 
 **Critères d'acceptation :**
 
@@ -656,5 +667,15 @@ Le plan de départ, relu contre le brief. Chaque choix qui ressemblait à un ré
 | 12 | Polices depuis Google Fonts | **Manrope auto-hébergée** | Tout tourne en local ; aucune requête externe. |
 | 13 | Halo de fond animé en lente dérive | **Fond vivant statique** | Une animation décorative de plus, et un flou recalculé en permanence. |
 | 14 | Bandeau « Ticket suspect » visible par le client | **Rien côté client** | Accuser un client d'injection n'est ni utile, ni sûr. |
+
+**Décisions d'Oscar, 2026-09-24 :**
+
+| Point | Décision |
+|---|---|
+| Statuts du client | « Reçue », « En cours d'examen », « Réponse envoyée » (au lieu de « Répondue », moins naturel) |
+| Seuil « échéance proche » | 2 jours ouvrés restants, calculés par l'API |
+| Échéance dépassée visible par le client | Oui, par honnêteté, avec une action : saisir le médiateur (section 7) |
+| Champs calculés | Dates, progression et jours ouvrés restants viennent de l'API, jamais du front |
+| Logo | SVG plus tard ; Manrope suffit pour le pilote |
 
 Note sur les clichés : les deux skills autorisés (web-design et ui-ux-pro-max) ne contiennent pas de liste de clichés formelle. La liste de la section 11 reprend les quatre exemples du brief, les anti-modèles d'ui-ux-pro-max (émojis, couleur seule, dégradés « IA ») et les défauts repérés dans les références.
