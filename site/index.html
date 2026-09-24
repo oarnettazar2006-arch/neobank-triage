@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Accueil · VAULT</title>
+    <link rel="icon" type="image/png" href="/marque/vault-goutte-clair@2x.png" />
+    <script>
+      // Thème : choix mémorisé, sinon préférence du système, sinon clair (DESIGN.md 2.3).
+      ;(function () {
+        var choix = null
+        try {
+          choix = localStorage.getItem('vault:theme')
+        } catch (e) {}
+        var sombre = window.matchMedia('(prefers-color-scheme: dark)').matches
+        document.documentElement.dataset.theme = choix === 'dark' || choix === 'light' ? choix : sombre ? 'dark' : 'light'
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="racine"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

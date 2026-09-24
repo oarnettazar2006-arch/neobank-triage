@@ -1,0 +1,220 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Jetons : DESIGN.md, section 2. Aucune couleur n'est écrite ailleurs.
+   Thème clair dans :root (défaut), thème sombre sous [data-theme="dark"].
+   --------------------------------------------------------------------------- */
+
+:root {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface-2: #eef2f6;
+  --line: #e3e8ef;
+  --text: #0b1226;
+  --text-2: #5a6478;
+  --accent: #16729e;
+  --accent-rgb: 22 114 158;
+  --on-accent: #ffffff;
+  --danger: #c4303a;
+
+  /* Carte VAULT : marine plein. */
+  --carte: #0c1a33;
+  --carte-texte: #eaf2f8;
+  --carte-texte-2: #9fb0c6;
+  --carte-bord: transparent;
+
+  /* Verre : barre de navigation et bouton du chat, rien d'autre. */
+  --verre: rgb(245 247 250 / 0.72);
+  --verre-bord: rgb(11 18 38 / 0.08);
+
+  --ombre-1: 0 1px 2px rgb(11 18 38 / 0.04), 0 1px 1px rgb(11 18 38 / 0.03);
+  --ombre-flottante: 0 8px 24px rgb(11 18 38 / 0.12), 0 2px 6px rgb(11 18 38 / 0.06);
+
+  --ease-sortie: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-tiroir: cubic-bezier(0.32, 0.72, 0, 1);
+
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #070c1a;
+  --surface: #0f1628;
+  --surface-2: #172036;
+  --line: #1e2940;
+  --text: #edf2f7;
+  --text-2: #98a3b6;
+  --accent: #46b3db;
+  --accent-rgb: 70 179 219;
+  --on-accent: #051021;
+  --danger: #ff8a80;
+
+  --carte: #13254a;
+  --carte-bord: rgb(255 255 255 / 0.08);
+
+  --verre: rgb(7 12 26 / 0.7);
+  --verre-bord: rgb(255 255 255 / 0.07);
+
+  --ombre-1: 0 0 0 1px rgb(255 255 255 / 0.03);
+  --ombre-flottante: 0 10px 30px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+
+  --font-sans: 'Geist Variable', Geist, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --radius-bloc: 20px;
+
+  /* Échelle (DESIGN.md 3). En rem : suit la taille du système. */
+  --text-solde: 3.5rem;
+  --text-solde--line-height: 1;
+  --text-solde--letter-spacing: -0.035em;
+  --text-titre: 1.75rem;
+  --text-titre--line-height: 2.125rem;
+  --text-titre--letter-spacing: -0.02em;
+  --text-section: 1.1875rem;
+  --text-section--line-height: 1.625rem;
+  --text-section--letter-spacing: -0.01em;
+  --text-corps: 0.9375rem;
+  --text-corps--line-height: 1.375rem;
+  --text-petit: 0.8125rem;
+  --text-petit--line-height: 1.125rem;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  font-size: var(--text-corps);
+  line-height: var(--text-corps--line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Tous les montants : chiffres tabulaires (DESIGN.md 3). */
+  .montant {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Verre : flou léger, comme la barre d'apple.com (DESIGN.md 4). */
+  .verre {
+    background: var(--verre);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .verre {
+      background: var(--bg);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  .bloc {
+    background: var(--surface);
+    border-radius: var(--radius-bloc);
+    box-shadow: var(--ombre-1);
+  }
+
+  /* Appui : léger enfoncement, retour immédiat (DESIGN.md 8). */
+  .pressable {
+    transition:
+      background-color 150ms ease,
+      transform 160ms var(--ease-sortie);
+  }
+  .pressable:active {
+    transform: scale(0.97);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .survol:hover {
+      background-color: var(--surface-2);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pressable:active {
+      transform: none;
+    }
+  }
+}
+
+/* Panneau du chat : feuille en bas sur mobile, tiroir à droite en desktop. */
+dialog.panneau-chat {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: 100%;
+  height: min(72dvh, 640px);
+  border-radius: 20px 20px 0 0;
+  box-shadow: var(--ombre-flottante);
+}
+dialog.panneau-chat[open] {
+  animation: chat-bas 320ms var(--ease-tiroir);
+}
+dialog.panneau-chat::backdrop {
+  background: rgb(5 10 34 / 0.32);
+}
+@media (min-width: 1024px) {
+  dialog.panneau-chat {
+    inset: 0 0 0 auto;
+    width: 420px;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 20px 0 0 20px;
+  }
+  dialog.panneau-chat[open] {
+    animation-name: chat-droite;
+  }
+}
+@keyframes chat-bas {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes chat-droite {
+  from {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.panneau-chat[open] {
+    animation: none;
+  }
+}
+
+/* Goutte du logo : une version par thème. */
+.logo-clair {
+  display: none;
+}
+:root:not([data-theme='dark']) .logo-clair {
+  display: block;
+}
+:root:not([data-theme='dark']) .logo-sombre {
+  display: none;
+}
