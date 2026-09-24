@@ -78,7 +78,12 @@ def duration(s: float) -> str:
 
 def read_tickets(path: Path) -> tuple[list[str], list[dict], str]:
     """Colonnes, lignes et séparateur du CSV. Vérifie la colonne `ticket` et les bonnes réponses."""
-    text = path.read_text(encoding="utf-8-sig")
+    return parse_tickets(path.read_text(encoding="utf-8-sig"))
+
+
+def parse_tickets(text: str) -> tuple[list[str], list[dict], str]:
+    """Même chose à partir du texte du CSV (la console l'envoie à l'API sans fichier)."""
+    text = text[1:] if text.startswith("\ufeff") else text
     first = text.splitlines()[0] if text.strip() else ""
     delimiter = ";" if first.count(";") > first.count(",") else ","
     reader = csv.DictReader(io.StringIO(text, newline=""), delimiter=delimiter)
@@ -133,14 +138,18 @@ class Progress:
 
     def tick(self, step: str, i: int, tid: str) -> None:
         self.done += 1
+        print(f"  {step:<10} {i:>4}/{self.n}  {tid:<12} écoulé {duration(self.elapsed):>11}"
+              f"   reste ~{duration(self.remaining(i))}", file=self.stream, flush=True)
+
+    def remaining(self, i: int) -> float:
+        """Secondes restantes estimées, après le ticket i de l'étape en cours."""
         now = time.monotonic()
         # Étape en cours : sa propre moyenne. Étapes suivantes : la moyenne de tout ce qui est fait.
         step_avg = (now - self.step_start) / i
         overall_avg = (now - self.start) / self.done
         left_here = (self.n - i) * step_avg
         left_after = (self.total - self.done - (self.n - i)) * overall_avg
-        print(f"  {step:<10} {i:>4}/{self.n}  {tid:<12} écoulé {duration(now - self.start):>11}"
-              f"   reste ~{duration(left_here + left_after)}", file=self.stream, flush=True)
+        return left_here + left_after
 
     def end(self, step: str) -> None:
         self.step_times[step] = time.monotonic() - self.step_start
@@ -162,7 +171,9 @@ def unload(model: str, host: str = triage.HOST) -> None:
         pass
 
 
-def process(rows: list[dict], with_draft: bool, received_default: str, progress: Progress) -> list[dict]:
+def process(rows: list[dict], with_draft: bool, received_default: str, progress: Progress,
+            on_triage=None) -> list[dict]:
+    """`on_triage(k, fields)`, si fourni, reçoit le tri de chaque ticket dès qu'il est connu (console)."""
     ids = [r.get("id") or f"#{n}" for n, r in enumerate(rows, start=1)]
     tickets = [{"id": ids[k], "input": r["ticket"], "channel": r.get("canal") or "form",
                 "received_at": r.get("recu_le") or received_default} for k, r in enumerate(rows)]
@@ -171,6 +182,8 @@ def process(rows: list[dict], with_draft: bool, received_default: str, progress:
     tri = []
     for k, t in enumerate(tickets):
         tri.append(triage.triage(t["input"]))
+        if on_triage:
+            on_triage(k, tri[k]["fields"])
         progress.tick("tri", k + 1, ids[k])
     progress.end("tri")
     unload(triage.MODEL)
@@ -212,12 +225,18 @@ def process(rows: list[dict], with_draft: bool, received_default: str, progress:
 
 
 def write_csv(path: Path, columns: list[str], rows: list[dict], preds: list[dict], delimiter: str) -> None:
-    fields = columns + list(preds[0])
     with path.open("w", encoding="utf-8", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=fields, delimiter=delimiter)
-        w.writeheader()
-        for r, p in zip(rows, preds):
-            w.writerow({**{c: r.get(c, "") for c in columns}, **p})
+        fh.write(csv_text(columns, rows, preds, delimiter))
+
+
+def csv_text(columns: list[str], rows: list[dict], preds: list[dict], delimiter: str) -> str:
+    """Le CSV de sortie : colonnes d'entrée, puis prédictions (aussi l'export de la console)."""
+    buf = io.StringIO(newline="")
+    w = csv.DictWriter(buf, fieldnames=columns + list(preds[0]), delimiter=delimiter)
+    w.writeheader()
+    for r, p in zip(rows, preds):
+        w.writerow({**{c: r.get(c, "") for c in columns}, **p})
+    return buf.getvalue()
 
 
 def metrics(rows: list[dict], preds: list[dict]) -> dict:

@@ -1,8 +1,13 @@
 import { chargerCompte, chargerOperations, useRessource } from './api'
+import { Console } from './console/Console'
 import { Accueil } from './ecrans/Accueil'
 
-/** Une seule page pour cette étape : l'accueil client, sur les données de l'API. */
+/** Deux surfaces : l'espace client (/) et la console conseiller (/console). */
 export function App() {
+  return window.location.pathname.replace(/\/+$/, '') === '/console' ? <Console /> : <EspaceClient />
+}
+
+function EspaceClient() {
   const [compte, rechargerCompte] = useRessource(chargerCompte)
   const [operations, rechargerOperations] = useRessource(chargerOperations)
   return (

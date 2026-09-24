@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Compte, Operations, SuiviTicket, TicketCree } from './donnees/types'
 
 // Client de l'API VAULT (api/main.py). En local : make demo lance l'API sur le port 8000.
-const BASE = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000'
+export const BASE = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000'
 
 /** Même limite que l'API (api/main.py : LONGUEUR_MAX). */
 export const LONGUEUR_MAX = 2000

@@ -16,6 +16,7 @@
   --accent-rgb: 22 114 158;
   --on-accent: #ffffff;
   --danger: #c4303a;
+  --danger-rgb: 196 48 58;
 
   /* Carte VAULT : marine plein. */
   --carte: #0c1a33;
@@ -47,6 +48,7 @@
   --accent-rgb: 70 179 219;
   --on-accent: #051021;
   --danger: #ff8a80;
+  --danger-rgb: 255 138 128;
 
   --carte: #13254a;
   --carte-bord: rgb(255 255 255 / 0.08);

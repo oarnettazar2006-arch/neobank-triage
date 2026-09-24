@@ -6,7 +6,11 @@
 - POST /chat : crée le ticket (statut « Reçue ») et répond tout de suite ; le
   pipeline complet (src/pipeline.py) tourne ensuite en tâche de fond ;
 - GET  /tickets/{ref} : vue client (statut, délais, étapes, message fixe), sans brouillon ;
-- GET  /tickets : vue conseiller, pour la future console (brouillon compris).
+- GET  /tickets : vue conseiller, pour la future console (brouillon compris) ;
+- POST /lots/apercu, POST /lots : un CSV de tickets (ou un ticket écrit, en CSV
+  d'une ligne), vérifié puis trié en tâche de fond comme `make triage` ;
+- GET  /lots, GET /lots/{id} : progression, prédictions au fil du tri, analyse
+  et métriques ; POST /lots/{id}/arreter ; GET /lots/{id}/export.csv.
 
 Un seul pipeline à la fois (verrou) : Ollama ne garde qu'un modèle en mémoire
 sur ce Mac de 16 Go. Pas d'authentification : démo locale seulement.
@@ -15,6 +19,7 @@ sur ce Mac de 16 Go. Pas d'authentification : démo locale seulement.
 from __future__ import annotations
 
 import json
+import re
 import secrets
 import sys
 import threading
@@ -23,6 +28,7 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Path as Chemin
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 
@@ -30,7 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import pipeline  # noqa: E402
 
-from . import db, suivi  # noqa: E402
+from . import db, lots, suivi  # noqa: E402
 
 DONNEES = json.loads((Path(__file__).resolve().parent / "donnees_demo.json").read_text(encoding="utf-8"))
 LONGUEUR_MAX = 2000
@@ -130,3 +136,71 @@ def ticket(ref: str = Chemin(pattern=REF)) -> dict:
 def tickets() -> list:
     now = maintenant()
     return [suivi.vue_console(t, now) for t in db.all_tickets()]
+
+
+# --- Console : lots de tickets ----------------------------------------------------
+
+
+class Fichier(BaseModel):
+    nom: str = Field(min_length=1, max_length=200)
+    contenu: str = Field(min_length=1)
+
+
+def _lire(f: Fichier) -> dict:
+    try:
+        return lots.lire(f.contenu)
+    except lots.triage_csv.InputError as e:
+        raise HTTPException(422, str(e)) from None
+
+
+def _lot(lot_id: str) -> dict:
+    lot = db.get_lot(lot_id)
+    if lot is None:
+        raise HTTPException(404, "lot inconnu")
+    return lot
+
+
+def traiter_lot(lot_id: str, recu_le: str) -> None:
+    with VERROU:   # un seul pipeline à la fois, chat compris
+        lots.traiter(lot_id, recu_le)
+
+
+@app.post("/lots/apercu")
+def apercu_lot(f: Fichier) -> dict:
+    return lots.apercu(f.nom, _lire(f))
+
+
+@app.post("/lots", status_code=201)
+def creer_lot(f: Fichier, taches: BackgroundTasks) -> dict:
+    lu = _lire(f)
+    now = maintenant()
+    lot_id = lots.creer(f.nom, lu, now)
+    taches.add_task(traiter_lot, lot_id, now.isoformat())
+    return {"id": lot_id, **lots.apercu(f.nom, lu)}
+
+
+@app.get("/lots")
+def liste_lots() -> list:
+    return [lots.vue_resume(lot) for lot in db.all_lots()]
+
+
+@app.get("/lots/{lot_id}")
+def lot(lot_id: str = Chemin(pattern=lots.ID)) -> dict:
+    return lots.vue(_lot(lot_id))
+
+
+@app.post("/lots/{lot_id}/arreter", status_code=202)
+def arreter_lot(lot_id: str = Chemin(pattern=lots.ID)) -> dict:
+    _lot(lot_id)
+    db.update_lot(lot_id, arret=1)
+    return {"id": lot_id}
+
+
+@app.get("/lots/{lot_id}/export.csv")
+def export_lot(lot_id: str = Chemin(pattern=lots.ID)) -> Response:
+    lot = _lot(lot_id)
+    if lot["statut"] != "termine":
+        raise HTTPException(409, "lot pas encore terminé")
+    nom = re.sub(r"[^A-Za-z0-9_-]", "", Path(lot["nom"]).stem) or "tickets"
+    return Response(lots.export(lot), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{nom}_triage.csv"'})
