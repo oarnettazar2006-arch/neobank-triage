@@ -67,6 +67,19 @@ export interface Metriques {
   exact: { n: number; correct: number; over: Colonne[] }
 }
 
+/** Décisions du conseiller sur les brouillons (api/brouillons.py : stats). */
+export interface Validation {
+  brouillons: number
+  en_attente: number
+  decides: number
+  /** Brouillon rejeté, réponse du conseiller pas encore partie. */
+  a_rediger: number
+  valides_sans_modification: number
+  valides_modifies: number
+  rejetes: number
+  corrections: Record<Colonne, number>
+}
+
 export interface Analyse {
   tickets: number
   reclamations: number
@@ -75,6 +88,8 @@ export interface Analyse {
     produit_x_severite: Record<string, Record<string, number>>
   }
   metriques: Metriques | null
+  /** Absent des lots servis avant la PR « Brouillons ». */
+  validation?: Validation
 }
 
 export interface Lot extends LotResume {
@@ -85,6 +100,8 @@ export interface Lot extends LotResume {
   etapes: string[]
   lignes: Ligne[]
   analyse: Analyse
+  /** Tickets triés sans brouillon : le bouton « Générer les brouillons » s'affiche s'il y en a. */
+  brouillons_a_generer?: number
 }
 
 // Trace d'un ticket (GET /lots/{id}/tickets/{n}/trace, api/trace.py) : enregistrée pendant le lot.
@@ -207,4 +224,65 @@ export interface Trace {
   trace: boolean
   statut_lot: StatutLot
   blocs: Bloc[]
+}
+
+// Brouillons à valider (GET /brouillons, api/brouillons.py).
+
+export interface EcheanceBrouillon {
+  kind: string | null
+  iso: string
+  /** « mercredi 21 octobre 2026 » */
+  texte: string
+  /** « 21/10 » */
+  court: string
+  /** Proche : il reste 20 % du délai ou moins, au moins 1 jour ouvré (règle de l'API). */
+  delai: 'normal' | 'proche' | 'depasse' | null
+  jours_ouvres_restants: number | null
+  jours_ouvres_total: number | null
+}
+
+export interface Decision {
+  cle: string
+  decision: 'valide' | 'rejete'
+  motif: string | null
+  modifie: boolean
+  alertes: Retrait[]
+  decide_le: string
+  corrections: { champ: Colonne; valeur_bot: string; valeur_conseiller: string }[]
+}
+
+export interface Brouillon {
+  cle: string
+  source: 'lot' | 'chat'
+  origine: { lot: string; nom: string; n: number } | { ref: string; statut: string }
+  id: string
+  texte: string
+  canal: string
+  recu_le: string
+  recu_le_texte: string
+  categorie: string
+  produit: string
+  severite: string
+  sous_motif: string | null
+  reclamation: boolean
+  suspect: boolean
+  echeance: EcheanceBrouillon | null
+  fiche: string | null
+  fiche_raison: string | null
+  brouillon: string
+  brouillon_bloque: boolean
+  passages_retires: Retrait[]
+  trace: ({ lot: string; n: number } | { ref: string }) & { disponible: boolean }
+  /** a_valider : brouillon du bot à relire ; a_rediger : brouillon rejeté, le conseiller rédige la réponse. */
+  etat: 'a_valider' | 'a_rediger'
+  rejet: { motif: string; decide_le: string; decide_le_texte: string } | null
+  /** Valeurs du tri du bot ; categorie, produit et severite portent les corrections du conseiller. */
+  bot: Record<Colonne, string>
+  corrections: { champ: Colonne; valeur_bot: string; valeur_conseiller: string; corrige_le: string }[]
+}
+
+export interface FileBrouillons {
+  file: Brouillon[]
+  validation: Validation
+  motifs: string[]
 }

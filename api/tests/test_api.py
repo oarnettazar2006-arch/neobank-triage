@@ -131,7 +131,8 @@ class ApiTest(unittest.TestCase):
         # Question : objectif interne de 2 jours ouvrables, calculé par src/deadlines.py
         self.assertEqual(t["echeances"], [{"kind": "objectif_interne", "libelle": "Réponse d'un conseiller",
                                            "iso": "2026-10-09T23:59:59", "texte": "vendredi 9 octobre 2026"}])
-        self.assertEqual((t["delai"], t["jours_ouvres_restants"]), ("proche", 2))
+        # Délai de 2 jours ouvrés, 2 restants : pas encore proche (proche à 20 % du délai, au moins 1 jour).
+        self.assertEqual((t["delai"], t["jours_ouvres_restants"], t["jours_ouvres_total"]), ("normal", 2, 2))
 
     def test_le_client_ne_voit_jamais_le_brouillon(self):
         r = self.envoyer("Bonjour, pouvez-vous m'envoyer un RIB ?", FauxLLM(QUESTION))

@@ -77,19 +77,22 @@ export function Barres({
   axe,
   formatGraduation = String,
   graduationsFixes,
+  largeurLibelle = 104,
 }: {
   barres: Barre[]
   max: number
   axe: string
   formatGraduation?: (v: number) => string
   graduationsFixes?: number[]
+  /** Largeur de la colonne des libellés, en px (104 par défaut). */
+  largeurLibelle?: number
 }) {
   const grads = graduationsFixes ?? graduations(max)
   const haut = grads[grads.length - 1] ?? 1
   // La zone des barres laisse 76 px à droite pour le libellé de la plus longue.
   const x = (v: number) => `calc((100% - 76px) * ${v / haut})`
   return (
-    <div className="grid grid-cols-[104px_minmax(0,1fr)] gap-x-3">
+    <div className="grid gap-x-3" style={{ gridTemplateColumns: `${largeurLibelle}px minmax(0,1fr)` }}>
       {barres.map((b) => (
         <div key={b.cle} className="contents">
           <span className="flex h-8 items-center truncate text-petit text-text-2">{b.libelle}</span>

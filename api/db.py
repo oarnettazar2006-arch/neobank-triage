@@ -60,6 +60,31 @@ CREATE TABLE IF NOT EXISTS traces (
     PRIMARY KEY (lot_id, k, etape)
 )
 """
+SCHEMA_DECISIONS = """
+CREATE TABLE IF NOT EXISTS decisions (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    cle             TEXT NOT NULL,         -- LOT-XXXXXX-3 (ticket 3 du lot) ou VLT-XXXXXX (chat)
+    source          TEXT NOT NULL,         -- lot, chat
+    decision        TEXT NOT NULL,         -- valide, rejete (un rejet peut être suivi d'une validation)
+    motif           TEXT,                  -- motif du rejet
+    brouillon_bot   TEXT NOT NULL,         -- brouillon remis par le bot
+    brouillon_final TEXT NOT NULL,         -- texte du conseiller au moment de la décision
+    modifie         INTEGER NOT NULL,      -- 1 si le texte diffère du brouillon du bot
+    alertes         TEXT NOT NULL,         -- JSON : garde de sortie relancée sur le texte modifié
+    decide_le       TEXT NOT NULL          -- ISO, heure locale, à la seconde
+)
+"""
+
+SCHEMA_CORRECTIONS = """
+CREATE TABLE IF NOT EXISTS corrections (
+    cle                TEXT NOT NULL,
+    champ              TEXT NOT NULL,      -- categorie, produit, severite
+    valeur_bot         TEXT NOT NULL,
+    valeur_conseiller  TEXT NOT NULL,
+    corrige_le         TEXT NOT NULL,
+    PRIMARY KEY (cle, champ)             -- la dernière correction d'un champ l'emporte
+)
+"""
 LOT_JSON = ("colonnes", "lignes", "predictions")
 
 
@@ -78,6 +103,18 @@ def init() -> None:
         con.execute(SCHEMA)
         con.execute(SCHEMA_LOTS)
         con.execute(SCHEMA_TRACES)
+        # Base de la première version de la PR 4 (une décision par ticket, clé primaire `cle`) : on la
+        # recopie dans la table à plusieurs décisions par ticket.
+        colonnes = {r[1]: r[5] for r in con.execute("PRAGMA table_info(decisions)")}
+        if colonnes and "id" not in colonnes:
+            con.execute("ALTER TABLE decisions RENAME TO decisions_v1")
+            con.execute(SCHEMA_DECISIONS)
+            con.execute("INSERT INTO decisions (cle, source, decision, motif, brouillon_bot, brouillon_final, modifie, "
+                        "alertes, decide_le) SELECT cle, source, decision, motif, brouillon_bot, brouillon_final, "
+                        "modifie, alertes, decide_le FROM decisions_v1 ORDER BY decide_le")
+            con.execute("DROP TABLE decisions_v1")
+        con.execute(SCHEMA_DECISIONS)
+        con.execute(SCHEMA_CORRECTIONS)
         # Base créée avant la colonne `brouillon` (console, PR 3) : on l'ajoute.
         if "brouillon" not in {r[1] for r in con.execute("PRAGMA table_info(lots)")}:
             con.execute("ALTER TABLE lots ADD COLUMN brouillon INTEGER NOT NULL DEFAULT 0")
@@ -129,6 +166,11 @@ def add_etape(ref: str, nom: str, fini_le: str) -> None:
                     (json.dumps(json.loads(etapes) + [{"nom": nom, "fini_le": fini_le}]), ref))
 
 
+def set_statut(ref: str, statut: str) -> None:
+    with closing(connect()) as con, con:
+        con.execute("UPDATE tickets SET statut = ? WHERE ref = ?", (statut, ref))
+
+
 def set_resultat(ref: str, resultat: dict) -> None:
     with closing(connect()) as con, con:
         con.execute("UPDATE tickets SET resultat = ?, traitement = 'termine', erreur = NULL WHERE ref = ?",
@@ -161,6 +203,13 @@ def get_lot(lot_id: str) -> Optional[dict]:
     for k in LOT_JSON:
         d[k] = json.loads(d[k])
     return d
+
+
+def lots_complets() -> list[dict]:
+    """Tous les lots avec leurs lignes et prédictions (file des brouillons)."""
+    with closing(connect()) as con:
+        ids = [r[0] for r in con.execute("SELECT id FROM lots ORDER BY cree_le, rowid")]
+    return [get_lot(i) for i in ids]
 
 
 def all_lots() -> list[dict]:
@@ -208,3 +257,52 @@ def get_trace(lot_id: str, k: int) -> dict:
     with closing(connect()) as con:
         return {e: json.loads(d) for e, d in con.execute("SELECT etape, donnees FROM traces WHERE lot_id = ? AND k = ?",
                                                          (lot_id, k))}
+
+
+# --- Décisions du conseiller (vue Brouillons) --------------------------------------
+
+
+def enregistrer_decision(d: dict, corrections: list[dict], ref_statut: Optional[tuple[str, str]] = None,
+                         annulees: tuple = ()) -> bool:
+    """Décision, corrections et, pour un ticket du chat, nouveau statut client, dans une seule
+    transaction. False si la décision n'est plus possible : réponse déjà envoyée, ou deuxième rejet."""
+    con = connect()
+    con.isolation_level = None   # BEGIN IMMEDIATE : la vérification et l'écriture ne se séparent pas
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        deja = {r[0] for r in con.execute("SELECT decision FROM decisions WHERE cle = ?", (d["cle"],))}
+        if "valide" in deja or (d["decision"] == "rejete" and "rejete" in deja):
+            con.execute("ROLLBACK")
+            return False
+        con.execute("INSERT INTO decisions (cle, source, decision, motif, brouillon_bot, brouillon_final, modifie, "
+                    "alertes, decide_le) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (d["cle"], d["source"], d["decision"], d["motif"], d["brouillon_bot"], d["brouillon_final"],
+                     int(d["modifie"]), json.dumps(d["alertes"], ensure_ascii=False), d["decide_le"]))
+        con.executemany("INSERT OR REPLACE INTO corrections (cle, champ, valeur_bot, valeur_conseiller, corrige_le) "
+                        "VALUES (?, ?, ?, ?, ?)",
+                        [(d["cle"], c["champ"], c["valeur_bot"], c["valeur_conseiller"], d["decide_le"])
+                         for c in corrections])
+        con.executemany("DELETE FROM corrections WHERE cle = ? AND champ = ?", [(d["cle"], c) for c in annulees])
+        if ref_statut:
+            con.execute("UPDATE tickets SET statut = ? WHERE ref = ?", (ref_statut[1], ref_statut[0]))
+        con.execute("COMMIT")
+        return True
+    except Exception:
+        con.execute("ROLLBACK")
+        raise
+    finally:
+        con.close()
+
+
+def decisions() -> dict:
+    """{cle: décisions dans l'ordre}, et les corrections du ticket (la dernière valeur de chaque champ)."""
+    with closing(connect()) as con:
+        out: dict = {}
+        for r in con.execute("SELECT * FROM decisions ORDER BY id"):
+            d = dict(r)
+            d["alertes"] = json.loads(d["alertes"])
+            d["modifie"] = bool(d["modifie"])
+            out.setdefault(d["cle"], {"liste": [], "corrections": []})["liste"].append(d)
+        for r in con.execute("SELECT * FROM corrections ORDER BY corrige_le, cle, champ"):
+            out.setdefault(r["cle"], {"liste": [], "corrections": []})["corrections"].append(dict(r))
+    return out
