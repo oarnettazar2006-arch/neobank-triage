@@ -10,7 +10,9 @@
 - POST /lots/apercu, POST /lots : un CSV de tickets (ou un ticket écrit, en CSV
   d'une ligne), vérifié puis trié en tâche de fond comme `make triage` ;
 - GET  /lots, GET /lots/{id} : progression, prédictions au fil du tri, analyse
-  et métriques ; POST /lots/{id}/arreter ; GET /lots/{id}/export.csv.
+  et métriques ; POST /lots/{id}/arreter ; GET /lots/{id}/export.csv ;
+- GET  /evolution : l'histoire des prompts de tri v0 à v7 (eval/evolution.json,
+  écrit par eval/build_evolution.py), pour l'onglet « Prompts » de la console.
 
 Un seul pipeline à la fois (verrou) : Ollama ne garde qu'un modèle en mémoire
 sur ce Mac de 16 Go. Pas d'authentification : démo locale seulement.
@@ -38,6 +40,7 @@ import pipeline  # noqa: E402
 
 from . import db, lots, suivi  # noqa: E402
 
+EVOLUTION = Path(__file__).resolve().parent.parent / "eval" / "evolution.json"
 DONNEES = json.loads((Path(__file__).resolve().parent / "donnees_demo.json").read_text(encoding="utf-8"))
 LONGUEUR_MAX = 2000
 ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"   # sans 0/O ni 1/I/L : une référence se recopie sans erreur
@@ -204,3 +207,14 @@ def export_lot(lot_id: str = Chemin(pattern=lots.ID)) -> Response:
     nom = re.sub(r"[^A-Za-z0-9_-]", "", Path(lot["nom"]).stem) or "tickets"
     return Response(lots.export(lot), media_type="text/csv; charset=utf-8",
                     headers={"Content-Disposition": f'attachment; filename="{nom}_triage.csv"'})
+
+
+# --- Console : évolution des prompts ------------------------------------------------
+
+
+@app.get("/evolution")
+def evolution() -> dict:
+    """Lu à chaque appel : un nouveau `python3 eval/build_evolution.py` se voit sans relancer l'API."""
+    if not EVOLUTION.exists():
+        raise HTTPException(404, "eval/evolution.json absent : lancer python3 eval/build_evolution.py")
+    return json.loads(EVOLUTION.read_text(encoding="utf-8"))
