@@ -7,7 +7,7 @@ Le notebook attend des fonctions qui prennent le texte d'un ticket :
     extract("Ma carte est refusée partout.")                              # -> {"product": "card", "severity": "high"}
 
 Toutes passent par la chaîne du bot (src/triage.py : garde d'entrée, puis LLM
-avec le prompt v4). Le résultat du tri est mis en cache par texte : classify,
+avec le prompt v7). Le résultat du tri est mis en cache par texte : classify,
 extract et draft_reply_for sur le même ticket ne font qu'un appel au tri.
 """
 
@@ -16,6 +16,7 @@ from __future__ import annotations
 from datetime import datetime
 from functools import lru_cache
 
+import controller
 import reply
 import triage
 
@@ -49,4 +50,5 @@ def draft_reply_for(ticket: str, label: str | None = None, channel: str = "form"
         fields["label"] = label
     t = {"input": ticket, "channel": channel,
          "received_at": received_at or datetime.now().replace(microsecond=0).isoformat()}
-    return reply.draft_reply(t, fields)["draft"]
+    qwen = controller.predict(_triage(ticket)["llm_text"])
+    return reply.draft_reply(t, fields, controller_sous_motif=qwen)["draft"]

@@ -22,6 +22,14 @@ SOUS_MOTIFS = [  # guide, section 2 bis
     "carte_refusee", "compte_bloque", "acces_appli", "virement_non_arrive", "probleme_virement", "probleme_prelevement",
     "question_carte", "question_operation", "demande_document", "gestion_compte", "relance_sans_reponse", "autre",
 ]
+# Label habituel de chaque sous-motif (guide, section 2 bis) : sert au garde-fou de la fiche (src/answers.py).
+SOUS_MOTIF_LABEL = {
+    "operation_non_autorisee": "billing", "frais_contestes": "billing", "question_debit": "billing", "debit_errone": "billing",
+    "carte_refusee": "bug", "compte_bloque": "bug", "acces_appli": "bug", "virement_non_arrive": "bug",
+    "probleme_virement": "bug", "probleme_prelevement": "bug",
+    "question_carte": "other", "question_operation": "other", "demande_document": "other", "gestion_compte": "other",
+    "relance_sans_reponse": "other", "autre": "other",
+}
 ATTACK_TYPES = ["direct", "fake_system", "impersonation", "data_exfil", "promise", "hidden", "foreign"]
 
 

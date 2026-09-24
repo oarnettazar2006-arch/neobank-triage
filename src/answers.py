@@ -4,6 +4,13 @@ Seules les sections « Ce que VAULT répond » et « Ce que le client peut faire
 sont transmises au rédacteur. « Ce que VAULT ne dit jamais » sert à la
 relecture humaine. Les fiches ne contiennent ni montant, ni promesse, ni
 délai chiffré : les dates viennent de src/deadlines.py.
+
+Garde-fou (choose) : une mauvaise fiche est pire qu'une réponse générique.
+La fiche n'est utilisée que si le tri (llama) et le contrôleur (qwen) donnent
+le même sous_motif, et que ce sous_motif est cohérent avec les champs du tri :
+son label habituel (guide, section 2 bis) est le label prédit, et
+operation_non_autorisee va de pair avec unauthorized_payment. Sinon : brouillon
+générique.
 """
 
 from __future__ import annotations
@@ -11,6 +18,8 @@ from __future__ import annotations
 import re
 from functools import lru_cache
 from pathlib import Path
+
+from schema import SOUS_MOTIF_LABEL
 
 ANSWERS = Path(__file__).resolve().parent.parent / "docs" / "answers"
 
@@ -35,3 +44,19 @@ def for_writer(sous_motif: str) -> dict:
     """Ce que reçoit le rédacteur : la réponse type et les actions du client, rien d'autre."""
     card = load(sous_motif)
     return {"reponse_type": card["reponse"], "ce_que_le_client_peut_faire": card["client"]}
+
+
+def choose(fields: dict, controller_sous_motif: str | None) -> dict:
+    """Garde-fou : {"sous_motif": fiche retenue ou None, "reason": pourquoi}."""
+    sm = fields.get("sous_motif")
+    if controller_sous_motif is None or sm is None:
+        reason = "pas de contrôleur" if controller_sous_motif is None else "pas de sous_motif prédit"
+    elif sm != controller_sous_motif:
+        reason = "désaccord"
+    elif SOUS_MOTIF_LABEL[sm] != fields["label"]:
+        reason = "incohérent avec label"
+    elif (sm == "operation_non_autorisee") != bool(fields["unauthorized_payment"]):
+        reason = "incohérent avec unauthorized_payment"
+    else:
+        return {"sous_motif": sm, "reason": "accord"}
+    return {"sous_motif": None, "reason": reason}

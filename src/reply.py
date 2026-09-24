@@ -14,7 +14,17 @@ Conception anti-injection (CaMeL simplifié) :
   valeur fermée (fr ou en) ;
 - le texte d'origine ne sert qu'au code : détection de langue et garde de
   sortie (src/output_guard.py). Si la garde bloque le brouillon, un modèle
-  fixe écrit en code le remplace.
+  fixe écrit en code le remplace ;
+- fiche du sous-motif (docs/answers/) : transmise seulement si le garde-fou
+  l'accepte (src/answers.py : choose, accord tri / contrôleur et cohérence
+  avec le label). La fiche est un texte fixe du repo, pas un extrait du
+  ticket. Fiches en français seulement : un ticket anglais garde le brouillon
+  générique ;
+- dates : calculées en code, le LLM ne peut pas les perdre. Après la
+  rédaction, fix_dates vérifie que chaque date calculée figure dans le
+  brouillon. Une date manquante est ajoutée par une phrase écrite en code,
+  une date fausse est remplacée par la date calculée. Si ce n'est pas
+  possible proprement : brouillon générique (sans fiche), puis modèle fixe.
 Bibliothèque standard uniquement.
 """
 
@@ -27,12 +37,14 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
+import answers
 import output_guard
 from deadlines import compute_deadlines
 
 REPO = Path(__file__).resolve().parent.parent
 PROMPT = REPO / "prompts" / "reply_v1.txt"
 PROMPTS = {"fr": PROMPT, "en": REPO / "prompts" / "reply_v1_en.txt"}
+PROMPT_FICHE = REPO / "prompts" / "reply_v2_fiche.txt"   # brouillon avec fiche (français)
 SIGNATURE = {"fr": "Cordialement,\nLe service client VAULT", "en": "Kind regards,\nVAULT customer service"}
 # Lignes de fin que le modèle ajoute parfois malgré la consigne : retirées avant d'apposer la signature.
 CLOSING_LINE = re.compile(r"^(?:cordialement|bien cordialement|bien à vous|kind regards|best regards|regards|sincerely|"
@@ -136,8 +148,11 @@ def case_of(fields: dict) -> str:
     return "question" if fields["label"] == "other" else "signalement"
 
 
-def build_facts(ticket: dict, fields: dict) -> dict:
-    """Faits structurés transmis au rédacteur : aucune donnée du texte du ticket."""
+def build_facts(ticket: dict, fields: dict, sous_motif: str | None = None) -> dict:
+    """Faits structurés transmis au rédacteur : aucune donnée du texte du ticket.
+
+    `sous_motif` : fiche retenue par le garde-fou (None : brouillon générique).
+    """
     lang = detect_language(ticket["input"])
     received = datetime.fromisoformat(ticket["received_at"])
     ds = compute_deadlines(received, fields["is_complaint"], fields["unauthorized_payment"],
@@ -152,6 +167,7 @@ def build_facts(ticket: dict, fields: dict) -> dict:
     if fields["is_complaint"] and ticket["channel"] == "chat":
         actions.append(t["in_writing"])
     kinds = t["kinds"]
+    card = answers.for_writer(sous_motif) if sous_motif and lang == "fr" else {}
     return {
         "langue": lang,
         "situation": t["situation"][case],
@@ -162,16 +178,32 @@ def build_facts(ticket: dict, fields: dict) -> dict:
         "urgent": fields["severity"] == "high",
         "canal": ticket["channel"],
         "ce_qui_va_se_passer": [{"etape": kinds[d.kind], "date": format_date(d.due, lang)} for d in ds],
+        "echeances": [{"kind": d.kind, "due": d.due.date().isoformat(), "date": format_date(d.due, lang)} for d in ds],
         "ce_que_le_client_doit_faire": actions,
+        "fiche": sous_motif if card else None,
+        **card,
     }
 
 
+# Phrase écrite en code pour chaque échéance, quand le brouillon du LLM l'a perdue.
+DATE_SENTENCE = {
+    "fr": {"accuse_reception": "Nous accuserons réception de votre réclamation au plus tard le {date}.",
+           "reponse": "Nous vous apporterons une réponse au plus tard le {date}.",
+           "remboursement": "Votre signalement sera traité en priorité par un conseiller au plus tard le {date}.",
+           "objectif_interne": "Un conseiller vous répondra au plus tard le {date}."},
+    "en": {"accuse_reception": "We will acknowledge your complaint by {date}.",
+           "reponse": "We will answer your complaint by {date}.",
+           "remboursement": "Your report will be handled as a priority by an advisor by {date}.",
+           "objectif_interne": "An advisor will answer you by {date}."},
+}
+
+
 def fallback(facts: dict) -> str:
-    """Brouillon fixe écrit en code, utilisé si la garde de sortie bloque le brouillon du LLM."""
-    steps = facts["ce_qui_va_se_passer"]
+    """Brouillon fixe écrit en code : garde de sortie qui bloque, ou dates impossibles à corriger."""
+    dates = [DATE_SENTENCE[facts["langue"]][e["kind"]].format(date=e["date"]) for e in facts["echeances"]]
     if facts["langue"] == "en":
         body = ["Hello,", f"Thank you for your message about {facts['sujet']}. It has been passed on to an advisor."]
-        body += [f"You will receive an answer by {s['date']}." for s in steps[:1]]
+        body += dates
         if facts["cas"] == "operation_non_autorisee":
             body.append("For your security, never share your codes or passwords, even with someone claiming to work for VAULT.")
         if facts["cas"] == "reclamation" and facts["canal"] == "chat":
@@ -179,19 +211,21 @@ def fallback(facts: dict) -> str:
         body.append(SIGNATURE["en"])
     else:
         body = ["Bonjour,", f"Nous avons bien reçu votre message concernant {facts['sujet']}. Il a été transmis à un conseiller."]
-        body += [f"Vous recevrez une réponse au plus tard le {s['date']}." for s in steps[:1]]
+        body += dates
         body += [f"Nous vous invitons à {a}." for a in facts["ce_que_le_client_doit_faire"]]
         body.append(SIGNATURE["fr"])
     return "\n".join(body)
 
 
 WRITER_KEYS = ["situation", "consigne", "sujet", "urgent", "ce_qui_va_se_passer", "ce_que_le_client_doit_faire"]
+FICHE_KEYS = ["reponse_type", "ce_que_le_client_peut_faire"]
 
 
 def write(facts: dict, model: str = MODEL, host: str = HOST, prompt_path: Path | None = None) -> str:
-    """Le rédacteur ne reçoit que WRITER_KEYS : ni codes techniques, ni texte du ticket."""
-    prompt_path = prompt_path or PROMPTS[facts["langue"]]
-    sent = {k: facts[k] for k in WRITER_KEYS}
+    """Le rédacteur ne reçoit que WRITER_KEYS (+ FICHE_KEYS si une fiche est retenue) : ni codes techniques, ni texte du ticket."""
+    fiche = facts.get("fiche")
+    prompt_path = prompt_path or (PROMPT_FICHE if fiche else PROMPTS[facts["langue"]])
+    sent = {k: facts[k] for k in WRITER_KEYS + (FICHE_KEYS if fiche else [])}
     prompt = prompt_path.read_text(encoding="utf-8").replace("{faits}", json.dumps(sent, ensure_ascii=False, indent=1))
     payload = {"model": model, "messages": [{"role": "user", "content": prompt}], "format": SCHEMA,
                "stream": False, "options": OPTIONS}
@@ -215,16 +249,124 @@ def normalize(text: str) -> str:
     return " ".join(re.sub(r"\b1er\b", "1", re.sub(r"[^\w\s]", " ", text.lower())).split())
 
 
-def draft_reply(ticket: dict, fields: dict, forbidden: list[str] | None = None, **llm) -> dict:
-    """Brouillon final, brouillon du LLM, faits transmis et violations relevées par la garde de sortie."""
-    facts = build_facts(ticket, fields)
+MONTHS_EN = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
+             "november", "december"]
+_WD = "|".join(DAYS_FR + ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])
+_FR_DATE = (rf"(?:(?:{_WD})\s+)?(?P<d>\d{{1,2}})(?:er)?\s+(?P<m>{'|'.join(MONTHS_FR)})(?:\s+(?P<y>\d{{4}}))?")
+_EN_DATE = (rf"(?:(?:{_WD}),?\s+)?(?:(?P<d2>\d{{1,2}})(?:st|nd|rd|th)?\s+(?P<m2>{'|'.join(MONTHS_EN)})"
+            rf"|(?P<m3>{'|'.join(MONTHS_EN)})\s+(?P<d3>\d{{1,2}})(?:st|nd|rd|th)?,?)(?:\s+(?P<y2>\d{{4}}))?")
+DATE_MENTION = re.compile(rf"\b(?:{_FR_DATE}|{_EN_DATE})\b", re.I)
+
+
+def _mentions(text: str) -> list[tuple[re.Match, tuple]]:
+    """Dates écrites dans le brouillon : (correspondance, (jour, mois, année ou None))."""
+    out = []
+    for m in DATE_MENTION.finditer(text):
+        g = m.groupdict()
+        day = int(g["d"] or g["d2"] or g["d3"])
+        month_name = (g["m"] or g["m2"] or g["m3"]).lower()
+        month = (MONTHS_FR if g["m"] else MONTHS_EN).index(month_name) + 1
+        year = g["y"] or g["y2"]
+        out.append((m, (day, month, int(year) if year else None)))
+    return out
+
+
+def dates_ok(draft: str, facts: dict) -> bool:
+    return all(normalize(e["date"]) in normalize(draft) for e in facts["echeances"])
+
+
+def fix_dates(draft: str, facts: dict) -> tuple[str | None, str]:
+    """Remet dans le brouillon les dates calculées en code.
+
+    - date écrite qui correspond à une échéance (même jour, même mois) : récrite exactement comme calculée ;
+    - date fausse : remplacée si c'est la seule et qu'une seule échéance manque, sinon None (repli) ;
+    - échéance absente : phrase écrite en code (DATE_SENTENCE), ajoutée avant la signature.
+    Renvoie (brouillon, "ok" | "corrigé") ou (None, raison).
+    """
+    due = [(tuple(int(x) for x in e["due"].split("-")), e) for e in facts["echeances"]]
+    by_day = lambda ymd: [e for (y, m, d), e in due if (d, m) == ymd[:2] and ymd[2] in (None, y)]
+    mentions = _mentions(draft)
+    seen, wrong = set(), []
+    for m, ymd in mentions:
+        match = by_day(ymd)
+        if match:
+            seen.add(match[0]["date"])
+        else:
+            wrong.append(m)
+    missing = [e for _, e in due if e["date"] not in seen]
+    if len(wrong) > 1 or (wrong and len(missing) != 1):
+        return None, "dates fausses"
+    fixed, changed = draft, False
+    for m, ymd in reversed(mentions):   # de la fin vers le début : les positions restent valables
+        match = by_day(ymd)
+        new = match[0]["date"] if match else missing.pop()["date"]
+        if normalize(m.group(0)) != normalize(new):
+            changed = True
+        fixed = fixed[:m.start()] + new + fixed[m.end():]
+    sig = SIGNATURE[facts["langue"]]
+    for e in reversed(missing):   # dernière échéance d'abord : chaque ajout se place avant la précédente insérée
+        sentence = DATE_SENTENCE[facts["langue"]][e["kind"]].format(date=e["date"])
+        later = [fixed.find(x["date"]) for x in facts["echeances"] if x["due"] > e["due"] and x["date"] in fixed]
+        if later:
+            # Avant la phrase qui donne l'échéance suivante : l'ordre chronologique est respecté.
+            start = max(fixed.rfind(b, 0, min(later)) for b in (". ", "! ", "? ", "\n"))
+            if start < 0:
+                return None, "insertion impossible"
+            cut = start + 1 if fixed[start] == "\n" else start + 2
+            fixed = fixed[:cut] + sentence + " " + fixed[cut:]
+        else:
+            body = fixed[: -len(sig)].rstrip() if fixed.endswith(sig) else fixed.rstrip()
+            if not body:
+                return None, "brouillon vide"
+            fixed = body + " " + sentence + ("\n\n" + sig if fixed.endswith(sig) else "")
+        changed = True
+    if not dates_ok(fixed, facts):
+        return None, "insertion impossible"
+    return fixed, "corrigé" if changed else "ok"
+
+
+def _checked(ticket: dict, facts: dict, forbidden, **llm) -> dict:
+    """Un brouillon du LLM, sa garde de sortie et la correction des dates (avec garde de sortie à nouveau)."""
     llm_draft = write(facts, **llm)
-    allowed = " ".join(s["date"] for s in facts["ce_qui_va_se_passer"])
+    allowed = " ".join(e["date"] for e in facts["echeances"])
     issues = output_guard.check(llm_draft, ticket["input"], allowed_text=allowed, forbidden=forbidden)
+    draft, dates = (None, "bloqué") if issues else fix_dates(llm_draft, facts)
+    if draft is not None and output_guard.check(draft, ticket["input"], allowed_text=allowed, forbidden=forbidden):
+        draft, dates = None, "garde de sortie après correction"
+    return {"llm_draft": llm_draft, "issues": issues, "draft": draft, "dates": dates}
+
+
+def draft_reply(ticket: dict, fields: dict, forbidden: list[str] | None = None,
+                controller_sous_motif: str | None = None, **llm) -> dict:
+    """Brouillon final, brouillon du LLM, faits transmis, fiche et violations relevées par la garde de sortie.
+
+    `controller_sous_motif` : sous_motif prédit par le contrôleur (src/controller.py).
+    Sans lui, pas de fiche : brouillon générique.
+    `dates` : "ok" (toutes les dates déjà justes), "corrigé" (dates insérées ou récrites en code),
+    "repli générique" (brouillon avec fiche impossible à corriger : brouillon sans fiche),
+    "modèle fixe" (brouillon écrit en code).
+    """
+    gate = answers.choose(fields, controller_sous_motif)
+    facts = build_facts(ticket, fields, gate["sous_motif"])
+    if gate["sous_motif"] and not facts["fiche"]:
+        gate = {"sous_motif": None, "reason": "anglais"}
+    first = r = _checked(ticket, facts, forbidden, **llm)
+    dates = r["dates"]
+    if r["draft"] is None and facts["fiche"] and not r["issues"]:
+        # La fiche a fait perdre les dates sans qu'on puisse les remettre : brouillon générique.
+        gate = {"sous_motif": None, "reason": f"repli générique ({r['dates']})"}
+        facts = build_facts(ticket, fields, None)
+        r = _checked(ticket, facts, forbidden, **llm)
+        dates = "repli générique" if r["draft"] is not None else dates
+    draft = r["draft"]
+    if draft is None:
+        draft, dates = fallback(facts), "modèle fixe"
     return {
-        "draft": fallback(facts) if issues else llm_draft,
-        "llm_draft": llm_draft,
-        "blocked": bool(issues),
-        "issues": issues,
+        "draft": draft,
+        "llm_draft": first["llm_draft"],
+        "blocked": bool(first["issues"]),
+        "issues": first["issues"],
         "facts": facts,
+        "fiche": gate,
+        "dates": dates,
     }
