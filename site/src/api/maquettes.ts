@@ -2,7 +2,9 @@ import type { Mediateur, TicketSuivi } from './contrat'
 
 // Données de maquette, entièrement fictives. Les dates, positions, progressions et
 // jours ouvrés restants ont été calculés avec `src/deadlines.py` (réclamation par
-// email), à la date du jour indiquée pour chaque ticket.
+// email), à la date du jour indiquée pour chaque ticket. Le ticket en échéance
+// dépassée n'a volontairement pas de `envoye_le` : il montre le repli
+// « Accusé de réception au plus tard le … ».
 
 const mediateur: Mediateur = {
   nom: 'Médiateur de VAULT (coordonnées de maquette)',
@@ -18,8 +20,8 @@ export const maquettes: Record<string, TicketSuivi> = {
     statut: 'recue',
     recu_le: { iso: '2026-09-24', texte: 'jeudi 24 septembre 2026', court: '24 sept.' },
     echeances: [
-      { kind: 'accuse_reception', iso: '2026-10-08', texte: 'jeudi 8 octobre 2026', court: '8 oct.', atteinte: false, position: 0.667 },
-      { kind: 'reponse', iso: '2026-10-15', texte: 'jeudi 15 octobre 2026', court: '15 oct.', atteinte: false, position: 1 },
+      { kind: 'accuse_reception', iso: '2026-10-08', texte: 'jeudi 8 octobre 2026', court: '8 oct.', atteinte: false, position: 0.667, envoye_le: null },
+      { kind: 'reponse', iso: '2026-10-15', texte: 'jeudi 15 octobre 2026', court: '15 oct.', atteinte: false, position: 1, envoye_le: null },
     ],
     progression: 0,
     jours_ouvres_restants: 15,
@@ -34,8 +36,8 @@ export const maquettes: Record<string, TicketSuivi> = {
     statut: 'en_cours',
     recu_le: { iso: '2026-11-02', texte: 'lundi 2 novembre 2026', court: '2 nov.' },
     echeances: [
-      { kind: 'accuse_reception', iso: '2026-11-17', texte: 'mardi 17 novembre 2026', court: '17 nov.', atteinte: true, position: 0.244 },
-      { kind: 'reponse', iso: '2026-12-31', texte: 'jeudi 31 décembre 2026', court: '31 déc.', atteinte: false, position: 1 },
+      { kind: 'accuse_reception', iso: '2026-11-17', texte: 'mardi 17 novembre 2026', court: '17 nov.', atteinte: true, position: 0.244, envoye_le: { iso: '2026-11-09', texte: 'lundi 9 novembre 2026', court: '9 nov.' } },
+      { kind: 'reponse', iso: '2026-12-31', texte: 'jeudi 31 décembre 2026', court: '31 déc.', atteinte: false, position: 1, envoye_le: null },
     ],
     progression: 0.488,
     jours_ouvres_restants: 21,
@@ -50,8 +52,8 @@ export const maquettes: Record<string, TicketSuivi> = {
     statut: 'en_cours',
     recu_le: { iso: '2026-09-03', texte: 'jeudi 3 septembre 2026', court: '3 sept.' },
     echeances: [
-      { kind: 'accuse_reception', iso: '2026-09-17', texte: 'jeudi 17 septembre 2026', court: '17 sept.', atteinte: true, position: 0.667 },
-      { kind: 'reponse', iso: '2026-09-24', texte: 'jeudi 24 septembre 2026', court: '24 sept.', atteinte: false, position: 1 },
+      { kind: 'accuse_reception', iso: '2026-09-17', texte: 'jeudi 17 septembre 2026', court: '17 sept.', atteinte: true, position: 0.667, envoye_le: { iso: '2026-09-10', texte: 'jeudi 10 septembre 2026', court: '10 sept.' } },
+      { kind: 'reponse', iso: '2026-09-24', texte: 'jeudi 24 septembre 2026', court: '24 sept.', atteinte: false, position: 1, envoye_le: null },
     ],
     progression: 0.867,
     jours_ouvres_restants: 2,
@@ -66,8 +68,8 @@ export const maquettes: Record<string, TicketSuivi> = {
     statut: 'en_cours',
     recu_le: { iso: '2026-09-01', texte: 'mardi 1er septembre 2026', court: '1er sept.' },
     echeances: [
-      { kind: 'accuse_reception', iso: '2026-09-15', texte: 'mardi 15 septembre 2026', court: '15 sept.', atteinte: true, position: 0.667 },
-      { kind: 'reponse', iso: '2026-09-22', texte: 'mardi 22 septembre 2026', court: '22 sept.', atteinte: false, position: 1 },
+      { kind: 'accuse_reception', iso: '2026-09-15', texte: 'mardi 15 septembre 2026', court: '15 sept.', atteinte: true, position: 0.667, envoye_le: null },
+      { kind: 'reponse', iso: '2026-09-22', texte: 'mardi 22 septembre 2026', court: '22 sept.', atteinte: false, position: 1, envoye_le: null },
     ],
     progression: 1,
     jours_ouvres_restants: 0,
@@ -82,8 +84,8 @@ export const maquettes: Record<string, TicketSuivi> = {
     statut: 'reponse_envoyee',
     recu_le: { iso: '2026-08-20', texte: 'jeudi 20 août 2026', court: '20 août' },
     echeances: [
-      { kind: 'accuse_reception', iso: '2026-09-03', texte: 'jeudi 3 septembre 2026', court: '3 sept.', atteinte: true, position: 0.667 },
-      { kind: 'reponse', iso: '2026-09-10', texte: 'jeudi 10 septembre 2026', court: '10 sept.', atteinte: true, position: 1 },
+      { kind: 'accuse_reception', iso: '2026-09-03', texte: 'jeudi 3 septembre 2026', court: '3 sept.', atteinte: true, position: 0.667, envoye_le: { iso: '2026-08-25', texte: 'mardi 25 août 2026', court: '25 août' } },
+      { kind: 'reponse', iso: '2026-09-10', texte: 'jeudi 10 septembre 2026', court: '10 sept.', atteinte: true, position: 1, envoye_le: null },
     ],
     progression: 0.867,
     jours_ouvres_restants: 0,

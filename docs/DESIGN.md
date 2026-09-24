@@ -24,7 +24,7 @@ Sommaire : 0. Direction · 1. Références · 2. Tokens · 3. Typographie · 4. 
 | Densité | aérée : cibles de 44 px minimum, gouttière de 20 px | dense : lignes de tableau de 40 px, texte de 13 px |
 | Audace | **une seule : la carte de suivi du délai légal** | aucune |
 
-**Élément signature : la carte de suivi.** C'est le seul endroit où l'on ose. La date légale y est affichée en grand, en champagne. Une perle de verre, reprise de la goutte du logo, avance sur un rail entre la réception du ticket et l'échéance. Le liseré de la carte passe du glacier au champagne, comme le bord de la goutte du logo. Tout le reste du site est calme : pas de dégradé, pas d'effet, pas de couleur d'accent superflue.
+**Élément signature : la carte de suivi.** C'est le seul endroit où l'on ose. La date légale y est affichée en grand, en glace. Une bille de verre, reprise de la goutte du logo, avance dans un tube entre la réception du ticket et l'échéance. Le liseré de la carte passe du glacier à la glace, comme le bord de la goutte du logo. La carte est en vrai verre liquide (section 4.3) : épaisseur, reflet spéculaire, réfraction des bords. Tout le reste du site est calme : pas d'effet hors du verre, pas de couleur d'accent superflue.
 
 Niveau d'interaction (skill web-design) : **L1**, statique et soigné. Une seule animation côté client, aucune côté console (section 8).
 
@@ -38,12 +38,29 @@ Fichiers : `docs/design/refs/` (7 écrans) et `docs/design/logo/vault-logo-planc
 |---|---|---|
 | `ref-01-centre-de-controle.jpg` | Le fond navy en dégradé avec un vignettage doux. La **perle de verre** du curseur « Daily Limit », qui devient la perle du rail de la carte de suivi. Le reflet fin sur le bord haut des pilules. | Tout en verre : plus aucune hiérarchie. Des libellés gris de 11 px sur le verre, illisibles. Une grille de tuiles identiques. Les devises et le bitcoin. |
 | `ref-02-chat-support.jpg` | Les bulles du bot en verre, avec le symbole du logo. Les suggestions en pilules sous la conversation. Le champ de saisie en capsule. L'en-tête avec le logo centré. | Le texte déformé (« I smoke your message »). Les bulles imbriquées dans d'autres bulles. La lueur dorée *dans* le verre, impossible en CSS. Des bulles utilisateur trop proches de celles du bot. Des pilules qui débordent de l'écran. Un bouton d'envoi en forme de goutte, qui détourne le logo. |
-| `ref-03-notifications.jpg` | La preuve que le verre n'existe que sur un **fond vivant** : les pilules ne sont belles que sur le bokeh de la ville. L'horodatage discret en haut à droite. | Un titre champagne de 28 px sur le verre clair : contraste insuffisant. Les montants (« €1,200.00 ») : le support n'en affiche jamais. Les photos de personnes. Les pilules hors du cadre. Les fautes (« Monnday »). |
-| `ref-04-cartes.jpg` | Le **liseré bicolore** (bleu d'un côté, or de l'autre) sur le bord des cartes : c'est le bord de la goutte du logo, réservé à la carte de suivi. Les lignes pleine largeur avec une icône dans un cercle. | Les cartes irisées empilées, avec du violet absent du logo. La perspective 3D. Le métal brossé. Les numéros de carte. |
+| `ref-03-notifications.jpg` | La preuve que le verre n'existe que sur un **fond vivant** : les pilules ne sont belles que sur le bokeh de la ville. L'horodatage discret en haut à droite. | Un titre doré de 28 px sur le verre clair : contraste insuffisant, et plus d'or du tout. Les montants (« €1,200.00 ») : le support n'en affiche jamais. Les photos de personnes. Les pilules hors du cadre. Les fautes (« Monnday »). |
+| `ref-04-cartes.jpg` | Le **liseré bicolore** sur le bord des cartes : c'est le bord de la goutte du logo, réservé à la carte de suivi. On garde le bleu et on remplace l'or par la glace. Les lignes pleine largeur avec une icône dans un cercle. | Les cartes irisées empilées, avec du violet absent du logo. La perspective 3D. Le métal brossé. Les numéros de carte. |
 | `ref-05-envoi.jpg` | **Une seule grande valeur centrée dans une capsule de verre** : on garde la mise en scène, mais la valeur devient la date légale au lieu d'un montant. L'action principale en capsule pleine largeur, en bas. Le champ de sélection opaque, qui confirme que les formulaires sont opaques. | Les décimales dorées : de la mise en valeur d'argent. Le pictogramme Face ID. Les avatars photo. |
 | `ref-06-detail-transaction.jpg` | Une carte principale qui porte les faits clés, avec des petites icônes alignées sur une colonne. | La vue isométrique inclinée. La carte géographique. Le logo Apple (une vraie marque). Les montants en double. Des bords de verre de 12 px d'épaisseur, impossibles à rendre. |
 | `ref-07-accueil-solde.jpg` | La barre d'onglets en verre, avec l'onglet actif dans une perle. Les lignes de liste opaques à filet fin : du calme. Un petit libellé en casse de phrase au-dessus du grand chiffre. | Les décimales dorées. La crypto. La grille de 4 boutons identiques. Les pilules géantes « Pay » et « More » posées hors du téléphone, pour la décoration. |
 | `logo/vault-logo-planche.jpg` | **La palette, mesurée au pixel** (section 2). Le mot-symbole en capitales larges et géométriques. Le symbole goutte + V. Les deux déclinaisons, sur fond sombre et sur fond clair. | Le logo est une **image JPEG, pas un vecteur** : il faut une version SVG avant la mise en ligne (section 10). La goutte en verre 3D est illisible sous 32 px : il faut aussi une version plate monochrome. Sur le panneau central, le « VAULT » blanc a un contour biseauté parasite. |
+
+
+### 1.1 Cinq traits à reprendre par référence
+
+Relevés le 2026-09-24 en rouvrant chaque image, avec des pixels mesurés quand un trait est une couleur. Le pilote s'en sert comme d'une grille de critique : chaque capture est posée à côté de la référence la plus proche (`docs/design/captures/pilote/comparaisons/`).
+
+| Référence | Cinq traits |
+|---|---|
+| **01, centre de contrôle** | 1. Le fond va d'un marine `#091028` en bas à gauche à une ardoise claire `#4E6271` en haut à droite : c'est ce fond lumineux qui rend le verre visible. 2. Les capsules ont un bord épais et lumineux, plus blanc en haut, bleuté à gauche. 3. Le curseur « Daily Limit » est un **tube de verre** dans lequel roule une **bille** avec un point de lumière en haut à gauche. 4. Le verre « actif » (Freeze Card) s'entoure d'une lueur glacier `#86C7DC`. 5. Les libellés sont en graisse régulière, blanc cassé, sans capitales. |
+| **02, chat** | 1. Le bord des bulles est un liseré glacé `#C6E6F3`. 2. Un reflet blanc épais épouse le bord haut de chaque bulle. 3. Le corps de la bulle reste sombre et transparent : la lumière est sur les bords. 4. Le logo centré dans l'en-tête, suivi du nom en graisse régulière. 5. Les suggestions sont des capsules plus petites, de même matière. |
+| **03, notifications** | 1. Le verre bombé : un croissant clair en haut, un bord bas éclairé par réfraction. 2. L'ombre portée est profonde et floue, et laisse voir le fond sous l'objet. 3. Les objets de verre flottent au-dessus des objets opaques, plus plats et plus sombres. 4. L'horodatage est discret, en `--text-2`, aligné en haut à droite. 5. Le grand chiffre de l'heure est en graisse légère, pas en gras. |
+| **04, cartes** | 1. Le liseré bicolore d'une carte : bleu d'un côté, clair de l'autre. 2. Une vague de lumière diagonale traverse le verre. 3. Les rangées de contrôle sont des capsules pleine largeur, avec une icône dans un cercle de verre. 4. Le titre de section « Card Controls » est en 20 px régulier, sans petit titre en capitales. 5. L'intérieur des cartes garde la couleur du fond derrière. |
+| **05, envoi** | 1. **Une grande valeur centrée dans une capsule de verre épaisse**, avec un reflet `#E3F6F9` sur le bord haut. 2. Le champ opaque « Euro Account » : un fond sombre, un filet clair, un reflet d'1 px en haut. 3. Le titre de l'écran est centré, en `--text-2` régulier. 4. Des marges latérales régulières d'environ 16 à 20 px. 5. L'action principale en capsule pleine largeur, en bas. |
+| **06, détail** | 1. Une carte principale qui porte les faits clés, avec des icônes alignées en colonne. 2. Des bords de verre très lumineux sur les quatre côtés. 3. L'intérieur est sombre et lisible : du texte blanc sur un verre teinté par le fond. 4. Une hiérarchie en trois niveaux : titre, grande valeur, puis métadonnées en `--text-2`. 5. Les boutons secondaires sont des capsules de verre plus petites, sous la carte. |
+| **07, accueil** | 1. Un petit libellé gris au-dessus du grand chiffre. 2. Des lignes de liste opaques, arrondies, avec un filet clair : du calme sous le verre. 3. Le logo et son mot, centrés en haut, sans barre visible. 4. La barre d'onglets en verre, avec l'onglet actif dans une perle. 5. Une densité régulière : des blocs de 56 à 64 px séparés de 12 px. |
+
+Ce qu'on **ne** reprend **pas**, en plus du tableau ci-dessus : l'or et le champagne (montants, « Security Alert », décimales). Ils mettent l'argent en valeur, et le client n'en veut pas (décision d'Oscar du 2026-09-24, section 12).
 
 ---
 
@@ -51,7 +68,7 @@ Fichiers : `docs/design/refs/` (7 écrans) et `docs/design/logo/vault-logo-planc
 
 ### 2.1 Couleurs
 
-Six couleurs nommées, plus le blanc et le noir purs. Chaque couleur a une valeur par thème. Les cinq premières sont mesurées sur la planche du logo (moyenne de zone, ou pixels les plus saturés de la goutte). La sixième, vermillon, vient du brief : états d'erreur et tickets suspects.
+Six couleurs nommées, plus le blanc et le noir purs. Chaque couleur a une valeur par thème. Les quatre premières sont mesurées sur la planche du logo (moyenne de zone, ou pixels les plus saturés de la goutte). La glace est mesurée sur les références et le logo. Le vermillon vient du brief : états d'erreur et tickets suspects.
 
 | Nom | Sombre | Clair | Origine | Rôle |
 |---|---|---|---|---|
@@ -59,7 +76,7 @@ Six couleurs nommées, plus le blanc et le noir purs. Chaque couleur a une valeu
 | **ardoise** | `#15253E` | `#15253E` | fond du logo, panneau gauche, en haut | surfaces opaques sombres, repli du verre, console sombre |
 | **givre** | `#E8F3F7` | `#E8F3F7` | panneau clair de la planche | fond clair (client et console) |
 | **glacier** | `#46B3DB` | `#296788` (glacier profond) | bleu de la goutte (pixels saturés, moyenne) | action principale, lien, focus, bulle du client, remplissage du rail |
-| **champagne** | `#E6D4B3` | `#7A5C24` (champagne profond) | reflet doré du bord de la goutte | **uniquement** la date légale et le liseré de la carte de suivi |
+| **glace** | `#C6E6F3` | `#174A63` (glace profonde) | liseré des bulles de verre (réf. 02, `#C6E6F3`) et reflets clairs de la goutte du logo (`#EAF5F2`, `#48CFEF`) ; la version profonde garde la teinte (≈ 200°), assombrie pour le AA | **uniquement** la date légale, le liseré de la carte de suivi et la bille du rail |
 | **vermillon** | `#FF8A80` | `#C4303A` | brief (erreurs, tickets suspects) | erreur, ticket suspect, échéance proche ou dépassée |
 | blanc | `#FFFFFF` | `#FFFFFF` | reflets et mot-symbole sur fond sombre | texte sur fond sombre, surfaces de la console claire |
 | noir | `#000000` | `#000000` | | ombres et voiles seulement, toujours en `rgba(0,0,0,…)` |
@@ -76,7 +93,7 @@ Pourquoi abysse et pas du noir : c'est la couleur du fond du logo, une couleur d
 | `--text-2` (secondaire) | blanc à 72 % (80 % sur verre) | abysse à 64 % (72 % sur verre) |
 | `--accent` | glacier `#46B3DB` | glacier profond `#296788` |
 | `--on-accent` (texte sur bouton accent) | abysse | blanc |
-| `--legal` | champagne `#E6D4B3` | champagne profond `#7A5C24` |
+| `--legal` | glace `#C6E6F3` | glace profonde `#174A63` |
 | `--danger` | vermillon `#FF8A80` | vermillon `#C4303A` |
 | `--line` (filet décoratif) | blanc à 10 % | ardoise à 14 % |
 | `--line-strong` (bord de champ, 3:1) | blanc à 35 % (`#677182` sur ardoise) | ardoise à 50 % (`#8A929E`) |
@@ -88,7 +105,8 @@ Chaque couleur a aussi sa version `-rgb` (par exemple `--accent-rgb: 70 179 219`
 **Règles de couleur :**
 
 - Le glacier ne sert jamais de texte sur le verre sombre (2,9:1 mesuré) : on utilise le blanc.
-- Le champagne n'apparaît qu'à deux endroits : la date légale et le liseré de la carte de suivi. Jamais sur un bouton, un montant ou un titre.
+- La glace n'apparaît que sur la carte de suivi : la date légale, le liseré et la bille. Jamais sur un bouton, un montant ou un titre.
+- **Aucun or, aucun champagne**, nulle part (décision d'Oscar du 2026-09-24).
 - Le vermillon est toujours accompagné d'une icône et d'un texte. La couleur seule ne porte jamais un sens.
 - Aucune couleur n'est écrite en dur dans un composant : on passe toujours par les variables.
 
@@ -100,13 +118,13 @@ Chaque couleur a aussi sa version `-rgb` (par exemple `--accent-rgb: 70 179 219`
 |---|---|---|
 | Blanc sur verre sombre (halo 30 %, remplissage 10 % → `#3A617C`) | **6,60** | AA |
 | Blanc à 80 % sur verre sombre | **4,91** | AA |
-| Champagne sur verre sombre | **4,54** | AA (on l'utilise quand même à 17 px ou plus) |
+| Glace sur verre sombre (mesurée dans le navigateur, pire pixel sous la date) | **7,62** | AAA |
 | Glacier sur verre sombre | 2,90 | **interdit comme texte** |
 | Vermillon clair sur verre sombre | 2,89 | **interdit** : les erreurs vont sur une surface opaque |
 | Abysse sur verre clair (halo 40 %, remplissage 60 % → `#D7EEF6`) | **16,29** | AAA |
 | Abysse à 72 % sur verre clair | **7,43** | AAA |
 | Glacier profond sur verre clair | **5,16** | AA |
-| Champagne profond sur verre clair | **5,16** | AA |
+| Glace profonde sur verre clair (mesurée, pire pixel) | **9,03** | AAA |
 | Vermillon `#C4303A` sur verre clair | **4,55** | AA |
 | Abysse sur bouton glacier | **8,14** | AAA |
 | Blanc sur bouton glacier profond | **6,19** | AA |
@@ -123,6 +141,8 @@ Chaque couleur a aussi sa version `-rgb` (par exemple `--accent-rgb: 70 179 219`
 | Abysse sur ligne suspecte, thème clair / blanc sur ligne suspecte, thème sombre | **17,34 / 12,65** | AAA |
 
 Ces valeurs imposent des limites au fond vivant : **halo glacier à 30 % au plus en sombre, 40 % au plus en clair**. Au-delà, on sort des mesures ci-dessus.
+
+**Mesure dans le navigateur (pilote, 2026-09-24).** Le fond plus lumineux de la section 4.3 et le verre liquide sont vérifiés sur les captures elles-mêmes. On masque le texte de la carte, on lit les pixels du verre sous chaque ligne, et on garde le pire. Pires valeurs, tous états confondus : en sombre, texte principal 12,36, secondaire 5,95, date 7,62 ; en clair, texte principal 17,65, secondaire 7,61, date 9,03. Une première version, avec un halo derrière la carte et une saturation de 190 %, tombait à 3,71 sous « Réponse au plus tard le ». C'est pourquoi le halo n'est plus derrière la carte (section 4.3).
 
 ### 2.3 Rayons
 
@@ -156,28 +176,36 @@ Base de 4 px. Échelle : `4 · 8 · 12 · 16 · 20 · 24 · 32 · 48 · 64`.
 
 ### 2.5 Ombres
 
-L'ombre est toujours du noir pur à faible opacité, jamais une couleur teintée.
+L'ombre est toujours du noir pur à faible opacité, jamais une couleur teintée. La seule exception est la lueur glacier du verre (`--glass-drop`), qui est une lumière, pas une ombre.
 
 | Token | Valeur | Usage |
 |---|---|---|
-| `--shadow-glass` (sombre) | `0 8px 24px rgba(0,0,0,.28)` | verre client |
-| `--shadow-glass` (clair) | `0 8px 24px rgba(0,0,0,.10)` | verre client |
-| `--shadow-signature` | `0 16px 40px rgba(0,0,0,.32)` en sombre, `.14` en clair | carte de suivi |
+| `--glass-drop` | voir 2.6 | verre client, carte de suivi comprise |
+| surface opaque client | `0 8px 24px rgba(0,0,0,.18)` + reflet intérieur d'1 px en haut | « Ce qui va se passer », médiateur, erreur (réf. 05) |
 | `--shadow-pop` | `0 4px 16px rgba(0,0,0,.12)` | popovers et menus de la console, seulement |
 | aucune | | panneaux, tableaux, cartes de la console : un filet `--line` suffit |
 
 ### 2.6 Verre
 
-| Token | Sombre | Clair |
-|---|---|---|
-| `--glass-fill` | `rgba(255,255,255,.10)` | `rgba(255,255,255,.60)` |
-| `--glass-blur` (navigation, carte de suivi) | 20 px | 20 px |
-| `--glass-blur-sm` (bulles, nombreuses et qui défilent) | 12 px | 12 px |
-| `--glass-saturate` | 180 % | 160 % |
-| `--glass-border` | 1 px `rgba(255,255,255,.22)` | 1 px `rgba(255,255,255,.70)` |
-| `--glass-specular` (reflet du bord haut) | ombre intérieure `0 1px 0 rgba(255,255,255,.35)` | ombre intérieure `0 1px 0 rgba(255,255,255,.90)` |
-| `--glass-shade` (ombre du bord bas) | ombre intérieure `0 -1px 0 rgba(0,0,0,.12)` | ombre intérieure `0 -1px 0 rgba(0,0,0,.06)` |
-| Repli opaque | ardoise + bord `rgba(255,255,255,.12)` | blanc + bord ardoise à 14 % |
+Le verre est liquide : il a une épaisseur, un reflet, une réfraction sur les bords. Les valeurs en pixels (reflets, bords) ne dépendent pas de la taille de l'objet : une carte de 600 px et une bulle de 48 px ont le même bord.
+
+| Token | Sombre | Clair | Rôle |
+|---|---|---|---|
+| `--glass-fill` | abysse à 14 % | blanc à 50 % | corps du verre, teinté comme le fond (réf. 04 et 06) |
+| `--glass-sheen` | blanc à 20 % | blanc à 75 % | croissant de lumière sur les 34 px du haut |
+| `--glass-sheen-bas` | glace à 12 % | blanc à 50 % | bord bas éclairé par réfraction, sur 22 px |
+| `--glass-vague` | blanc à 4 % | blanc à 25 % | vague diagonale à 115° (réf. 04) |
+| `--glass-body` | blanc à 5 % | blanc à 18 % | le verre s'épaissit vers le bas |
+| `--glass-blur` | 24 px (28 px sur la carte) | 24 px | flou |
+| `--glass-saturate` | 160 % | 170 % | le fond se sature à travers le verre (au-delà de 160 %, le halo fait tomber le contraste) |
+| `--glass-border-color` | blanc à 20 % | blanc à 85 % | filet de 1 px |
+| `--glass-specular` | ombre intérieure `0 1.5px 0` blanc à 70 % | blanc à 100 % | reflet spéculaire du bord haut |
+| `--glass-rim` | bord intérieur de 1,5 px en glace à 18 %, reflet haut-gauche blanc, bord bas glace à 40 %, bord gauche glacier | mêmes rôles en blanc | l'épaisseur visible des bords |
+| `--glass-inner` | lueur blanche en haut, ombre noire à 45 % en bas | lueur blanche, ombre ardoise à 16 % | légère ombre intérieure |
+| `--glass-drop` | `0 22px 48px` noir à 45 % + lueur glacier à 20 % | noir à 12 % + lueur glacier à 18 % | ombre portée et lueur (réf. 01) |
+| Repli opaque | ardoise + bord blanc à 12 % | blanc + bord ardoise à 14 % | section 4.4 |
+
+La carte de suivi ajoute un **trait spéculaire** de 2 px sur son bord haut, blanc de 95 % à 55 % de gauche à droite : la lumière vient d'en haut à gauche dans toutes les références.
 
 ---
 
@@ -199,8 +227,8 @@ Le mot « VAULT » n'est **jamais composé en Manrope** à la place du logo, sau
 | Rôle | Taille / interligne | Graisse | Approche | Usage |
 |---|---|---|---|---|
 | Date légale | 34 / 40 | 600 | −0,5 px | carte de suivi, seule |
-| Titre d'écran | 28 / 34 | 700 | −0,3 px | « Votre demande » |
-| Titre de bloc | 20 / 26 | 600 | 0 | « Ce qui va se passer » |
+| Titre d'écran | 28 / 34 | 600 | −0,3 px | « Votre demande » |
+| Titre de bloc | 20 / 26 | 500 | 0 | « Ce qui va se passer » (les titres de section des références sont en graisse régulière) |
 | Corps | 17 / 24 | 400 | 0 | messages, textes |
 | Libellé | 15 / 20 | 500 | 0 | boutons, statuts |
 | Légende | 13 / 18 | 500 | 0 | horodatages, référence |
@@ -247,22 +275,25 @@ Trois usages, et aucun autre :
 
 Une surface de verre combine, dans cet ordre :
 
-1. `background: var(--glass-fill)` ;
+1. un `background` en cinq couches : le croissant du haut (`--glass-sheen`, 34 px), le bord bas (`--glass-sheen-bas`, 22 px), la vague diagonale (`--glass-vague`), l'épaississement vers le bas (`--glass-body`), puis le corps (`--glass-fill`) ;
 2. `backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))`, avec le préfixe `-webkit-` pour Safari ;
-3. `border: var(--glass-border)` ;
-4. `box-shadow` qui empile `--glass-specular` (bord haut lumineux), `--glass-shade` (bord bas) et `--shadow-glass`.
+3. `border: 1px solid var(--glass-border-color)` ;
+4. un `box-shadow` qui empile `--glass-specular`, `--glass-rim`, `--glass-inner` et `--glass-drop`.
 
-**Le fond vivant est obligatoire derrière le verre** (leçon de la référence 03) : sans lui, le verre n'est qu'un gris terne. C'est un calque fixe, statique, jamais animé :
+Ces dégradés font partie de la matière du verre : ils sont autorisés **dans le verre seulement** (section 11).
 
-- **Thème sombre :** un dégradé linéaire à 160° d'abysse vers ardoise. Par-dessus, un halo radial glacier à 30 % au plus, de 420 px de diamètre, centré en haut à gauche (15 %, 10 %). Un second halo identique est centré derrière la carte de suivi, sur l'écran de suivi seulement.
-- **Thème clair :** givre en fond, avec les mêmes halos en glacier à 40 % au plus.
+**Le fond vivant est obligatoire derrière le verre** (leçon de la référence 03) : sans lui, le verre n'est qu'un gris terne. Il doit être **lumineux**, comme dans les références : sur un fond trop sombre, le verre ne se voit pas. C'est un calque fixe, statique, jamais animé.
+
+- **Thème sombre :** un dégradé linéaire à 215° qui reprend les couleurs mesurées des références : `#4E6271` en haut à droite, `#1E3045` à 42 %, `#091028` en bas à gauche. Par-dessus, deux halos glacier : 30 % dans le coin haut gauche (340 × 260 px), 22 % dans le coin bas droit (360 px). **Aucun halo derrière la carte** : il faisait tomber le libellé à 3,71:1.
+- **Thème clair :** un dégradé à 215° du blanc (haut droite) au givre, puis `#CFE3EE` (givre teinté de glacier, en bas à gauche), avec les mêmes halos en glacier à 32 % et 30 %.
 - Le fond vivant ne défile pas : `position: fixed`. On ne floute pas une zone qui défile en entier.
+- **La barre de navigation** est un verre presque sans matière (fond à 18 %, sans ombre) : dans les références, l'en-tête n'a pas de barre visible.
 
 **Réfraction SVG** (`feDisplacementMap` en `backdrop-filter: url(#…)`) : **elle n'est pas dans la v1.** Si elle est ajoutée un jour, ce sera sur la carte de suivi seulement, derrière un test `CSS.supports`, avec repli automatique sur le flou standard. Sa prise en charge varie beaucoup selon les navigateurs.
 
 ### 4.4 Replis
 
-- **Préférence « transparence réduite » :** avec `@media (prefers-reduced-transparency: reduce)`, chaque surface de verre prend son repli opaque (section 2.6), sans flou.
+- **Préférence « transparence réduite » :** avec `@media (prefers-reduced-transparency: reduce)`, chaque surface de verre prend son repli opaque (section 2.6), sans flou, sans reflet ni trait spéculaire.
 - **Navigateur sans `backdrop-filter` :** avec `@supports not (backdrop-filter: blur(1px))` (en testant aussi la version `-webkit-`), même repli opaque.
 - **Contraste élevé :** avec `@media (prefers-contrast: more)`, repli opaque, et le texte secondaire passe à 100 %.
 
@@ -291,16 +322,16 @@ Tous les éléments interactifs ont cinq états : repos, survol, appui, focus, d
 
 Dans l'ordre, de haut en bas :
 
-1. **La date légale**, en 34/600 et en `--legal` (champagne). C'est la plus grande taille du site. Elle tient **toujours sur deux lignes** : « jeudi 31 » puis « décembre 2026 ». À 390 px, « jeudi 24 septembre 2026 » ne tient pas sur une ligne, et une coupure laissée au navigateur donnait trois lignes ou séparait le quantième du mois.
+1. **La date légale**, en 34/600 et en `--legal` (glace). C'est la plus grande taille du site. Elle tient **toujours sur deux lignes** : « jeudi 31 » puis « décembre 2026 ». À 390 px, « jeudi 24 septembre 2026 » ne tient pas sur une ligne, et une coupure laissée au navigateur donnait trois lignes ou séparait le quantième du mois.
 2. Juste au-dessus, son libellé en 15/500 `--text-2`, par exemple « Réponse au plus tard le ».
-3. **Le rail :** une ligne de 4 px en `--line`, qui va de la date de réception (à gauche) à la date d'échéance (à droite). Sa partie parcourue est remplie en `--accent`.
-4. **La perle :** un disque de verre de 20 px, qui reprend la goutte du logo et le curseur de la référence 01. Elle se place à la proportion de jours ouvrés écoulés, **fournie par l'API** : le front ne calcule jamais de date. C'est un verre **plein, sans `backdrop-filter`** (givre en sombre, blanc en clair, reflet haut et ombre noire) : un flou posé sur la carte serait du verre sur du verre.
-5. Sous le rail, les deux jalons en 13/500 : « Reçue le … » et l'échéance.
-6. Si le cas a deux échéances (réclamation : accusé de réception puis réponse), l'accusé de réception est un **second repère** sur le rail, un anneau de 8 px, et sa ligne s'affiche sous le rail.
-7. **Le liseré :** un bord de 1 px en dégradé conique, du glacier (à gauche) au champagne (à droite), comme le bord de la goutte du logo. Il est posé par-dessus le filet de verre, et c'est **le seul dégradé du site**. En thème clair, il est à 50 % d'opacité : en tons profonds pleins, il faisait un contour sombre et sale.
+3. **Le rail :** un **tube** de 12 px creusé dans le verre (réf. 01 « Daily Limit ») : fond noir à 30 % en sombre, ardoise à 10 % en clair, ombre intérieure en haut, reflet d'1 px en bas. Il va de la date de réception (à gauche) à la date d'échéance (à droite). Sa partie parcourue est remplie en `--accent`, du glacier à 55 % au glacier plein, avec une lueur glacier.
+4. **La perle :** une bille de verre de 26 px, qui reprend la goutte du logo et la bille de la référence 01 : corps en glace, point de lumière blanc en haut à gauche, reflet glacier en bas, bord blanc, ombre et lueur glacier. Elle se place à la proportion de jours ouvrés écoulés, **fournie par l'API** : le front ne calcule jamais de date. C'est un verre **plein, sans `backdrop-filter`** : un flou posé sur la carte serait du verre sur du verre.
+5. Sous le rail, les deux bouts en 13/500 : « Reçue le 2 nov. » à gauche, « Échéance 31 déc. » à droite.
+6. Si le cas a deux échéances (réclamation : accusé de réception puis réponse), l'accusé de réception est un **repère intermédiaire** sur le rail, un anneau de 10 px : plein en glacier si l'API donne `envoye_le`, vide sinon. Il est **nommé** au-dessus du rail, en 13/500 `--text-2` : « Accusé de réception, 17 nov. ». Le nom s'aligne sur l'anneau, par la gauche dans la première moitié du rail et par la droite dans la seconde. S'il manque de place (320 px), il passe à la ligne au lieu de déborder. Sa ligne détaillée s'affiche aussi sous le rail.
+7. **Le liseré :** un bord de 1 px en dégradé conique, du glacier (à gauche) à la glace (à droite), comme le bord de la goutte du logo, à 85 % d'opacité. Il est posé par-dessus le filet de verre. Avec le fond vivant et la matière du verre, c'est le seul dégradé autorisé (section 11).
 8. En bas, sous un filet `--line` : le statut (section 7) avec son icône, puis la référence du ticket en 13/500, chiffres tabulaires, **sur deux lignes**. Côte à côte, « En cours d'examen » et « Réf. VLT-2026-004127 » se coupaient chacun en deux à 390 px. Pour « Réponse envoyée », la date d'envoi s'ajoute entre les deux : « le mardi 8 septembre 2026 ».
 
-Rayon de 28 px, flou de 20 px, ombre `--shadow-signature`.
+Rayon de 28 px, flou de 28 px, trait spéculaire en haut (section 2.6), ombre `--glass-drop`.
 
 ### 5.3 Console
 
@@ -417,20 +448,19 @@ Mobile :
 │░░ ‹         [VAULT]            ░░│
 ├───────────────────────────────────┤
 │ Votre demande                     │  titre d'écran
-│ Réclamation · reçue le            │  légende --text-2
+│ Réclamation reçue le              │  légende --text-2, sans point médian
 │ lundi 2 novembre 2026             │
 │                                   │
-│ ╭░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░╮  │  carte de suivi, liseré glacier → champagne
+│ ╭░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░╮  │  carte de suivi, liseré glacier → glace
 │ ░ Réponse au plus tard le       ░ │  libellé 15/500
 │ ░ jeudi 31                      ░ │  DATE 34/600, --legal,
 │ ░ décembre 2026                 ░ │  toujours sur deux lignes
+│ ░ Accusé de réception, 17 nov.  ░ │  nom du repère intermédiaire
+│ ░ ━━━━━━━○━━━━●───────────────  ░ │  tube : ━ parcouru (glacier), ○ accusé
+│ ░ Reçue le 2 nov.  Éch. 31 déc. ░ │  de réception, ● bille (texte réel : « Échéance 31 déc. »)
 │ ░                               ░ │
-│ ░ ━━━━━━━○━━━━●───────────────  ░ │  rail : ━ parcouru (glacier), ○ accusé
-│ ░ 2 nov.                 31 déc. ░ │  de réception, ● perle de verre
-│ ░                               ░ │
-│ ░ ✓ Accusé de réception envoyé  ░ │  jalon passé (17 et non 16 :
-│ ░   avant le mardi 17 novembre  ░ │  le 11 novembre est férié)
-│ ░   2026                        ░ │
+│ ░ ✓ Accusé de réception envoyé  ░ │  seulement si l'API donne
+│ ░   le lundi 9 novembre 2026    ░ │  envoye_le (sinon « au plus tard le »)
 │ ░                               ░ │
 │ ░ ───────────────────────────── ░ │
 │ ░ ⧖ En cours d'examen           ░ │  statut + icône
@@ -526,7 +556,7 @@ Mobile : les trois colonnes s'empilent dans l'ordre ticket, tri, brouillon. Les 
 | **Chargement** | Squelettes **statiques**, sans scintillement : des blocs `--text` à 6 % qui ont la forme exacte du contenu (carte de suivi : rectangle de 28 px de rayon, 3 lignes). Réponse du bot en attente : une bulle de verre avec « VAULT rédige… » en `--text-2`, sans points animés. Le bouton d'envoi est désactivé pendant l'envoi. | Lignes squelettes statiques (5 lignes de 40 px). Un bouton en cours d'action garde sa largeur, affiche « Validation… » et reste désactivé. |
 | **Erreur** | Sur une surface opaque (jamais sur le verre) : icône d'alerte, « Le service ne répond pas. Réessayez dans un instant. », bouton secondaire « Réessayer ». Dans le chatbot, un message non envoyé garde son texte, et « Réessayer l'envoi » apparaît sous la bulle. | Bandeau opaque en haut du panneau concerné : filet gauche `--danger`, message, bouton « Réessayer ». Les données déjà affichées restent visibles. |
 | **Ticket suspect** | **Rien de visible pour le client.** On ne lui signale jamais une injection supposée. | Ligne `--row-suspect` avec l'icône bouclier, dans la file « Suspects » ; bandeau dans le détail ; passages retirés surlignés ; case de relecture obligatoire avant de valider (section 6.5). |
-| **Délai proche de l'échéance** | Quand l'API renvoie `delai: "proche"` (2 jours ouvrés restants ou moins) : la carte de suivi garde la date en champagne, et une ligne « Échéance dans 2 jours ouvrés » s'ajoute sous le rail, avec une icône horloge. Avec 1 jour : « Échéance dans 1 jour ouvré » ; avec 0 : « Échéance aujourd'hui ». Pas de rouge côté client : le client n'a rien à faire, on ne l'alarme pas. | Badge vermillon « Échéance proche » ; le ticket entre aussi dans la file « Échéance proche ». |
+| **Délai proche de l'échéance** | Quand l'API renvoie `delai: "proche"` (2 jours ouvrés restants ou moins) : la carte de suivi garde la date en glace, et une ligne « Échéance dans 2 jours ouvrés » s'ajoute sous le rail, avec une icône horloge. Avec 1 jour : « Échéance dans 1 jour ouvré » ; avec 0 : « Échéance aujourd'hui ». Pas de rouge côté client : le client n'a rien à faire, on ne l'alarme pas. | Badge vermillon « Échéance proche » ; le ticket entre aussi dans la file « Échéance proche ». |
 | **Échéance dépassée** | Rail plein. La ligne sous le rail devient « Échéance dépassée le jeudi 31 décembre 2026. Un conseiller traite votre demande. », avec icône et texte en `--text`. Dessous, sur une surface opaque : « Vous pouvez aussi saisir le médiateur de VAULT. C'est gratuit. », puis le bouton secondaire « Saisir le médiateur » (voir ci-dessous). C'est le seul cas où cette action apparaît. | Badge vermillon « Échéance dépassée » ; le ticket passe en tête de la file « À traiter ». |
 
 **Statuts du client** (trois valeurs, fournies par l'API) : « Reçue », « En cours d'examen », « Réponse envoyée ». Chacun a une icône Phosphor (tray, hourglass, check) en plus du texte.
@@ -540,7 +570,7 @@ Mobile : les trois colonnes s'empilent dans l'ordre ticket, tri, brouillon. Les 
 | Échéance dépassée | « Un conseiller examine votre réclamation. Vous recevrez sa réponse par écrit. » (« au plus tard à la date indiquée » serait faux) |
 | Réponse envoyée | « Notre réponse vous a été envoyée par écrit. Si votre situation n'est pas réglée, écrivez-nous. » |
 
-**Jalons sous le rail :** l'accusé de réception s'affiche « Accusé de réception envoyé / avant le … » s'il est atteint, « Accusé de réception / au plus tard le … » sinon (icône cercle vide). Le contrat ne donne pas la date d'envoi de l'accusé, d'où « avant le » et non « le ».
+**Jalons sous le rail :** l'accusé de réception s'affiche « Accusé de réception envoyé / le lundi 9 novembre 2026 » **seulement si l'API fournit `envoye_le`**. Sinon, même quand l'échéance de l'accusé est passée, il s'affiche « Accusé de réception / au plus tard le … », avec l'icône cercle vide. On n'affirme jamais un envoi que l'API ne confirme pas.
 
 **Saisir le médiateur** (échéance dépassée seulement) : le bouton ouvre une feuille opaque, pas en verre, car c'est un texte long. Elle affiche, dans cet ordre :
 
@@ -616,25 +646,25 @@ C'est ce que la prochaine PR construit en premier, et rien d'autre.
 | `statut` | `"en_cours"` (`recue`, `en_cours`, `reponse_envoyee`) |
 | `mediateur` | `{ "nom": "…", "adresse": "…", "site": "…" }` si `delai` vaut `"depasse"`, sinon `null` |
 | `recu_le` | `{ "iso": "2026-11-02", "texte": "lundi 2 novembre 2026", "court": "2 nov." }` |
-| `echeances` | `[{ "kind": "accuse_reception", "iso": "2026-11-17", "texte": "mardi 17 novembre 2026", "court": "17 nov.", "atteinte": true, "position": 0.244 }, { "kind": "reponse", "iso": "2026-12-31", "texte": "jeudi 31 décembre 2026", "court": "31 déc.", "atteinte": false, "position": 1 }]` |
+| `echeances` | `[{ "kind": "accuse_reception", "iso": "2026-11-17", "texte": "mardi 17 novembre 2026", "court": "17 nov.", "atteinte": true, "position": 0.244, "envoye_le": { "iso": "2026-11-09", "texte": "lundi 9 novembre 2026", "court": "9 nov." } }, { "kind": "reponse", "iso": "2026-12-31", "texte": "jeudi 31 décembre 2026", "court": "31 déc.", "atteinte": false, "position": 1, "envoye_le": null }]` |
 | `progression` | `0.488` (jours ouvrés écoulés / jours ouvrés totaux, calculé par `src/deadlines.py`) |
 | `jours_ouvres_restants` | `21` |
 | `delai` | `"normal"`, `"proche"` (2 jours ouvrés ou moins) ou `"depasse"` : le seuil est appliqué par l'API, pas par le front |
 | `reponse_envoyee_le` | `{ "iso", "texte", "court" }` quand le statut est `reponse_envoyee`, sinon `null` |
 
-Ajouts du pilote, parce que le front ne peut rien calculer : `court` (le jalon du rail, « 2 nov. »), `position` (la place de l'anneau de l'accusé sur le rail), `delai` (le seuil de 2 jours ouvrés reste côté API) et `reponse_envoyee_le` (la date d'envoi de la réponse). Les textes de date écrivent « 1er » pour le premier du mois.
+Ajouts du pilote, parce que le front ne peut rien calculer : `court` (le jalon du rail, « 2 nov. »), `position` (la place de l'anneau de l'accusé sur le rail), `envoye_le` (la date d'envoi réelle de l'accusé, `null` tant qu'elle n'est pas connue), `delai` (le seuil de 2 jours ouvrés reste côté API) et `reponse_envoyee_le` (la date d'envoi de la réponse). Les textes de date écrivent « 1er » pour le premier du mois.
 
 **Logo :** le SVG n'existe pas encore. Pour le pilote, la barre affiche le mot « VAULT » en Manrope 700, 17 px, approche de +0,02 em, en `--text`, sans le symbole. Le remplacer par le SVG est une tâche à part, une fois le vecteur livré ; elle n'est pas planifiée.
 
 **Critères d'acceptation :**
 
 - À 375 px et à 320 px : aucun défilement horizontal, cibles de 44 px au moins.
-- Contrastes de la section 2.2 vérifiés dans le navigateur, sur les deux thèmes, avec le halo à sa valeur maximale.
+- Contrastes de la section 2.2 vérifiés dans le navigateur, sur les deux thèmes : mesurés sur les pixels réels du verre, sous chaque ligne de texte de la carte.
 - Le repli opaque s'active avec la transparence réduite, avec un navigateur sans `backdrop-filter` et en contraste élevé.
 - Avec `prefers-reduced-motion`, la carte apparaît sans déplacement.
 - `dangerouslySetInnerHTML` est absent du code : une règle ESLint `react/no-danger` en erreur le vérifie (avec `innerHTML` et `outerHTML` interdits).
 - Aucune date n'est calculée côté front : les tests du composant n'utilisent que les champs du contrat, et ESLint interdit l'objet global `Date` dans `site/`.
-- Captures de référence : `docs/design/captures/pilote/`, à 390 × 844, dans les deux thèmes et pour chaque état.
+- Captures de référence : `docs/design/captures/pilote/`, à 390 × 844, dans les deux thèmes et pour chaque état ; chacune est posée à côté de la référence la plus proche dans `comparaisons/`.
 
 ---
 
@@ -644,7 +674,7 @@ Ajouts du pilote, parce que le front ne peut rien calculer : `court` (le jalon d
 
 1. Un seul bouton principal par écran.
 2. Le verre uniquement dans les trois usages de la section 4.1, et toujours sur le fond vivant.
-3. La date légale, et elle seule, en champagne.
+3. La date légale, et elle seule parmi les textes, en glace.
 4. Chaque couleur de sens (vermillon) accompagnée d'une icône et d'un texte.
 5. Toutes les couleurs passent par les variables de la section 2.
 6. Chiffres tabulaires pour les dates et les références.
@@ -658,7 +688,8 @@ Ajouts du pilote, parce que le front ne peut rien calculer : `court` (le jalon d
 3. Des flèches dans les boutons (« Continuer → »).
 4. Un noir teinté à la place du noir : le fond est abysse, une couleur du logo ; le noir pur ne sert qu'aux ombres et aux voiles.
 5. Du verre sur du verre, sur un formulaire, sur un texte long ou dans la console.
-6. Des dégradés, sauf le liseré de la carte de suivi.
+6. Des dégradés, hors de trois endroits : le fond vivant, la matière du verre (section 4.3) et le liseré de la carte de suivi.
+11. De l'or ou du champagne, sous quelque forme que ce soit.
 7. Des montants, des avatars photo, de la crypto ou des logos de vraies marques.
 8. Un délai écrit en dur, ou calculé dans le front.
 9. Une animation autre que l'apparition de la carte de suivi.
@@ -674,7 +705,7 @@ Le plan de départ, relu contre le brief. Chaque choix qui ressemblait à un ré
 |---|---|---|---|
 | 1 | IBM Plex Sans, proposée par ui-ux-pro-max pour une banque | **Manrope** | Plex est une linéale humaniste « corporate » : ses formes contredisent les capitales larges et géométriques du mot-symbole. Manrope les prolonge et a des chiffres tabulaires. |
 | 2 | Inter pour le corps | **Aucune seconde famille** | Inter est le choix par défaut de toute interface générée. Une seule famille suffit, et le logo est un fichier, pas une police. |
-| 3 | Or sur les montants et les chiffres clés, comme dans les références | **Champagne réservé à la date légale** | Le brief place l'audace sur le délai légal. Dans les références, l'or met l'argent en valeur, ce que le support ne fait jamais. |
+| 3 | Or sur les montants et les chiffres clés, comme dans les références | **Champagne réservé à la date légale**, puis **glace** (décision d'Oscar ci-dessous) | Le brief place l'audace sur le délai légal. Dans les références, l'or met l'argent en valeur, ce que le support ne fait jamais. |
 | 4 | Verre sur toutes les surfaces client, comme dans les références 01 et 07 | **Verre limité à 3 usages** | Dans les références, tout est en verre et plus rien ne ressort. La carte de suivi ne se détache que si le reste est calme. |
 | 5 | Texte en « noir doux » `#0B0F1A` | **Abysse, la couleur du logo** | Un noir teinté inventé est un cliché. Abysse est mesurée sur le logo ; le noir pur reste pour les ombres. |
 | 6 | Glacier comme couleur de texte et de lien sur le verre sombre | **Blanc seulement sur le verre sombre** | Contraste mesuré à 2,90:1 : échec AA. |
@@ -696,5 +727,14 @@ Le plan de départ, relu contre le brief. Chaque choix qui ressemblait à un ré
 | Échéance dépassée visible par le client | Oui, par honnêteté, avec une action : saisir le médiateur (section 7) |
 | Champs calculés | Dates, progression et jours ouvrés restants viennent de l'API, jamais du front |
 | Logo | SVG plus tard ; Manrope suffit pour le pilote |
+
+**Décisions d'Oscar, 2026-09-24, après le premier pilote (PR #31) :**
+
+| Point | Décision |
+|---|---|
+| Or | Plus aucun or ni champagne. La date légale passe en **glace** (`#C6E6F3`, profonde `#174A63` en clair), mesurée sur le liseré des bulles de la réf. 02 et sur les reflets de la goutte du logo. |
+| Verre | Vrai verre liquide : épaisseur visible, reflet spéculaire marqué sur le bord haut, légère ombre intérieure, fond saturé à travers le verre. Le fond vivant devient lumineux, avec les couleurs mesurées des références. |
+| Ressemblance | Le pilote doit ressembler beaucoup plus aux références : cinq traits par référence (section 1.1), et une comparaison côte à côte à chaque passe. |
+| Textes | Plus de point médian dans le sous-titre. « Accusé de réception envoyé » seulement avec `envoye_le`. Le repère intermédiaire du rail est nommé. |
 
 Note sur les clichés : les deux skills autorisés (web-design et ui-ux-pro-max) ne contiennent pas de liste de clichés formelle. La liste de la section 11 reprend les quatre exemples du brief, les anti-modèles d'ui-ux-pro-max (émojis, couleur seule, dégradés « IA ») et les défauts repérés dans les références.

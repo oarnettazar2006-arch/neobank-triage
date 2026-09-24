@@ -8,7 +8,7 @@ import {
   TrayIcon,
   WarningCircleIcon,
 } from '@phosphor-icons/react'
-import type { Statut, TicketSuivi } from '../api/contrat'
+import type { Echeance, Statut, TicketSuivi } from '../api/contrat'
 import { LIBELLE_STATUT, joursOuvresRestants } from '../libelles'
 import { SurfaceVerre } from './SurfaceVerre'
 import './carte.css'
@@ -65,6 +65,25 @@ function DateLegale({ texte }: { texte: string }) {
   )
 }
 
+/**
+ * Nom du repère intermédiaire, au-dessus du rail, aligné sur l'anneau : par la
+ * gauche dans la première moitié du rail, par la droite dans la seconde. Les
+ * marges intérieures suivent la position ; si la place manque, le nom passe à
+ * la ligne au lieu de déborder.
+ */
+function RepereNomme({ accuse }: { accuse: Echeance }) {
+  const p = Math.min(Math.max(accuse.position, 0), 1)
+  const style =
+    p <= 0.5
+      ? { paddingLeft: `max(0px, calc(${p * 100}% - 5px))`, textAlign: 'left' as const }
+      : { paddingRight: `max(0px, calc(${(1 - p) * 100}% - 5px))`, textAlign: 'right' as const }
+  return (
+    <p className="mb-1 text-legende font-medium text-text-2" style={style}>
+      Accusé de réception, {accuse.court}
+    </p>
+  )
+}
+
 function Ligne({ icone, children }: { icone: ReactNode; children: ReactNode }) {
   return (
     <li className="flex gap-3">
@@ -103,12 +122,13 @@ export function CarteSuivi({ ticket }: { ticket: TicketSuivi }) {
         role="img"
         aria-label={`Délai écoulé : ${Math.round(Math.min(ticket.progression, 1) * 100)} %`}
       >
+        {accuse && <RepereNomme accuse={accuse} />}
         <div className="rail-zone">
           <div className="rail-piste" />
           <div className="rail-rempli" style={p(ticket.progression)} />
           {accuse && (
             <div className="rail-repere" style={p(accuse.position)}>
-              <span className="rail-anneau" data-atteint={accuse.atteinte || undefined} />
+              <span className="rail-anneau" data-envoye={accuse.envoye_le ? true : undefined} />
             </div>
           )}
           <div className="rail-repere" data-perle style={p(ticket.progression)}>
@@ -116,9 +136,9 @@ export function CarteSuivi({ ticket }: { ticket: TicketSuivi }) {
           </div>
         </div>
       </div>
-      <div className="mt-2 flex justify-between text-legende font-medium text-text-2">
-        <span>{ticket.recu_le.court}</span>
-        <span>{reponse.court}</span>
+      <div className="mt-1 flex justify-between gap-4 text-legende font-medium text-text-2">
+        <span>Reçue le {ticket.recu_le.court}</span>
+        <span>Échéance {reponse.court}</span>
       </div>
 
       {(accuse || ticket.delai !== 'normal') && (
@@ -137,10 +157,10 @@ export function CarteSuivi({ ticket }: { ticket: TicketSuivi }) {
           </Ligne>
         )}
         {accuse &&
-          (accuse.atteinte ? (
+          (accuse.envoye_le ? (
             <Ligne icone={<CheckCircleIcon size={20} />}>
               <span className="block font-medium text-text">Accusé de réception envoyé</span>
-              <span className="block text-text-2">avant le {accuse.texte}</span>
+              <span className="block text-text-2">le {accuse.envoye_le.texte}</span>
             </Ligne>
           ) : (
             <Ligne icone={<CircleIcon size={20} className="text-text-2" />}>

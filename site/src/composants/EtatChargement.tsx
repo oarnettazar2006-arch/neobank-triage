@@ -1,4 +1,7 @@
-/** Squelettes statiques, à la forme exacte du contenu (DESIGN.md 7). Aucun scintillement. */
+/**
+ * Squelettes statiques, à la forme exacte du contenu (DESIGN.md 7). Aucun
+ * scintillement. La carte garde sa surface de verre : rien ne saute à l'arrivée.
+ */
 export function EtatChargement() {
   const bloc = 'bg-[rgb(var(--text-rgb)/0.06)]'
   return (
@@ -8,7 +11,7 @@ export function EtatChargement() {
       </p>
       <div aria-hidden="true">
         <div className={`mt-2 h-[18px] w-4/5 rounded-full ${bloc}`} />
-        <div className={`mt-8 rounded-signature p-6 ${bloc}`}>
+        <div className="verre mt-8 rounded-signature p-6">
           <div className={`h-5 w-1/2 rounded-full ${bloc}`} />
           <div className={`mt-2 h-8 w-2/5 rounded-full ${bloc}`} />
           <div className={`mt-2 h-8 w-11/12 rounded-full ${bloc}`} />

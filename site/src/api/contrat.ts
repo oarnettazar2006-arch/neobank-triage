@@ -13,6 +13,8 @@ export interface Echeance extends DateApi {
   atteinte: boolean
   /** Place du repère sur le rail, de 0 (réception) à 1 (échéance de réponse). */
   position: number
+  /** Date d'envoi réelle (accusé de réception) ; `null` tant que l'API ne l'a pas. */
+  envoye_le: DateApi | null
 }
 
 export interface Mediateur {

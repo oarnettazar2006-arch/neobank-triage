@@ -15,6 +15,11 @@ export const LIBELLE_STATUT: Record<Statut, string> = {
   reponse_envoyee: 'Réponse envoyée',
 }
 
+/** Accord du participe : « Signalement reçu », « Réclamation reçue ». */
+export function recu(cas: Cas): string {
+  return cas === 'signalement' ? 'reçu' : 'reçue'
+}
+
 /** « votre réclamation » ou « votre demande », dans les phrases. */
 export function votreDemande(cas: Cas): string {
   return cas === 'reclamation' ? 'votre réclamation' : 'votre demande'

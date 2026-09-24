@@ -42,4 +42,26 @@ describe('CarteSuivi', () => {
     expect(html).toContain('Réponse envoyée')
     expect(html).toContain(`le ${ticket.reponse_envoyee_le!.texte}`)
   })
+
+  it('dit « envoyé » seulement si l’API fournit envoye_le', () => {
+    const { ticket, html } = rendu('VLT-2026-004127')
+    const accuse = ticket.echeances.find((e) => e.kind === 'accuse_reception')!
+    expect(html).toContain('Accusé de réception envoyé')
+    expect(html).toContain(`le ${accuse.envoye_le!.texte}`)
+  })
+
+  it('sans envoye_le, affiche l’échéance de l’accusé, même si elle est atteinte', () => {
+    const { ticket, html } = rendu('VLT-2026-004061')
+    const accuse = ticket.echeances.find((e) => e.kind === 'accuse_reception')!
+    expect(accuse.atteinte).toBe(true)
+    expect(accuse.envoye_le).toBeNull()
+    expect(html).not.toContain('Accusé de réception envoyé')
+    expect(html).toContain(`au plus tard le ${accuse.texte}`)
+  })
+
+  it('nomme le repère intermédiaire du rail', () => {
+    const { ticket, html } = rendu('VLT-2026-004188')
+    const accuse = ticket.echeances.find((e) => e.kind === 'accuse_reception')!
+    expect(html).toContain(`Accusé de réception, ${accuse.court}`)
+  })
 })

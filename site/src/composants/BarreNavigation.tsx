@@ -6,7 +6,7 @@ export function BarreNavigation() {
   return (
     <SurfaceVerre
       as="header"
-      className="sticky top-0 z-10 rounded-none border-x-0 border-t-0 pt-[env(safe-area-inset-top)]"
+      className="barre sticky top-0 z-10 rounded-none border-x-0 border-t-0 pt-[env(safe-area-inset-top)]"
     >
       <div className="relative mx-auto flex h-14 max-w-[560px] items-center justify-center px-2">
         <button

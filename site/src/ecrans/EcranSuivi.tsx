@@ -8,7 +8,7 @@ import { EtatChargement } from '../composants/EtatChargement'
 import { EtatErreur } from '../composants/EtatErreur'
 import { FeuilleMediateur } from '../composants/FeuilleMediateur'
 import { FondVivant } from '../composants/FondVivant'
-import { LIBELLE_CAS, ceQuiVaSePasser } from '../libelles'
+import { LIBELLE_CAS, ceQuiVaSePasser, recu } from '../libelles'
 
 type Etat = { kind: 'chargement' } | { kind: 'erreur' } | { kind: 'charge'; ticket: TicketSuivi }
 
@@ -38,10 +38,10 @@ export function EcranSuivi({ reference }: { reference: string }) {
 
   return (
     <>
-      <FondVivant haloCarte />
+      <FondVivant />
       <BarreNavigation />
       <main className="mx-auto max-w-[560px] px-5 pt-6 pb-[max(48px,env(safe-area-inset-bottom))]">
-        <h1 className="text-titre font-bold text-text">Votre demande</h1>
+        <h1 className="text-titre font-semibold text-text">Votre demande</h1>
 
         {etat.kind === 'chargement' && <EtatChargement />}
         {etat.kind === 'erreur' && <EtatErreur onReessayer={reessayer} />}
@@ -49,7 +49,7 @@ export function EcranSuivi({ reference }: { reference: string }) {
         {ticket && (
           <>
             <p className="mt-1 text-legende font-medium text-text-2">
-              {LIBELLE_CAS[ticket.cas]} · reçue le {ticket.recu_le.texte}
+              {LIBELLE_CAS[ticket.cas]} {recu(ticket.cas)} le {ticket.recu_le.texte}
             </p>
 
             <div className="mt-8">
@@ -57,7 +57,7 @@ export function EcranSuivi({ reference }: { reference: string }) {
             </div>
 
             {ticket.delai === 'depasse' && ticket.mediateur && (
-              <div className="mt-4 rounded-glass border border-line bg-surface p-5">
+              <div className="mt-4 surface rounded-glass p-5">
                 <p className="text-corps text-text">Vous pouvez aussi saisir le médiateur de VAULT. C’est gratuit.</p>
                 <BoutonSecondaire className="mt-4" onClick={() => setFeuille(true)}>
                   Saisir le médiateur
@@ -72,10 +72,10 @@ export function EcranSuivi({ reference }: { reference: string }) {
             )}
 
             <section className="mt-8" aria-labelledby="suite">
-              <h2 id="suite" className="text-bloc font-semibold text-text">
+              <h2 id="suite" className="text-bloc font-medium text-text">
                 Ce qui va se passer
               </h2>
-              <p className="mt-3 rounded-glass border border-line bg-surface p-5 text-corps text-text">
+              <p className="mt-3 surface rounded-glass p-5 text-corps text-text">
                 {ceQuiVaSePasser(ticket)}
               </p>
             </section>

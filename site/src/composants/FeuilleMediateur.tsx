@@ -30,7 +30,7 @@ export function FeuilleMediateur({
     <dialog
       ref={ref}
       aria-labelledby="feuille-titre"
-      className="feuille m-0 mx-auto mt-auto w-full max-w-[560px] max-h-[calc(100dvh-48px)] rounded-t-glass border border-b-0 border-line bg-surface p-6 pb-[max(24px,env(safe-area-inset-bottom))] text-text"
+      className="feuille m-0 mx-auto mt-auto w-full max-w-[560px] max-h-[calc(100dvh-48px)] rounded-t-glass border border-b-0 border-[var(--surface-bord)] bg-surface shadow-[inset_0_1px_0_var(--surface-reflet)] p-6 pb-[max(24px,env(safe-area-inset-bottom))] text-text"
       onClose={onFermer}
       onClick={(e) => {
         if (e.target === e.currentTarget) onFermer()
