@@ -3,17 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="color-scheme" content="dark light" />
-    <title>Votre demande · VAULT</title>
+    <meta name="color-scheme" content="light dark" />
+    <title>Accueil · VAULT</title>
+    <link rel="icon" type="image/png" href="/marque/vault-goutte-clair@2x.png" />
     <script>
-      // Client : sombre par défaut, clair si le système le demande (DESIGN.md 0).
+      // Thème : choix mémorisé, sinon préférence du système, sinon clair (DESIGN.md 2.3).
       ;(function () {
-        var clair = window.matchMedia('(prefers-color-scheme: light)')
-        var poser = function () {
-          document.documentElement.dataset.theme = clair.matches ? 'light' : 'dark'
-        }
-        poser()
-        clair.addEventListener('change', poser)
+        var choix = null
+        try {
+          choix = localStorage.getItem('vault:theme')
+        } catch (e) {}
+        var sombre = window.matchMedia('(prefers-color-scheme: dark)').matches
+        document.documentElement.dataset.theme = choix === 'dark' || choix === 'light' ? choix : sombre ? 'dark' : 'light'
       })()
     </script>
   </head>

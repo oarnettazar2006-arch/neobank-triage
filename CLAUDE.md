@@ -26,7 +26,7 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 - `eval/reports/` : un rapport par étape ; `eval/results/` : résultats bruts horodatés
 - `tests/` : tests unitaires (`python3 -m unittest discover -s tests`)
 - `docs/` : guide d'annotation, politique d'automatisation, data card, audit, base de réponses (`answers/`)
-- `site/` : le front (Vite, React, TypeScript, Tailwind), selon `docs/DESIGN.md` ; pour l'instant l'écran pilote de suivi, sur données de maquette (`npm run dev`, `npm run lint`, `npm run build`, `npm test`)
+- `site/` : le front (Vite, React, TypeScript, Tailwind), selon `docs/DESIGN.md` ; pour l'instant l'accueil client v2, sur données fictives (`npm run dev`, `npm run lint`, `npm run build`, `npm test`)
 
 ## Règles
 

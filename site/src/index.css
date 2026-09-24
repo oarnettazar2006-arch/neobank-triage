@@ -1,137 +1,95 @@
 @import 'tailwindcss';
 
 /* ---------------------------------------------------------------------------
-   Tokens : DESIGN.md, section 2. Aucune couleur n'est écrite ailleurs.
-   Thème clair dans :root, thème sombre sous [data-theme="dark"]. Le thème
-   par défaut du client est sombre ; index.html pose data-theme au chargement.
+   Jetons : DESIGN.md, section 2. Aucune couleur n'est écrite ailleurs.
+   Thème clair dans :root (défaut), thème sombre sous [data-theme="dark"].
    --------------------------------------------------------------------------- */
 
 :root {
-  --abysse-rgb: 5 10 34;
-  --ardoise-rgb: 21 37 62;
-  --givre-rgb: 232 243 247;
-  --glacier-rgb: 70 179 219;
-  --glace-rgb: 198 230 243;
-  --blanc-rgb: 255 255 255;
-
-  --bg-rgb: var(--givre-rgb);
-  --text-rgb: var(--abysse-rgb);
-  --accent-rgb: 41 103 136;
-  --legal-rgb: 23 74 99; /* glace profonde */
-  --danger-rgb: 196 48 58;
-
-  --bg: rgb(var(--bg-rgb));
+  --bg: #f5f7fa;
   --surface: #ffffff;
-  --text: rgb(var(--text-rgb));
-  --text-2: rgb(var(--abysse-rgb) / 0.64);
-  --text-2-glass: rgb(var(--abysse-rgb) / 0.72);
-  --accent: rgb(var(--accent-rgb));
+  --surface-2: #eef2f6;
+  --line: #e3e8ef;
+  --text: #0b1226;
+  --text-2: #5a6478;
+  --accent: #16729e;
+  --accent-rgb: 22 114 158;
   --on-accent: #ffffff;
-  --legal: rgb(var(--legal-rgb));
-  --danger: rgb(var(--danger-rgb));
-  --line: rgb(var(--ardoise-rgb) / 0.14);
-  --line-strong: rgb(var(--ardoise-rgb) / 0.5);
-  --surface-bord: rgb(var(--ardoise-rgb) / 0.1);
-  --surface-reflet: rgb(var(--blanc-rgb) / 1);
+  --danger: #c4303a;
 
-  /* Fonds : l'écran (vertical) et le bureau autour de l'écran (desktop). */
-  --fond-ecran:
-    radial-gradient(320px 220px at 50% 0%, rgb(var(--glacier-rgb) / 0.28), transparent 70%),
-    linear-gradient(180deg, #ffffff 0%, rgb(var(--givre-rgb)) 45%, #d6e8f0 100%);
-  --fond-bureau: linear-gradient(215deg, #ffffff 0%, rgb(var(--givre-rgb)) 45%, #c9dce6 100%);
-  --bezel: #d3e1ea;
+  /* Carte VAULT : marine plein. */
+  --carte: #0c1a33;
+  --carte-texte: #eaf2f8;
+  --carte-texte-2: #9fb0c6;
+  --carte-bord: transparent;
 
-  --glass-fallback: #ffffff;
-  --glass-fallback-border: rgb(var(--ardoise-rgb) / 0.14);
+  /* Verre : barre de navigation et bouton du chat, rien d'autre. */
+  --verre: rgb(245 247 250 / 0.72);
+  --verre-bord: rgb(11 18 38 / 0.08);
 
+  --ombre-1: 0 1px 2px rgb(11 18 38 / 0.04), 0 1px 1px rgb(11 18 38 / 0.03);
+  --ombre-flottante: 0 8px 24px rgb(11 18 38 / 0.12), 0 2px 6px rgb(11 18 38 / 0.06);
 
-  --r-signature: 28px;
-  --r-glass: 20px;
-  --r-pill: 999px;
-  --r-control: 12px;
-
-  --ease-carte: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-sortie: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-tiroir: cubic-bezier(0.32, 0.72, 0, 1);
 
   color-scheme: light;
 }
 
 [data-theme='dark'] {
-  --bg-rgb: var(--abysse-rgb);
-  --text-rgb: var(--blanc-rgb);
-  --accent-rgb: var(--glacier-rgb);
-  --legal-rgb: var(--glace-rgb);
-  --danger-rgb: 255 138 128;
+  --bg: #070c1a;
+  --surface: #0f1628;
+  --surface-2: #172036;
+  --line: #1e2940;
+  --text: #edf2f7;
+  --text-2: #98a3b6;
+  --accent: #46b3db;
+  --accent-rgb: 70 179 219;
+  --on-accent: #051021;
+  --danger: #ff8a80;
 
-  --surface: rgb(var(--ardoise-rgb));
-  --text-2: rgb(var(--blanc-rgb) / 0.72);
-  --text-2-glass: rgb(var(--blanc-rgb) / 0.86);
-  --on-accent: rgb(var(--abysse-rgb));
-  --line: rgb(var(--blanc-rgb) / 0.1);
-  --line-strong: rgb(var(--blanc-rgb) / 0.35);
-  --surface-bord: rgb(var(--blanc-rgb) / 0.14);
-  --surface-reflet: rgb(var(--blanc-rgb) / 0.08);
+  --carte: #13254a;
+  --carte-bord: rgb(255 255 255 / 0.08);
 
-  /* Fonds mesurés sur les références : l'écran va de #1E3045 (haut) à
-     #070D22 (bas) en passant par #0E1830 (réf. 07) ; le bureau reprend le
-     dégradé ardoise #4E6271 → #091028. */
-  --fond-ecran:
-    radial-gradient(320px 220px at 50% 0%, rgb(var(--glacier-rgb) / 0.16), transparent 70%),
-    linear-gradient(180deg, #1e3045 0%, #0e1830 38%, #070d22 100%);
-  --fond-bureau: linear-gradient(215deg, #4e6271 0%, #1e3045 42%, #091028 100%);
-  --bezel: #05080f;
+  --verre: rgb(7 12 26 / 0.7);
+  --verre-bord: rgb(255 255 255 / 0.07);
 
-  --glass-fallback: rgb(var(--ardoise-rgb));
-  --glass-fallback-border: rgb(var(--blanc-rgb) / 0.12);
-
+  --ombre-1: 0 0 0 1px rgb(255 255 255 / 0.03);
+  --ombre-flottante: 0 10px 30px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
 
   color-scheme: dark;
-}
-
-@media (prefers-contrast: more) {
-  :root,
-  [data-theme='dark'] {
-    --text-2: var(--text);
-    --text-2-glass: var(--text);
-  }
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
   --color-text: var(--text);
   --color-text-2: var(--text-2);
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
-  --color-legal: var(--legal);
   --color-danger: var(--danger);
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
 
-  --radius-signature: var(--r-signature);
-  --radius-glass: var(--r-glass);
-  --radius-pill: var(--r-pill);
-  --radius-control: var(--r-control);
+  --font-sans: 'Geist Variable', Geist, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --font-sans: 'Manrope Variable', Manrope, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --radius-bloc: 20px;
 
-  /* Échelle client, DESIGN.md section 3 (en rem : suit la taille du système). */
-  --text-date: 2.125rem;
-  --text-date--line-height: 2.5rem;
-  --text-date--letter-spacing: -0.03125rem;
+  /* Échelle (DESIGN.md 3). En rem : suit la taille du système. */
+  --text-solde: 3.5rem;
+  --text-solde--line-height: 1;
+  --text-solde--letter-spacing: -0.035em;
   --text-titre: 1.75rem;
   --text-titre--line-height: 2.125rem;
-  --text-titre--letter-spacing: -0.01875rem;
-  --text-bloc: 1.25rem;
-  --text-bloc--line-height: 1.625rem;
-  --text-corps: 1.0625rem;
-  --text-corps--line-height: 1.5rem;
-  --text-libelle: 0.9375rem;
-  --text-libelle--line-height: 1.25rem;
-  --text-legende: 0.8125rem;
-  --text-legende--line-height: 1.125rem;
+  --text-titre--letter-spacing: -0.02em;
+  --text-section: 1.1875rem;
+  --text-section--line-height: 1.625rem;
+  --text-section--letter-spacing: -0.01em;
+  --text-corps: 0.9375rem;
+  --text-corps--line-height: 1.375rem;
+  --text-petit: 0.8125rem;
+  --text-petit--line-height: 1.125rem;
 }
-
-/* --------------------------------------------------------------------------- */
 
 html {
   background: var(--bg);
@@ -157,80 +115,97 @@ body {
 }
 
 @layer components {
-  /* Écran (DESIGN.md 4.3) : dégradé vertical marine dans l'écran. En desktop,
-     l'écran mobile est posé au centre, sur le dégradé ardoise des références. */
-  .ecran {
-    position: relative;
-    min-height: 100dvh;
-    background: var(--fond-ecran);
+  /* Tous les montants : chiffres tabulaires (DESIGN.md 3). */
+  .montant {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
-  @media (min-width: 640px) {
-    .cadre {
-      display: grid;
-      place-items: center;
-      min-height: 100dvh;
-      padding: 32px 16px;
-      background: var(--fond-bureau);
-    }
-    .ecran {
-      width: 390px;
-      height: min(844px, calc(100dvh - 64px));
-      min-height: 0;
-      overflow-y: auto;
-      border-radius: 52px;
-      box-shadow:
-        0 0 0 9px var(--bezel),
-        0 0 0 10px rgb(var(--blanc-rgb) / 0.14),
-        0 40px 90px rgb(0 0 0 / 0.5);
-      scrollbar-width: none;
+
+  /* Verre : flou léger, comme la barre d'apple.com (DESIGN.md 4). */
+  .verre {
+    background: var(--verre);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .verre {
+      background: var(--bg);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
   }
 
-  /* Barre du haut : aucune barre visible, comme dans les références ; un flou
-     léger seulement, pour ce qui défile dessous. */
-  .barre {
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-    background: linear-gradient(180deg, rgb(var(--bg-rgb) / 0.55), rgb(var(--bg-rgb) / 0));
-  }
-
-  /* Surface calme : les textes longs, jamais en verre. */
-  .surface {
+  .bloc {
     background: var(--surface);
-    border: 1px solid var(--surface-bord);
-    box-shadow: inset 0 1px 0 var(--surface-reflet);
+    border-radius: var(--radius-bloc);
+    box-shadow: var(--ombre-1);
   }
 
-  /* Retour d'état : fondu de couleur de 120 ms, sans déplacement (DESIGN.md 8). */
-  .bouton-secondaire {
+  /* Appui : léger enfoncement, retour immédiat (DESIGN.md 8). */
+  .pressable {
     transition:
-      background-color 120ms ease,
-      border-color 120ms ease;
+      background-color 150ms ease,
+      transform 160ms var(--ease-sortie);
+  }
+  .pressable:active {
+    transform: scale(0.97);
   }
   @media (hover: hover) and (pointer: fine) {
-    .bouton-secondaire:hover {
-      background-color: rgb(var(--text-rgb) / 0.06);
+    .survol:hover {
+      background-color: var(--surface-2);
     }
   }
-  .bouton-secondaire:active {
-    background-color: rgb(var(--text-rgb) / 0.1);
-  }
-
-  /* Surface opaque (réf. 05, « Euro Account ») : filet clair et reflet d'1 px. */
-  .surface {
-    background: var(--surface);
-    border: 1px solid var(--surface-bord);
-    box-shadow: inset 0 1px 0 var(--surface-reflet), 0 8px 24px rgb(0 0 0 / 0.18);
-  }
-
-  .chiffres {
-    font-variant-numeric: tabular-nums;
+  @media (prefers-reduced-motion: reduce) {
+    .pressable:active {
+      transform: none;
+    }
   }
 }
 
-/* Feuille « Saisir le médiateur » : opaque, sans animation. */
-dialog.feuille::backdrop {
-  background: rgb(0 0 0 / 0.48);
+/* Panneau du chat : feuille en bas sur mobile, tiroir à droite en desktop. */
+dialog.panneau-chat {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: 100%;
+  height: min(72dvh, 640px);
+  border-radius: 20px 20px 0 0;
+  box-shadow: var(--ombre-flottante);
+}
+dialog.panneau-chat[open] {
+  animation: chat-bas 320ms var(--ease-tiroir);
+}
+dialog.panneau-chat::backdrop {
+  background: rgb(5 10 34 / 0.32);
+}
+@media (min-width: 1024px) {
+  dialog.panneau-chat {
+    inset: 0 0 0 auto;
+    width: 420px;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 20px 0 0 20px;
+  }
+  dialog.panneau-chat[open] {
+    animation-name: chat-droite;
+  }
+}
+@keyframes chat-bas {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes chat-droite {
+  from {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.panneau-chat[open] {
+    animation: none;
+  }
 }
 
 /* Goutte du logo : une version par thème. */
@@ -242,21 +217,4 @@ dialog.feuille::backdrop {
 }
 :root:not([data-theme='dark']) .logo-sombre {
   display: none;
-}
-
-/* Page /specimen : le bureau ardoise, et des scènes au fond de l'écran. */
-.specimen {
-  background: var(--fond-bureau);
-}
-.specimen-scene {
-  background: var(--fond-ecran);
-}
-
-/* En desktop, la feuille reste dans l'écran posé au centre. */
-@media (min-width: 640px) {
-  dialog.feuille {
-    width: 390px;
-    margin-bottom: max(32px, calc((100dvh - min(844px, 100dvh - 64px)) / 2));
-    border-radius: 28px 28px 44px 44px;
-  }
 }
