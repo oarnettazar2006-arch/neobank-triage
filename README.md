@@ -10,6 +10,18 @@ Pour chaque ticket, le bot :
 
 Tout tourne en local : `llama3.1:8b` via Ollama, Python ≥ 3.9 en bibliothèque standard seule, aucune donnée client ne sort de la machine. Toutes les données sont synthétiques.
 
+## Trier un CSV de tickets (livrable principal)
+
+```bash
+make triage CSV=data/demo/demo15.csv              # garde d'entrée, tri, contrôleur
+make triage CSV=mes_tickets.csv BROUILLON=1       # + rédacteur et garde de sortie
+```
+
+- **Entrée** : un CSV (séparateur `,` ou `;`) avec une colonne obligatoire `ticket`, le texte du client. Colonnes facultatives : `id` ; `categorie`, `produit`, `severite`, les bonnes réponses, avec les valeurs du schéma (`billing/bug/other`, `card/transfer/direct_debit/account/unknown`, `low/medium/high`) ; `canal` et `recu_le`, pour l'échéance (par défaut : formulaire, reçu au lancement).
+- **Sortie** : `<nom>_triage.csv` à côté de l'entrée. Il reprend les colonnes d'entrée et ajoute `categorie_predite`, `produit_predit`, `severite_predite`, `sous_motif`, `reclamation`, `injection_suspectee`, `echeance` (la plus proche, calculée en code) et `controle` (accord ou non entre le tri et le contrôleur). Avec `BROUILLON=1`, il ajoute aussi `fiche`, `brouillon` et `brouillon_bloque`.
+- **Rapport** : si des bonnes réponses sont présentes, `<nom>_triage.md` donne la précision par champ, le taux de tickets entièrement justes et les matrices de confusion.
+- **Pipeline** : le pipeline et les prompts sont ceux du chat. Les étapes s'enchaînent sur tout le fichier : tous les tris, puis tous les contrôles, puis tous les brouillons. Un seul modèle est chargé à la fois. La progression et le temps restant estimé s'affichent pendant le calcul.
+
 ## Architecture
 
 ```

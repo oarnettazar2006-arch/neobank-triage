@@ -7,7 +7,7 @@ RUN = PYTHONDONTWRITEBYTECODE=1 $(PYTHON)
 API_PYTHON ?= $(shell command -v python3.13 || command -v python3.12 || command -v python3.11 || command -v python3.10 || echo python3)
 VENV = .venv
 
-.PHONY: help setup setup-all test test-api demo eval eval-drafts record
+.PHONY: help setup setup-all test test-api demo triage eval eval-drafts record
 
 help:
 	@echo "make setup        vérifie Python et Ollama, télécharge $(MODEL) (4,9 Go)"
@@ -15,6 +15,8 @@ help:
 	@echo "make test         tests unitaires et test de bout en bout, sans Ollama (moins d'une seconde)"
 	@echo "make test-api     tests de l'API (FastAPI), LLM simulé, sans Ollama"
 	@echo "make demo         lance l'API (port 8000) et le site (port 5173), avec le vrai pipeline sur Ollama"
+	@echo "make triage CSV=chemin.csv   trie un CSV de tickets (colonne ticket) ; métriques si categorie/produit/severite"
+	@echo "                  sont fournies ; BROUILLON=1 lance aussi le rédacteur (démo : CSV=data/demo/demo15.csv)"
 	@echo "make eval         tri v7 sur val60, attacks30 et holdout20 + cas du notebook (environ 10 min)"
 	@echo "make eval-drafts  contrôleur qwen puis brouillons avec fiche sur val60, à partir du dernier tri (environ 20 min)"
 	@echo "make record       réenregistre les réponses du LLM du test de bout en bout"
@@ -51,6 +53,11 @@ demo: $(VENV)/.api-ok site/node_modules
 	$(VENV)/bin/uvicorn api.main:app --host 127.0.0.1 --port 8000 & \
 	(cd site && npm run dev -- --host 127.0.0.1) & \
 	wait
+
+triage:
+	@test -n "$(CSV)" || (echo "Usage : make triage CSV=chemin.csv [BROUILLON=1]" && exit 2)
+	@ollama list >/dev/null 2>&1 || true   # réveille Ollama s'il dort
+	$(RUN) eval/triage_csv.py "$(CSV)" $(if $(BROUILLON),--brouillon)
 
 eval:
 	$(RUN) eval/run.py --prompt prompts/v7_sous_motif.txt --model $(MODEL) --guard --sous-motif --data data/val/val60.jsonl
