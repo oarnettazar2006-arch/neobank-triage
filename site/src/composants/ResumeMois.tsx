@@ -1,9 +1,9 @@
-import type { Accueil } from '../donnees/types'
+import type { Compte } from '../donnees/types'
 import { formaterMontant, formaterOperation } from '../format'
 import { ICONE_CATEGORIE } from './icones'
 
 /** Le mois en cours : dépensé, reçu, trois premiers postes. Sans barres de progression. */
-export function ResumeMois({ mois }: { mois: Accueil['mois'] }) {
+export function ResumeMois({ mois }: { mois: Compte['mois'] }) {
   return (
     <section aria-labelledby="mois-titre" className="bloc p-5 lg:p-6">
       <h2 id="mois-titre" className="text-section font-semibold text-text">

@@ -1,5 +1,5 @@
 import { ArrowsLeftRightIcon, CreditCardIcon, PlusIcon } from '@phosphor-icons/react'
-import type { Accueil } from '../donnees/types'
+import type { Compte } from '../donnees/types'
 import { decouperSolde } from '../format'
 
 const ACTIONS = [
@@ -9,7 +9,7 @@ const ACTIONS = [
 ] as const
 
 /** Le solde en grand, puis les trois actions rapides. */
-export function Solde({ compte }: { compte: Accueil['compte'] }) {
+export function Solde({ compte }: { compte: Compte['compte'] }) {
   const { entier, decimales } = decouperSolde(compte.solde)
   return (
     <section aria-labelledby="solde-titre">

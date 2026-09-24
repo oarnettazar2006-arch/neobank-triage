@@ -84,7 +84,11 @@ make test         # 47 tests unitaires et de bout en bout, sans Ollama (< 1 s)
 make eval         # tri v5 sur val60, attacks30 et holdout20 + cas du notebook (environ 10 min)
 make eval-drafts  # brouillons v6 sur val60 à partir du dernier tri (environ 15 min)
 make setup-all    # + qwen2.5:7b (contrôle qualité, juge) et nomic-embed-text (doublons)
+make test-api     # tests de l'API, LLM simulé (crée .venv avec FastAPI)
+make demo         # API sur :8000 + site sur :5173, le chat passe par le vrai pipeline
 ```
+
+**Démo** (`make demo`, puis ouvrir le site) : le client écrit dans le chat, l'API crée le ticket (« Reçue ») et lance en tâche de fond garde d'entrée, tri llama, contrôleur qwen, rédacteur, garde de sortie et délais. Le client ne reçoit qu'un message fixe avec sa référence (et les dates pour une réclamation) ; le brouillon reste pour le conseiller (`GET /tickets`, documentation sur `http://127.0.0.1:8000/docs`). L'API demande Python ≥ 3.10 et FastAPI (`api/requirements.txt`) ; le bot, lui, reste en bibliothèque standard.
 
 | Modèle | Rôle | Digest |
 |---|---|---|

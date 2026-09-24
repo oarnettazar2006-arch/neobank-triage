@@ -12,7 +12,7 @@ const ENTREES = [
 const ACTIVE = 'Accueil'
 
 /** Desktop : barre latérale pleine (pas de verre). */
-export function BarreLaterale({ client }: { client: { prenom: string; nom: string; initiales: string } }) {
+export function BarreLaterale({ client }: { client?: { prenom: string; nom: string; initiales: string } }) {
   return (
     <aside className="sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface lg:flex">
       <div className="flex h-16 items-center px-6">
@@ -41,11 +41,11 @@ export function BarreLaterale({ client }: { client: { prenom: string; nom: strin
       </nav>
       <div className="flex items-center gap-3 border-t border-line px-6 py-4">
         <span className="grid size-9 place-items-center rounded-full bg-surface-2 text-petit font-semibold text-text">
-          {client.initiales}
+          {client?.initiales}
         </span>
         <span className="min-w-0">
           <span className="block truncate text-corps font-medium text-text">
-            {client.prenom} {client.nom}
+            {client ? `${client.prenom} ${client.nom}` : '\u00a0'}
           </span>
           <span className="block text-petit text-text-2">Compte personnel</span>
         </span>

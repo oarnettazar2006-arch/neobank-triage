@@ -1,7 +1,7 @@
 import { ContactlessPaymentIcon, SnowflakeIcon } from '@phosphor-icons/react'
-import type { Accueil } from '../donnees/types'
+import type { Compte } from '../donnees/types'
 
-function Visuel({ carte, compact = false }: { carte: Accueil['carte']; compact?: boolean }) {
+function Visuel({ carte, compact = false }: { carte: Compte['carte']; compact?: boolean }) {
   if (compact) {
     return (
       <span
@@ -47,7 +47,7 @@ function Visuel({ carte, compact = false }: { carte: Accueil['carte']; compact?:
  * Aperçu de la carte VAULT : marine plein, ratio d'une vraie carte (ISO 7810).
  * Desktop : la carte entière. Mobile : une ligne compacte, comme dans une app.
  */
-export function Carte({ carte }: { carte: Accueil['carte'] }) {
+export function Carte({ carte }: { carte: Compte['carte'] }) {
   const etat = carte.etat === 'active' ? 'Active' : 'Gelée'
   const geler = (
     <button
