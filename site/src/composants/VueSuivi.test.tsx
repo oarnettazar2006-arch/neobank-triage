@@ -1,17 +1,17 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { maquettes } from '../api/maquettes'
-import { CarteSuivi } from './CarteSuivi'
+import { VueSuivi } from './VueSuivi'
 
 // Les attentes ne portent que sur les champs du contrat : aucune date n'est
 // recalculée ici, comme dans le composant.
 const rendu = (reference: string) => {
   const ticket = maquettes[reference]!
-  const html = renderToStaticMarkup(<CarteSuivi ticket={ticket} />).replaceAll(' ', ' ')
+  const html = renderToStaticMarkup(<VueSuivi ticket={ticket} />).replaceAll(' ', ' ')
   return { ticket, html }
 }
 
-describe('CarteSuivi', () => {
+describe('VueSuivi', () => {
   it.each(Object.keys(maquettes))('affiche la date légale et la référence de %s telles que fournies', (ref) => {
     const { ticket, html } = rendu(ref)
     const reponse = ticket.echeances.find((e) => e.kind === 'reponse')!

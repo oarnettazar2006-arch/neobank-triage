@@ -1,155 +1,88 @@
-/* Carte de suivi (DESIGN.md 5.2) et son apparition, seule animation du client (8). */
+/* Bloc signature (date en pilule + tube du délai) et son apparition, seule
+   animation du client (DESIGN.md 8). */
 
 @layer components {
-  .carte-suivi {
-    position: relative;
-    isolation: isolate;
-    border-radius: var(--r-signature);
-    --glass-blur: 28px;
-  }
-
-  /* Liseré : 1 px en dégradé conique, du glacier (à gauche) à la glace (à
-     droite), comme le bord de la goutte du logo. */
-  .carte-suivi::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    padding: 1px;
-    border-radius: inherit;
-    background: conic-gradient(from 270deg, rgb(var(--glacier-rgb)), rgb(var(--glace-rgb)) 50%, rgb(var(--glacier-rgb)));
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(#000 0 0) content-box exclude,
-      linear-gradient(#000 0 0);
-    opacity: 0.85;
-    pointer-events: none;
-  }
-
-  /* Reflet spéculaire du bord haut : un trait lumineux, plus intense à gauche,
-     là où la lumière frappe dans les références. */
-  .carte-suivi::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 22px;
-    right: 22px;
-    height: 2px;
-    border-radius: 999px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgb(var(--blanc-rgb) / 0.95) 25%,
-      rgb(var(--blanc-rgb) / 0.55) 60%,
-      transparent
-    );
-    filter: blur(0.4px);
-    pointer-events: none;
-  }
-
-  @media (prefers-reduced-transparency: reduce) {
-    .carte-suivi::after {
-      display: none;
-    }
-  }
-  @media (prefers-contrast: more) {
-    .carte-suivi::after {
-      display: none;
-    }
-  }
-
   /* Chiffres proportionnels à cette taille : le « 1 » tabulaire laisse un vide
-     visible devant le quantième (voir DESIGN.md, section 3). */
+     visible devant le quantième (DESIGN.md 3). */
   .date-legale {
     font-variant-numeric: proportional-nums;
   }
 
-  /* Rail : un tube creusé dans le verre (réf. 01, « Daily Limit »). Le rail
-     rogne les boîtes des repères, translatées ; ses 16 px de marge gardent la
-     perle et son ombre entières. */
-  .rail {
-    margin-inline: -16px;
-    padding: 3px 16px;
-    overflow: hidden;
+  /* ---- Tube ---- */
+  .tube {
+    height: 48px;
+    --g-croissant-max: 18px;
   }
-  .rail-zone {
-    position: relative;
-    height: 26px;
-  }
-  .rail-piste,
-  .rail-rempli {
+  /* La bille (40 px) roule entre 20 px du bord gauche et 20 px du bord droit. */
+  .tube-zone {
     position: absolute;
-    inset: 7px 0;
+    inset: 0 22px;
+  }
+  .tube-canal,
+  .tube-cap,
+  .tube-rempli {
+    position: absolute;
+    top: 20px;
+    bottom: 20px;
     border-radius: 999px;
   }
-  .rail-rempli {
-    inset: 9px 2px;
+  .tube-canal {
+    left: -8px;
+    right: -8px;
+    background: var(--canal);
+    box-shadow: var(--canal-ombre);
   }
-  .rail-piste {
-    background: var(--sillon);
-    box-shadow: var(--sillon-ombre);
+  .tube-cap {
+    left: -8px;
+    width: 16px;
+    background: rgb(var(--accent-rgb) / 0.35);
   }
-  .rail-rempli {
-    background: linear-gradient(90deg, rgb(var(--accent-rgb) / 0.55), rgb(var(--accent-rgb)));
-    box-shadow: var(--rail-lueur);
+  .tube-rempli {
+    left: 0;
+    right: 0;
+    border-radius: 0;
+    background: linear-gradient(90deg, rgb(var(--accent-rgb) / 0.35), rgb(var(--accent-rgb) / 0.85));
+    box-shadow: 0 0 8px rgb(var(--glacier-rgb) / 0.4);
     transform: scaleX(var(--p));
     transform-origin: left;
   }
-
-  /* Un repère se place avec un translateX de la piste entière, pas avec left. */
-  .rail-repere {
+  /* Un repère se place avec un translateX de la zone entière, pas avec left. */
+  .tube-repere {
     position: absolute;
     inset: 0;
     transform: translateX(calc(var(--p) * 100%));
     pointer-events: none;
   }
-
-  /* Accusé de réception : anneau de 10 px. Plein quand l'envoi est connu. */
-  .rail-anneau {
+  .tube-anneau {
     position: absolute;
-    top: 8px;
+    top: 19px;
     left: -5px;
     width: 10px;
     height: 10px;
     border-radius: 999px;
-    border: 2px solid rgb(var(--text-rgb) / 0.55);
+    border: 2px solid rgb(var(--text-rgb) / 0.6);
     background: var(--glass-fallback);
   }
-  .rail-anneau[data-envoye] {
-    border-color: rgb(var(--blanc-rgb) / 0.9);
-    background: var(--accent);
+  .tube-anneau[data-plein] {
+    border-color: rgb(var(--blanc-rgb) / 0.95);
+    background: rgb(var(--glacier-rgb));
   }
-
-  /* Perle : la goutte du logo, une bille de verre pleine (réf. 01). Pas de
-     backdrop-filter : un flou posé sur la carte serait du verre sur du verre. */
-  .rail-perle {
+  .tube-bille {
     position: absolute;
-    top: 0;
-    left: -13px;
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    background:
-      radial-gradient(circle at 34% 28%, #ffffff 0 16%, rgb(var(--blanc-rgb) / 0) 42%),
-      radial-gradient(circle at 50% 80%, rgb(var(--glacier-rgb) / 0.45), transparent 62%),
-      rgb(var(--glace-rgb) / 0.92);
-    border: 1px solid rgb(var(--blanc-rgb) / 0.9);
-    box-shadow:
-      inset 0 -2px 3px rgb(var(--ardoise-rgb) / 0.3),
-      0 3px 8px rgb(0 0 0 / 0.35),
-      0 0 12px rgb(var(--glacier-rgb) / 0.45);
+    top: 2px;
+    left: -22px;
+    width: 44px;
+    height: 44px;
   }
 
-  /* Apparition : une fois par ticket et par session, interruptible. */
-  .carte-suivi[data-entree='joue'] {
+  /* ---- Apparition : une fois par ticket et par session, interruptible ---- */
+  .signature[data-entree='joue'] {
     animation: carte-entree 420ms var(--ease-carte) both;
   }
-  .carte-suivi[data-entree='joue'] .rail-rempli {
+  .signature[data-entree='joue'] .tube-rempli {
     animation: rail-entree 600ms var(--ease-carte) 120ms both;
   }
-  .carte-suivi[data-entree='joue'] .rail-repere[data-perle] {
+  .signature[data-entree='joue'] .tube-repere[data-bille] {
     animation: perle-entree 600ms var(--ease-carte) 120ms both;
   }
 
@@ -176,12 +109,21 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .carte-suivi[data-entree='joue'] {
+    .signature[data-entree='joue'] {
       animation: fondu 150ms ease both;
     }
-    .carte-suivi[data-entree='joue'] .rail-rempli,
-    .carte-suivi[data-entree='joue'] .rail-repere[data-perle] {
+    .signature[data-entree='joue'] .tube-rempli,
+    .signature[data-entree='joue'] .tube-repere[data-bille] {
       animation: none;
     }
   }
+}
+
+:root {
+  --canal: rgb(var(--ardoise-rgb) / 0.12);
+  --canal-ombre: inset 0 1px 2px rgb(0 0 0 / 0.2), inset 0 -1px 0 rgb(var(--blanc-rgb) / 0.8);
+}
+[data-theme='dark'] {
+  --canal: rgb(0 0 0 / 0.18);
+  --canal-ombre: inset 0 1px 2px rgb(0 0 0 / 0.4), inset 0 -1px 0 rgb(var(--blanc-rgb) / 0.12);
 }

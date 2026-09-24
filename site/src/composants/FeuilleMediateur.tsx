@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { Mediateur } from '../api/contrat'
-import { BoutonSecondaire } from './BoutonSecondaire'
+import { Glass } from './Glass'
 
 /**
  * Feuille « Saisir le médiateur » (DESIGN.md 7) : opaque, sans animation, voile
@@ -30,13 +30,13 @@ export function FeuilleMediateur({
     <dialog
       ref={ref}
       aria-labelledby="feuille-titre"
-      className="feuille m-0 mx-auto mt-auto w-full max-w-[560px] max-h-[calc(100dvh-48px)] rounded-t-glass border border-b-0 border-[var(--surface-bord)] bg-surface shadow-[inset_0_1px_0_var(--surface-reflet)] p-6 pb-[max(24px,env(safe-area-inset-bottom))] text-text"
+      className="feuille m-0 mx-auto mt-auto w-full max-w-[560px] max-h-[calc(100dvh-48px)] feuille-forme rounded-t-[28px] border border-b-0 border-[var(--surface-bord)] bg-surface shadow-[inset_0_1px_0_var(--surface-reflet)] p-6 pb-[max(24px,env(safe-area-inset-bottom))] text-text"
       onClose={onFermer}
       onClick={(e) => {
         if (e.target === e.currentTarget) onFermer()
       }}
     >
-      <h2 id="feuille-titre" className="text-bloc font-semibold">
+      <h2 id="feuille-titre" className="text-bloc font-normal">
         Saisir le médiateur
       </h2>
       <p className="mt-3 text-corps text-text-2">
@@ -51,9 +51,9 @@ export function FeuilleMediateur({
       <p className="mt-5 text-corps">
         Indiquez la référence de votre demande : <span className="chiffres font-semibold">{reference}</span>
       </p>
-      <BoutonSecondaire className="mt-6 w-full" onClick={onFermer} autoFocus>
+      <Glass as="button" type="button" forme="pilule" interactif className="mt-6 h-12 w-full text-libelle font-medium" onClick={onFermer} autoFocus>
         Fermer
-      </BoutonSecondaire>
+      </Glass>
     </dialog>
   )
 }

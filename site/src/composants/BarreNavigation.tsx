@@ -1,24 +1,25 @@
 import { CaretLeftIcon } from '@phosphor-icons/react'
-import { SurfaceVerre } from './SurfaceVerre'
+import { Glass } from './Glass'
+import { Logo } from './Logo'
 
-/** Barre du haut, en verre : retour à gauche, mot « VAULT » au centre (logo SVG à venir). */
+/** En-tête : retour dans une pastille de verre, logo au centre, aucune barre visible. */
 export function BarreNavigation() {
   return (
-    <SurfaceVerre
-      as="header"
-      className="barre sticky top-0 z-10 rounded-none border-x-0 border-t-0 pt-[env(safe-area-inset-top)]"
-    >
-      <div className="relative mx-auto flex h-14 max-w-[560px] items-center justify-center px-2">
-        <button
+    <header className="barre sticky top-0 z-10 pt-[env(safe-area-inset-top)]">
+      <div className="relative flex h-16 items-center justify-center px-5">
+        <Glass
+          as="button"
           type="button"
+          forme="pastille"
+          interactif
           aria-label="Retour"
           onClick={() => history.back()}
-          className="bouton-secondaire absolute left-2 grid size-11 place-items-center rounded-pill border-0 text-text"
+          className="absolute left-5 size-11 text-text"
         >
           <CaretLeftIcon size={20} aria-hidden="true" />
-        </button>
-        <span className="text-[1.0625rem] leading-6 font-bold tracking-[0.02em] text-text">VAULT</span>
+        </Glass>
+        <Logo />
       </div>
-    </SurfaceVerre>
+    </header>
   )
 }

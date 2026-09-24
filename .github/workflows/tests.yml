@@ -38,3 +38,5 @@ jobs:
         run: npm run lint
       - name: Build (vérification des types, puis Vite)
         run: npm run build
+      - name: Tests du front (vitest)
+        run: npm test

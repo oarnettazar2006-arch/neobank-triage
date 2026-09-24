@@ -34,34 +34,16 @@
   --surface-bord: rgb(var(--ardoise-rgb) / 0.1);
   --surface-reflet: rgb(var(--blanc-rgb) / 1);
 
-  /* Fond vivant, clair : givre, éclairci en haut à droite, halos glacier à 40 %. */
-  --fond:
-    radial-gradient(340px 260px at 0% 0%, rgb(var(--glacier-rgb) / 0.32), transparent 70%),
-    radial-gradient(360px 360px at 100% 100%, rgb(var(--glacier-rgb) / 0.3), transparent 70%),
-    linear-gradient(215deg, #ffffff 0%, rgb(var(--givre-rgb)) 48%, #cfe3ee 100%);
+  /* Fonds : l'écran (vertical) et le bureau autour de l'écran (desktop). */
+  --fond-ecran:
+    radial-gradient(320px 220px at 50% 0%, rgb(var(--glacier-rgb) / 0.28), transparent 70%),
+    linear-gradient(180deg, #ffffff 0%, rgb(var(--givre-rgb)) 45%, #d6e8f0 100%);
+  --fond-bureau: linear-gradient(215deg, #ffffff 0%, rgb(var(--givre-rgb)) 45%, #c9dce6 100%);
+  --bezel: #d3e1ea;
 
-  /* Verre (DESIGN.md 2.6 et 4.3). */
-  --glass-fill: rgb(var(--blanc-rgb) / 0.5);
-  --glass-sheen: rgb(var(--blanc-rgb) / 0.75);
-  --glass-sheen-bas: rgb(var(--blanc-rgb) / 0.5);
-  --glass-vague: rgb(var(--blanc-rgb) / 0.25);
-  --glass-body: rgb(var(--blanc-rgb) / 0.18);
-  --glass-blur: 24px;
-  --glass-saturate: 170%;
-  --glass-border-color: rgb(var(--blanc-rgb) / 0.85);
-  --glass-specular: inset 0 1.5px 0 rgb(var(--blanc-rgb) / 1);
-  --glass-rim: inset 0 0 0 1.5px rgb(var(--blanc-rgb) / 0.55), inset 3px 3px 6px -2px rgb(var(--blanc-rgb) / 0.9),
-    inset -3px -3px 7px -2px rgb(var(--glacier-rgb) / 0.22);
-  --glass-inner: inset 0 12px 22px -14px rgb(var(--blanc-rgb) / 0.9),
-    inset 0 -14px 24px -14px rgb(var(--ardoise-rgb) / 0.16);
-  --glass-drop: 0 18px 40px rgb(0 0 0 / 0.12), 0 0 28px rgb(var(--glacier-rgb) / 0.18);
   --glass-fallback: #ffffff;
   --glass-fallback-border: rgb(var(--ardoise-rgb) / 0.14);
 
-  /* Rail : tube creusé dans le verre, remplissage glacier. */
-  --sillon: rgb(var(--ardoise-rgb) / 0.1);
-  --sillon-ombre: inset 0 1px 2px rgb(0 0 0 / 0.18), inset 0 -1px 0 rgb(var(--blanc-rgb) / 0.8);
-  --rail-lueur: 0 0 8px rgb(var(--glacier-rgb) / 0.45);
 
   --r-signature: 28px;
   --r-glass: 20px;
@@ -82,40 +64,25 @@
 
   --surface: rgb(var(--ardoise-rgb));
   --text-2: rgb(var(--blanc-rgb) / 0.72);
-  --text-2-glass: rgb(var(--blanc-rgb) / 0.8);
+  --text-2-glass: rgb(var(--blanc-rgb) / 0.86);
   --on-accent: rgb(var(--abysse-rgb));
   --line: rgb(var(--blanc-rgb) / 0.1);
   --line-strong: rgb(var(--blanc-rgb) / 0.35);
   --surface-bord: rgb(var(--blanc-rgb) / 0.14);
   --surface-reflet: rgb(var(--blanc-rgb) / 0.08);
 
-  /* Fond vivant, sombre : le dégradé des références, mesuré (ardoise claire
-     #4E6271 en haut à droite, #1E3045 au milieu, #091028 en bas à gauche),
-     plus deux halos glacier à 30 %. */
-  --fond:
-    radial-gradient(340px 260px at 0% 0%, rgb(var(--glacier-rgb) / 0.3), transparent 70%),
-    radial-gradient(360px 360px at 100% 100%, rgb(var(--glacier-rgb) / 0.22), transparent 70%),
-    linear-gradient(215deg, #4e6271 0%, #1e3045 42%, #091028 100%);
+  /* Fonds mesurés sur les références : l'écran va de #1E3045 (haut) à
+     #070D22 (bas) en passant par #0E1830 (réf. 07) ; le bureau reprend le
+     dégradé ardoise #4E6271 → #091028. */
+  --fond-ecran:
+    radial-gradient(320px 220px at 50% 0%, rgb(var(--glacier-rgb) / 0.16), transparent 70%),
+    linear-gradient(180deg, #1e3045 0%, #0e1830 38%, #070d22 100%);
+  --fond-bureau: linear-gradient(215deg, #4e6271 0%, #1e3045 42%, #091028 100%);
+  --bezel: #05080f;
 
-  --glass-fill: rgb(var(--abysse-rgb) / 0.14);
-  --glass-sheen: rgb(var(--blanc-rgb) / 0.2);
-  --glass-sheen-bas: rgb(var(--glace-rgb) / 0.12);
-  --glass-vague: rgb(var(--blanc-rgb) / 0.04);
-  --glass-body: rgb(var(--blanc-rgb) / 0.05);
-  --glass-saturate: 160%;
-  --glass-border-color: rgb(var(--blanc-rgb) / 0.2);
-  --glass-specular: inset 0 1.5px 0 rgb(var(--blanc-rgb) / 0.7);
-  --glass-rim: inset 0 0 0 1.5px rgb(var(--glace-rgb) / 0.18), inset 3px 3px 6px -2px rgb(var(--blanc-rgb) / 0.45),
-    inset 0 -2px 0 rgb(var(--glace-rgb) / 0.4), inset 3px 0 10px -6px rgb(var(--glacier-rgb) / 0.7),
-    inset -3px -3px 8px -3px rgb(var(--glace-rgb) / 0.35);
-  --glass-inner: inset 0 12px 22px -14px rgb(var(--blanc-rgb) / 0.3), inset 0 -16px 26px -14px rgb(0 0 0 / 0.45);
-  --glass-drop: 0 22px 48px rgb(0 0 0 / 0.45), 0 0 36px rgb(var(--glacier-rgb) / 0.2);
   --glass-fallback: rgb(var(--ardoise-rgb));
   --glass-fallback-border: rgb(var(--blanc-rgb) / 0.12);
 
-  --sillon: rgb(0 0 0 / 0.3);
-  --sillon-ombre: inset 0 1px 2px rgb(0 0 0 / 0.5), inset 0 -1px 0 rgb(var(--blanc-rgb) / 0.14);
-  --rail-lueur: 0 0 10px rgb(var(--glacier-rgb) / 0.6);
 
   color-scheme: dark;
 }
@@ -190,63 +157,48 @@ body {
 }
 
 @layer components {
-  /* Fond vivant (DESIGN.md 4.3) : calque fixe, statique. */
-  .fond-vivant {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: var(--fond);
+  /* Écran (DESIGN.md 4.3) : dégradé vertical marine dans l'écran. En desktop,
+     l'écran mobile est posé au centre, sur le dégradé ardoise des références. */
+  .ecran {
+    position: relative;
+    min-height: 100dvh;
+    background: var(--fond-ecran);
   }
-
-  /* Verre liquide (DESIGN.md 4.3) : un reflet bombé en haut, un corps plus
-     dense vers le bas (l'épaisseur), un bord spéculaire, des bords latéraux
-     qui réfractent, une ombre intérieure en bas, puis l'ombre portée. */
-  .verre {
-    --text-2: var(--text-2-glass);
-    background:
-      linear-gradient(180deg, var(--glass-sheen) 0, transparent 34px),
-      linear-gradient(0deg, var(--glass-sheen-bas) 0, transparent 22px),
-      linear-gradient(115deg, transparent 42%, var(--glass-vague) 50%, transparent 58%),
-      linear-gradient(180deg, transparent 35%, var(--glass-body)),
-      var(--glass-fill);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    border: 1px solid var(--glass-border-color);
-    box-shadow: var(--glass-specular), var(--glass-rim), var(--glass-inner), var(--glass-drop);
-  }
-
-  @media (prefers-reduced-transparency: reduce) {
-    .verre {
-      background: var(--glass-fallback);
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-      border-color: var(--glass-fallback-border);
-      box-shadow: var(--glass-drop);
+  @media (min-width: 640px) {
+    .cadre {
+      display: grid;
+      place-items: center;
+      min-height: 100dvh;
+      padding: 32px 16px;
+      background: var(--fond-bureau);
     }
-  }
-  @media (prefers-contrast: more) {
-    .verre {
-      background: var(--glass-fallback);
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-      border-color: var(--glass-fallback-border);
-      box-shadow: none;
-    }
-  }
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .verre {
-      background: var(--glass-fallback);
-      border-color: var(--glass-fallback-border);
+    .ecran {
+      width: 390px;
+      height: min(844px, calc(100dvh - 64px));
+      min-height: 0;
+      overflow-y: auto;
+      border-radius: 52px;
+      box-shadow:
+        0 0 0 9px var(--bezel),
+        0 0 0 10px rgb(var(--blanc-rgb) / 0.14),
+        0 40px 90px rgb(0 0 0 / 0.5);
+      scrollbar-width: none;
     }
   }
 
-  /* Barre du haut : du verre presque sans matière, comme l'en-tête des
-     références ; elle floute seulement ce qui défile dessous. */
-  .verre.barre {
-    background: rgb(var(--bg-rgb) / 0.18);
-    border-bottom-color: rgb(var(--blanc-rgb) / 0.08);
-    box-shadow: none;
+  /* Barre du haut : aucune barre visible, comme dans les références ; un flou
+     léger seulement, pour ce qui défile dessous. */
+  .barre {
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    background: linear-gradient(180deg, rgb(var(--bg-rgb) / 0.55), rgb(var(--bg-rgb) / 0));
+  }
+
+  /* Surface calme : les textes longs, jamais en verre. */
+  .surface {
+    background: var(--surface);
+    border: 1px solid var(--surface-bord);
+    box-shadow: inset 0 1px 0 var(--surface-reflet);
   }
 
   /* Retour d'état : fondu de couleur de 120 ms, sans déplacement (DESIGN.md 8). */
@@ -279,4 +231,32 @@ body {
 /* Feuille « Saisir le médiateur » : opaque, sans animation. */
 dialog.feuille::backdrop {
   background: rgb(0 0 0 / 0.48);
+}
+
+/* Goutte du logo : une version par thème. */
+.logo-clair {
+  display: none;
+}
+:root:not([data-theme='dark']) .logo-clair {
+  display: block;
+}
+:root:not([data-theme='dark']) .logo-sombre {
+  display: none;
+}
+
+/* Page /specimen : le bureau ardoise, et des scènes au fond de l'écran. */
+.specimen {
+  background: var(--fond-bureau);
+}
+.specimen-scene {
+  background: var(--fond-ecran);
+}
+
+/* En desktop, la feuille reste dans l'écran posé au centre. */
+@media (min-width: 640px) {
+  dialog.feuille {
+    width: 390px;
+    margin-bottom: max(32px, calc((100dvh - min(844px, 100dvh - 64px)) / 2));
+    border-radius: 28px 28px 44px 44px;
+  }
 }
