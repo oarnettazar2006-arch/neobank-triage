@@ -46,7 +46,18 @@ CREATE TABLE IF NOT EXISTS lots (
     delimiteur  TEXT NOT NULL,
     lignes      TEXT NOT NULL,             -- JSON : lignes du CSV d'entrée
     predictions TEXT NOT NULL,             -- JSON : une prédiction (ou null) par ligne
-    erreur      TEXT
+    erreur      TEXT,
+    brouillon   INTEGER NOT NULL DEFAULT 0    -- 1 : le rédacteur et la garde de sortie tournent aussi
+)
+"""
+
+SCHEMA_TRACES = """
+CREATE TABLE IF NOT EXISTS traces (
+    lot_id   TEXT NOT NULL,
+    k        INTEGER NOT NULL,             -- rang du ticket dans le lot, à partir de 0
+    etape    TEXT NOT NULL,                -- tri, controle, brouillon, delais
+    donnees  TEXT NOT NULL,                -- JSON écrit par api/trace.py pendant le lot
+    PRIMARY KEY (lot_id, k, etape)
 )
 """
 LOT_JSON = ("colonnes", "lignes", "predictions")
@@ -66,6 +77,10 @@ def init() -> None:
     with closing(connect()) as con, con:
         con.execute(SCHEMA)
         con.execute(SCHEMA_LOTS)
+        con.execute(SCHEMA_TRACES)
+        # Base créée avant la colonne `brouillon` (console, PR 3) : on l'ajoute.
+        if "brouillon" not in {r[1] for r in con.execute("PRAGMA table_info(lots)")}:
+            con.execute("ALTER TABLE lots ADD COLUMN brouillon INTEGER NOT NULL DEFAULT 0")
         # Un ticket resté en cours quand l'API s'est arrêtée ne reprendra pas tout seul.
         con.execute("UPDATE tickets SET traitement = 'erreur', erreur = 'interrompu' "
                     "WHERE traitement IN ('en_attente', 'en_cours')")
@@ -123,14 +138,15 @@ def set_resultat(ref: str, resultat: dict) -> None:
 # --- Lots de la console ---------------------------------------------------------
 
 
-def insert_lot(lot_id: str, nom: str, cree_le: str, total: int, colonnes: list, delimiteur: str, lignes: list) -> bool:
+def insert_lot(lot_id: str, nom: str, cree_le: str, total: int, colonnes: list, delimiteur: str, lignes: list,
+               brouillon: bool = False) -> bool:
     """False si l'identifiant existe déjà."""
     try:
         with closing(connect()) as con, con:
-            con.execute("INSERT INTO lots (id, nom, cree_le, statut, total, colonnes, delimiteur, lignes, predictions) "
-                        "VALUES (?, ?, ?, 'en_attente', ?, ?, ?, ?, ?)",
+            con.execute("INSERT INTO lots (id, nom, cree_le, statut, total, colonnes, delimiteur, lignes, predictions, "
+                        "brouillon) VALUES (?, ?, ?, 'en_attente', ?, ?, ?, ?, ?, ?)",
                         (lot_id, nom, cree_le, total, json.dumps(colonnes, ensure_ascii=False), delimiteur,
-                         json.dumps(lignes, ensure_ascii=False), json.dumps([None] * len(lignes))))
+                         json.dumps(lignes, ensure_ascii=False), json.dumps([None] * len(lignes)), int(brouillon)))
         return True
     except sqlite3.IntegrityError:
         return False
@@ -150,7 +166,7 @@ def get_lot(lot_id: str) -> Optional[dict]:
 def all_lots() -> list[dict]:
     """Les lots, du plus récent au plus ancien, sans leurs lignes."""
     with closing(connect()) as con:
-        return [dict(r) for r in con.execute("SELECT id, nom, cree_le, statut, fait, total FROM lots "
+        return [dict(r) for r in con.execute("SELECT id, nom, cree_le, statut, fait, total, brouillon FROM lots "
                                              "ORDER BY cree_le DESC, rowid DESC")]
 
 
@@ -176,3 +192,19 @@ def arret_demande(lot_id: str) -> bool:
     with closing(connect()) as con:
         (arret,) = con.execute("SELECT arret FROM lots WHERE id = ?", (lot_id,)).fetchone()
     return bool(arret)
+
+
+# --- Traces du pipeline (onglet Pipeline de la console) --------------------------
+
+
+def set_trace(lot_id: str, k: int, etape: str, donnees: dict) -> None:
+    with closing(connect()) as con, con:
+        con.execute("INSERT OR REPLACE INTO traces (lot_id, k, etape, donnees) VALUES (?, ?, ?, ?)",
+                    (lot_id, k, etape, json.dumps(donnees, ensure_ascii=False)))
+
+
+def get_trace(lot_id: str, k: int) -> dict:
+    """{etape: données} pour le ticket k ; vide si rien n'a été enregistré."""
+    with closing(connect()) as con:
+        return {e: json.loads(d) for e, d in con.execute("SELECT etape, donnees FROM traces WHERE lot_id = ? AND k = ?",
+                                                         (lot_id, k))}

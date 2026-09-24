@@ -11,6 +11,8 @@
   d'une ligne), vérifié puis trié en tâche de fond comme `make triage` ;
 - GET  /lots, GET /lots/{id} : progression, prédictions au fil du tri, analyse
   et métriques ; POST /lots/{id}/arreter ; GET /lots/{id}/export.csv ;
+- GET  /lots/{id}/tickets/{n}/trace : les six étapes du ticket n, enregistrées
+  pendant le lot (api/trace.py), sans relancer aucun modèle ;
 - GET  /evolution : l'histoire des prompts de tri v0 à v7 (eval/evolution.json,
   écrit par eval/build_evolution.py), pour l'onglet « Prompts » de la console.
 
@@ -38,7 +40,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import pipeline  # noqa: E402
 
-from . import db, lots, suivi  # noqa: E402
+from . import db, lots, suivi, trace  # noqa: E402
 
 EVOLUTION = Path(__file__).resolve().parent.parent / "eval" / "evolution.json"
 DONNEES = json.loads((Path(__file__).resolve().parent / "donnees_demo.json").read_text(encoding="utf-8"))
@@ -147,6 +149,7 @@ def tickets() -> list:
 class Fichier(BaseModel):
     nom: str = Field(min_length=1, max_length=200)
     contenu: str = Field(min_length=1)
+    brouillon: bool = False   # rédacteur et garde de sortie en plus (la console le met pour un ticket écrit)
 
 
 def _lire(f: Fichier) -> dict:
@@ -177,9 +180,9 @@ def apercu_lot(f: Fichier) -> dict:
 def creer_lot(f: Fichier, taches: BackgroundTasks) -> dict:
     lu = _lire(f)
     now = maintenant()
-    lot_id = lots.creer(f.nom, lu, now)
+    lot_id = lots.creer(f.nom, lu, now, f.brouillon)
     taches.add_task(traiter_lot, lot_id, now.isoformat())
-    return {"id": lot_id, **lots.apercu(f.nom, lu)}
+    return {"id": lot_id, "brouillon": f.brouillon, **lots.apercu(f.nom, lu)}
 
 
 @app.get("/lots")
@@ -197,6 +200,14 @@ def arreter_lot(lot_id: str = Chemin(pattern=lots.ID)) -> dict:
     _lot(lot_id)
     db.update_lot(lot_id, arret=1)
     return {"id": lot_id}
+
+
+@app.get("/lots/{lot_id}/tickets/{n}/trace")
+def trace_ticket(lot_id: str = Chemin(pattern=lots.ID), n: int = Chemin(ge=1)) -> dict:
+    lot = _lot(lot_id)
+    if n > len(lot["lignes"]):
+        raise HTTPException(404, "ticket inconnu dans ce lot")
+    return trace.vue(lot, n)
 
 
 @app.get("/lots/{lot_id}/export.csv")

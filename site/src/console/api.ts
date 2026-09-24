@@ -1,5 +1,5 @@
 import { BASE } from '../api'
-import type { Apercu, Lot, LotResume } from './types'
+import type { Apercu, Lot, LotResume, Trace } from './types'
 
 // Lots de la console (api/main.py, section « Console »).
 
@@ -21,19 +21,23 @@ async function lire<T>(chemin: string, init?: RequestInit): Promise<T> {
   return (await r.json()) as T
 }
 
-const envoyer = (nom: string, contenu: string): RequestInit => ({
+const envoyer = (nom: string, contenu: string, brouillon = false): RequestInit => ({
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ nom, contenu }),
+  body: JSON.stringify({ nom, contenu, brouillon }),
 })
 
 export const apercuLot = (nom: string, contenu: string) => lire<Apercu>('/lots/apercu', envoyer(nom, contenu))
-export const creerLot = (nom: string, contenu: string) =>
-  lire<Apercu & { id: string }>('/lots', envoyer(nom, contenu))
+/** `brouillon` : le rédacteur et la garde de sortie tournent aussi (la console le met pour un ticket écrit). */
+export const creerLot = (nom: string, contenu: string, brouillon = false) =>
+  lire<Apercu & { id: string; brouillon: boolean }>('/lots', envoyer(nom, contenu, brouillon))
 export const listerLots = (signal?: AbortSignal) => lire<LotResume[]>('/lots', { signal })
 export const chargerLot = (id: string, signal?: AbortSignal) =>
   lire<Lot>(`/lots/${encodeURIComponent(id)}`, { signal })
 export const arreterLot = (id: string) => lire<{ id: string }>(`/lots/${encodeURIComponent(id)}/arreter`, { method: 'POST' })
+/** Les six étapes du ticket n (à partir de 1), enregistrées pendant le lot : aucun modèle n'est relancé. */
+export const chargerTrace = (id: string, n: number, signal?: AbortSignal) =>
+  lire<Trace>(`/lots/${encodeURIComponent(id)}/tickets/${n}/trace`, { signal })
 export const urlExport = (id: string) => `${BASE}/lots/${encodeURIComponent(id)}/export.csv`
 
 /** Un ticket écrit devient un CSV d'une ligne : il suit le même chemin qu'un fichier. */

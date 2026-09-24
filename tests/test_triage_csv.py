@@ -163,6 +163,21 @@ class TriageCsvTest(unittest.TestCase):
         steps = [s for _, s in self.llm.calls]
         self.assertEqual(steps, ["tri"] * 3 + ["unload"] + ["controle"] * 3 + ["brouillon"] * 3 + ["unload"])
 
+    def test_trace_voit_chaque_etape_sans_changer_les_predictions(self):
+        rows = [{"ticket": "CARTE refusée"}, {"ticket": "FRAIS abusifs"}]
+        progress = lambda: triage_csv.Progress(2, ["tri", "contrôle", "brouillon"], stream=io.StringIO())  # noqa: E731
+        vus = []
+
+        def trace(step, k, call):
+            vus.append((step, k))
+            return call()
+
+        sans = triage_csv.process(rows, True, RECU, progress())
+        avec = triage_csv.process(rows, True, RECU, progress(), trace=trace)
+        self.assertEqual(avec, sans)
+        self.assertEqual(vus, [("tri", 0), ("tri", 1), ("contrôle", 0), ("contrôle", 1),
+                               ("brouillon", 0), ("brouillon", 1), ("délais", 0), ("délais", 1)])
+
     def test_memes_champs_que_le_pipeline(self):
         src = write(self.tmp / "t.csv", [["id", "ticket"], ["A1", "CARTE refusée"], ["A2", "FRAIS abusifs"]])
         self.assertEqual(self.run_csv(src), 0)

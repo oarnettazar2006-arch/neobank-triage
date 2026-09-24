@@ -28,8 +28,8 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 - `eval/reports/` : un rapport par étape (`final_test100.md` : note finale, tag `v7-final`, tableaux par `eval/final_report.py`) ; `eval/results/` : résultats bruts horodatés
 - `tests/` : tests unitaires (`python3 -m unittest discover -s tests`) ; `test_bot_fige.py` vérifie que les prompts et le code du bot n'ont pas bougé depuis `v7-final`
 - `docs/` : guide d'annotation, politique d'automatisation, data card, audit, base de réponses (`answers/`), histoire des prompts (`prompt_history.md`)
-- `api/` : API FastAPI + SQLite (`main.py`, `db.py`, `suivi.py`, `lots.py` pour les lots de la console, `donnees_demo.json`), dépendances dans `api/requirements.txt`, environnement `.venv` (Python ≥ 3.10) ; base `api/vault.db` ignorée par git ; tests avec LLM simulé (`make test-api`)
-- `site/` : le front (Vite, React, TypeScript, Tailwind), selon `docs/DESIGN.md` ; l'accueil client v2, le chat et la console conseiller (`/console` pour le tri d'un lot, `/console/prompts` pour l'évolution des prompts ; `src/console/`), sur l'API (`npm run dev`, `npm run lint`, `npm run build`, `npm test`)
+- `api/` : API FastAPI + SQLite (`main.py`, `db.py`, `suivi.py`, `lots.py` pour les lots de la console, `trace.py` pour la trace de chaque ticket enregistrée pendant le lot, `donnees_demo.json`), dépendances dans `api/requirements.txt`, environnement `.venv` (Python ≥ 3.10) ; base `api/vault.db` ignorée par git ; tests avec LLM simulé (`make test-api`)
+- `site/` : le front (Vite, React, TypeScript, Tailwind), selon `docs/DESIGN.md` ; l'accueil client v2, le chat et la console conseiller (`/console` pour le tri d'un lot et, au clic sur un ticket, son pipeline étape par étape ; `/console/prompts` pour l'évolution des prompts ; `src/console/`), sur l'API (`npm run dev`, `npm run lint`, `npm run build`, `npm test`)
 - `make demo` : l'API (port 8000) et le site ensemble, avec le vrai pipeline sur Ollama
 
 ## Règles

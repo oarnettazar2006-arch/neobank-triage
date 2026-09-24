@@ -1,4 +1,4 @@
-import { CaretDownIcon, CaretRightIcon, DownloadSimpleIcon, ShieldWarningIcon, WarningCircleIcon } from '@phosphor-icons/react'
+import { DownloadSimpleIcon, FlowArrowIcon, ShieldWarningIcon, WarningCircleIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { urlExport } from './api'
 import { CHAMP, COLONNES, libelle, PREDIT } from './libelles'
@@ -38,10 +38,21 @@ function Valeur({ l, col }: { l: Ligne; col: Colonne }) {
   )
 }
 
-/** Tableau dense (DESIGN.md 5.2) : une ligne par ticket, remplie au fil du tri. */
-export function TableauTickets({ lotId, lignes, termine, avecBonnes }: { lotId: string; lignes: Ligne[]; termine: boolean; avecBonnes: boolean }) {
+/** Tableau dense (DESIGN.md 5.2) : une ligne par ticket, remplie au fil du tri ; un clic ouvre son pipeline. */
+export function TableauTickets({
+  lotId,
+  lignes,
+  termine,
+  avecBonnes,
+  onOuvrir,
+}: {
+  lotId: string
+  lignes: Ligne[]
+  termine: boolean
+  avecBonnes: boolean
+  onOuvrir?: (n: number) => void
+}) {
   const [filtre, setFiltre] = useState<Filtre>('tous')
-  const [ouvert, setOuvert] = useState<number | null>(null)
   const filtres = FILTRES.filter((f) => f.cle !== 'erreurs' || avecBonnes)
   const garde = FILTRES.find((f) => f.cle === filtre)?.garde ?? (() => true)
   const visibles = lignes.filter(garde)
@@ -115,7 +126,6 @@ export function TableauTickets({ lotId, lignes, termine, avecBonnes }: { lotId: 
             {visibles.map((l) => {
               const p = l.prediction
               const suspect = p?.injection_suspectee === 'oui'
-              const deplie = ouvert === l.n
               return (
                 <tr
                   key={l.n}
@@ -130,20 +140,14 @@ export function TableauTickets({ lotId, lignes, termine, avecBonnes }: { lotId: 
                   <td className="py-1.5 pr-4">
                     <button
                       type="button"
-                      aria-expanded={deplie}
-                      onClick={() => setOuvert(deplie ? null : l.n)}
-                      className="flex w-full min-w-0 items-start gap-1 rounded-[6px] py-1 text-left text-text hover:bg-surface-2"
+                      title="Voir le pipeline de ce ticket"
+                      onClick={() => onOuvrir?.(l.n)}
+                      className="group flex w-full min-w-0 items-start gap-1.5 rounded-[6px] px-1 py-1 text-left text-text hover:bg-surface-2"
                     >
-                      {deplie ? (
-                        <CaretDownIcon size={14} className="mt-0.5 shrink-0 text-text-2" aria-hidden="true" />
-                      ) : (
-                        <CaretRightIcon size={14} className="mt-0.5 shrink-0 text-text-2" aria-hidden="true" />
-                      )}
-                      <span className={deplie ? 'whitespace-pre-wrap' : 'line-clamp-1'}>{l.ticket}</span>
+                      <FlowArrowIcon size={14} className="mt-0.5 shrink-0 text-text-2 group-hover:text-accent" aria-hidden="true" />
+                      <span className="line-clamp-1">{l.ticket}</span>
+                      <span className="sr-only"> : voir le pipeline</span>
                     </button>
-                    {deplie && p?.sous_motif && (
-                      <p className="mt-1 pl-5 text-[0.75rem] text-text-2">Sous-motif : {p.sous_motif.replace(/_/g, ' ')}</p>
-                    )}
                   </td>
                   {COLONNES.map((c) => (
                     <td key={c} className="py-2.5 pr-3">
