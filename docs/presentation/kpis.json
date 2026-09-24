@@ -1,0 +1,249 @@
+{
+ "kpis": {
+  "attacks30_obtenues_v3_v7": {
+   "valeur": {
+    "v3": 11,
+    "v7": 1,
+    "n": 30
+   },
+   "texte": "attaques qui obtiennent leur but sur attacks30 (critères 1-2), v3 puis v7",
+   "source": "eval/results 20260923T100950Z et 20260923T220440Z",
+   "figure": "11_attaques_obtenues.png"
+  },
+  "attacks30_reussies_v4_v7": {
+   "valeur": {
+    "v4_sans_garde": 19,
+    "v5_garde": 3,
+    "v7": 3,
+    "n": 30
+   },
+   "texte": "attaques réussies sur attacks30 (critères 1-3) : v4 sans garde, v5 avec la garde en code, v7",
+   "source": "eval/results 20260923T101423Z, 20260923T212223Z, 20260923T220440Z",
+   "figure": "12_attaques_reussies.png"
+  },
+  "demo15_duree": {
+   "valeur": {
+    "total": "1 min 35 s",
+    "par_ticket_s": 6.3
+   },
+   "texte": "durée de make triage sur demo15, modèles froids",
+   "source": "data/demo/demo15_triage.md",
+   "figure": "03_demo15.png"
+  },
+  "demo15_tout_juste": {
+   "valeur": {
+    "justes": 11,
+    "n": 15
+   },
+   "texte": "tickets de demo15 entièrement justes (catégorie + produit + gravité)",
+   "source": "data/demo/demo15_triage.csv (run enregistré du 24/09/2026)",
+   "figure": "03_demo15.png"
+  },
+  "donnees_test100_label_equilibre": {
+   "valeur": {
+    "billing": 34,
+    "bug": 33,
+    "other": 33
+   },
+   "texte": "part de chaque catégorie dans test100, en %",
+   "source": "eval/results/20260924T121931Z (gold), 100 tickets",
+   "figure": "02_repartition.png"
+  },
+  "donnees_test100_reclamations": {
+   "valeur": 49,
+   "texte": "réclamations dans test100 (sur 100)",
+   "source": "eval/results/20260924T121931Z (gold)"
+  },
+  "donnees_test100_reserve": {
+   "valeur": 100,
+   "texte": "tickets réservés à la note finale, notés une seule fois (tag v7-final)",
+   "source": "eval/reports/final_test100.md",
+   "figure": "01_six_jeux.png"
+  },
+  "donnees_tickets_6_jeux": {
+   "valeur": 310,
+   "texte": "tickets synthétiques répartis en 6 jeux",
+   "source": "docs/data_card.md (tailles des jeux)",
+   "figure": "01_six_jeux.png"
+  },
+  "pipeline_duree_ticket_console": {
+   "valeur": {
+    "total_s": 104.8,
+    "part_modeles_pct": 99.99,
+    "code_ms": 6
+   },
+   "texte": "durée d'un ticket dans la console, 6 étapes, modèles chargés à chaque appel",
+   "source": "site/src/console/trace.reclamation.json (VAL022)",
+   "figure": "06_pipeline_durees.png"
+  },
+  "pipeline_redacteur_sans_ticket": {
+   "valeur": true,
+   "texte": "le rédacteur ne reçoit jamais le texte du client, seulement des faits",
+   "source": "site/src/console/trace.reclamation.json (ticket_dans_prompt = null)"
+  },
+  "prompt_mots_v0_v7": {
+   "valeur": {
+    "v0": 63,
+    "v7": 1470
+   },
+   "texte": "longueur du prompt de tri, en mots",
+   "source": "eval/evolution.json (prompt_texte)"
+  },
+  "test100_attaques_v0_v7": {
+   "valeur": {
+    "v0_obtenues": 5,
+    "v7_reussies": 3,
+    "v7_obtenues": 2,
+    "n": 10,
+    "v7_ids": [
+     "TST010",
+     "TST036",
+     "TST044"
+    ]
+   },
+   "texte": "attaques sur test100 : v0 (critères 1-2) et v7 ; objectif zéro non atteint (limite)",
+   "source": "eval/results 20260924T125426Z et 20260924T121931Z ; eval/reports/final_test100.md",
+   "figure": "12_attaques_reussies.png"
+  },
+  "test100_erreur_principale_v7": {
+   "valeur": {
+    "champ": "severity",
+    "vrai": "medium",
+    "predit": "low",
+    "n": 12,
+    "sur": 36
+   },
+   "texte": "erreur la plus fréquente de la v7 sur test100",
+   "source": "eval/results/20260924T121931Z (matrices de confusion)",
+   "figure": "08_confusion_v7.png"
+  },
+  "test100_is_complaint_v0_v7": {
+   "valeur": {
+    "v0": 82,
+    "v7": 84,
+    "mcnemar_p": 0.804
+   },
+   "texte": "réclamations détectées : pas de gain significatif (limite)",
+   "source": "eval/results/20260924T121931Z et 20260924T125426Z",
+   "figure": "07_test100_v0_v7.png"
+  },
+  "test100_label_v0_v7": {
+   "valeur": {
+    "v0": 38,
+    "v7": 88,
+    "corriges": 50,
+    "casses": 0
+   },
+   "texte": "précision du label sur test100 (%), v0 puis v7",
+   "source": "eval/results/20260924T121931Z et 20260924T125426Z",
+   "figure": "07_test100_v0_v7.png"
+  },
+  "test100_medium_tout_juste_v7": {
+   "valeur": {
+    "medium_pct": 42,
+    "low_high_pct": 73,
+    "medium_n": 36
+   },
+   "texte": "tickets entièrement justes en v7 selon la gravité : medium contre low et high",
+   "source": "eval/results/20260924T121931Z",
+   "figure": "09_produit_gravite.png"
+  },
+  "test100_sous_motif_v7": {
+   "valeur": 66,
+   "texte": "précision du sous-motif (16 valeurs) sur test100, v7, en %",
+   "source": "eval/results/20260924T121931Z"
+  },
+  "test100_tout_juste_v0_v7": {
+   "valeur": {
+    "v0": 8,
+    "v7": 62,
+    "ic95_v7": [
+     52,
+     71
+    ],
+    "mcnemar_p": "< 0,001",
+    "corriges": 55,
+    "casses": 1
+   },
+   "texte": "tickets entièrement justes sur test100 (%), v0 puis v7",
+   "source": "eval/results/20260924T125426Z (v0) et 20260924T121931Z (v7)",
+   "figure": "07_test100_v0_v7.png"
+  },
+  "v7_detection_connues_inedites": {
+   "valeur": {
+    "connues": "28/30",
+    "inedites": "14/20",
+    "connues_pct": 93,
+    "inedites_pct": 70
+   },
+   "texte": "attaques signalées par la v7 : connues (attacks30) contre inédites (holdout20)",
+   "source": "eval/results 20260923T220440Z (attacks30) et 20260923T220652Z (holdout20)",
+   "figure": "14_detection.png"
+  },
+  "v7_fuites": {
+   "valeur": {
+    "brouillons": 210,
+    "controles": 1260,
+    "fuites_brouillon_final": 0,
+    "fuites_brouillon_modele": 0,
+    "chaines_interdites_tri": 0
+   },
+   "texte": "fuites dans les brouillons et la sortie du tri de la v7 (val60, attacks30, holdout20, test100)",
+   "source": "eval/results 20260924T060830Z, 20260924T062003Z, 20260924T062548Z, 20260924T123011Z (brouillons) ; tri v7 20260923T220043Z, 20260923T220440Z, 20260923T220652Z, 20260924T121931Z",
+   "figure": "13_fuites.png"
+  },
+  "v7_tout_juste_par_jeu": {
+   "valeur": {
+    "val60": 61.7,
+    "test100": 62.0,
+    "holdout20": 20.0
+   },
+   "texte": "tickets entièrement justes en v7 : val60, test100, holdout20 (%)",
+   "source": "eval/results (runs v7 de val60, test100, holdout20 ; eval/reports/final_test100.md)",
+   "figure": "10_trois_jeux.png"
+  },
+  "val60_label_v0_v7": {
+   "valeur": {
+    "v0": 40.0,
+    "v7": 91.7
+   },
+   "texte": "précision du label sur val60 (%), v0 puis v7",
+   "source": "eval/evolution.json",
+   "figure": "04_courbe_val60.png"
+  },
+  "val60_plus_gros_gain": {
+   "valeur": {
+    "version": "v1",
+    "tickets": 13,
+    "titre": "Définitions du guide"
+   },
+   "texte": "version qui rapporte le plus de tickets entièrement justes sur val60 (sur 60)",
+   "source": "eval/evolution.json",
+   "figure": "05_gains_val60.png"
+  },
+  "val60_tout_juste_v0_v7": {
+   "valeur": {
+    "v0": 11.7,
+    "v7": 61.7
+   },
+   "texte": "tickets entièrement justes sur val60 (%), v0 puis v7",
+   "source": "eval/evolution.json (runs val60 de chaque version)",
+   "figure": "04_courbe_val60.png"
+  }
+ },
+ "runs": {
+  "20260923T100950Z": "eval/results/20260923T100950Z_v3_few_shot_llama3.1-8b.jsonl",
+  "20260923T101423Z": "eval/results/20260923T101423Z_v4_injection_llama3.1-8b.jsonl",
+  "20260923T212223Z": "eval/results/20260923T212223Z_v4_injection_llama3.1-8b.jsonl",
+  "20260923T220043Z": "eval/results/20260923T220043Z_v7_sous_motif_llama3.1-8b.jsonl",
+  "20260923T220440Z": "eval/results/20260923T220440Z_v7_sous_motif_llama3.1-8b.jsonl",
+  "20260923T220652Z": "eval/results/20260923T220652Z_v7_sous_motif_llama3.1-8b.jsonl",
+  "20260924T060830Z": "eval/results/20260924T060830Z_reply_v2_fiche_val60.jsonl",
+  "20260924T062003Z": "eval/results/20260924T062003Z_reply_v2_fiche_attacks30.jsonl",
+  "20260924T062548Z": "eval/results/20260924T062548Z_reply_v2_fiche_holdout20.jsonl",
+  "20260924T121931Z": "eval/results/20260924T121931Z_v7_sous_motif_llama3.1-8b.jsonl",
+  "20260924T123011Z": "eval/results/20260924T123011Z_reply_v2_fiche_test100.jsonl",
+  "20260924T125426Z": "eval/results/20260924T125426Z_v0_baseline_llama3.1-8b.jsonl"
+ },
+ "note": "Écrit par les notebooks de notebooks/ à partir des résultats enregistrés, sans appel à un modèle. Bot figé au tag v7-final."
+}
