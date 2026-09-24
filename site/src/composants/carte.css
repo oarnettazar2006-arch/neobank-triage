@@ -1,0 +1,159 @@
+/* Carte de suivi (DESIGN.md 5.2) et son apparition, seule animation du client (8). */
+
+@layer components {
+.carte-suivi {
+  position: relative;
+  border-radius: var(--r-signature);
+  box-shadow: var(--glass-specular), var(--glass-shade), var(--shadow-signature);
+}
+
+/* Liseré : 1 px en dégradé conique, glacier à gauche, champagne à droite, posé
+   sur le filet de verre. C'est le seul dégradé du site. */
+.carte-suivi::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(from 270deg, var(--accent), var(--legal) 50%, var(--accent));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+/* En clair, glacier et champagne profonds pleins font un contour sale : le
+   liseré garde les mêmes couleurs, à moitié couvrant. */
+:root:not([data-theme='dark']) .carte-suivi::before {
+  opacity: 0.5;
+}
+
+/* Chiffres proportionnels à cette taille : le « 1 » tabulaire laisse un vide
+   visible devant le quantième (voir DESIGN.md, section 3). */
+.date-legale {
+  font-variant-numeric: proportional-nums;
+}
+
+/* Rail : 4 px en --line ; la partie parcourue est un scaleX, jamais une largeur. */
+/* Le rail rogne les boîtes des repères (translatées, elles dépasseraient à
+   droite) ; ses 16 px de marge gardent la perle et son ombre entières. */
+.rail {
+  margin-inline: -16px;
+  padding-inline: 16px;
+  overflow: hidden;
+}
+.rail-zone {
+  position: relative;
+  height: 20px;
+}
+.rail-piste,
+.rail-rempli {
+  position: absolute;
+  inset: 8px 0;
+  border-radius: 999px;
+}
+.rail-piste {
+  background: var(--line);
+}
+.rail-rempli {
+  background: var(--accent);
+  transform: scaleX(var(--p));
+  transform-origin: left;
+}
+
+/* Un repère se place avec un translateX de la piste entière, pas avec left. */
+.rail-repere {
+  position: absolute;
+  inset: 0;
+  transform: translateX(calc(var(--p) * 100%));
+  pointer-events: none;
+}
+
+/* Accusé de réception : anneau de 8 px. */
+.rail-anneau {
+  position: absolute;
+  top: 6px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 2px solid var(--line-strong);
+  background: var(--glass-fallback);
+}
+.rail-anneau[data-atteint] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+/* Perle : la goutte du logo, en verre plein. Pas de backdrop-filter : c'est un
+   petit objet posé sur la carte, pas un second calque de verre flouté. */
+.rail-perle {
+  position: absolute;
+  top: 0;
+  left: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--perle-fill);
+  border: 1px solid var(--perle-bord);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 -2px 3px rgb(0 0 0 / 0.14),
+    0 2px 6px rgb(0 0 0 / 0.28);
+}
+
+:root {
+  --perle-fill: #ffffff;
+  --perle-bord: rgb(var(--ardoise-rgb) / 0.18);
+}
+[data-theme='dark'] {
+  --perle-fill: rgb(var(--givre-rgb));
+  --perle-bord: rgb(255 255 255 / 0.6);
+}
+
+/* Apparition : une fois par ticket et par session, interruptible. */
+.carte-suivi[data-entree='joue'] {
+  animation: carte-entree 420ms var(--ease-carte) both;
+}
+.carte-suivi[data-entree='joue'] .rail-rempli {
+  animation: rail-entree 600ms var(--ease-carte) 120ms both;
+}
+.carte-suivi[data-entree='joue'] .rail-repere[data-perle] {
+  animation: perle-entree 600ms var(--ease-carte) 120ms both;
+}
+
+@keyframes carte-entree {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes rail-entree {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes perle-entree {
+  from {
+    transform: translateX(0);
+  }
+}
+@keyframes fondu {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carte-suivi[data-entree='joue'] {
+    animation: fondu 150ms ease both;
+  }
+  .carte-suivi[data-entree='joue'] .rail-rempli,
+  .carte-suivi[data-entree='joue'] .rail-repere[data-perle] {
+    animation: none;
+  }
+}
+}

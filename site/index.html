@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Votre demande · VAULT</title>
+    <script>
+      // Client : sombre par défaut, clair si le système le demande (DESIGN.md 0).
+      ;(function () {
+        var clair = window.matchMedia('(prefers-color-scheme: light)')
+        var poser = function () {
+          document.documentElement.dataset.theme = clair.matches ? 'light' : 'dark'
+        }
+        poser()
+        clair.addEventListener('change', poser)
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="racine"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

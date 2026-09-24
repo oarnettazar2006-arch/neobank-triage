@@ -1,0 +1,236 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Tokens : DESIGN.md, section 2. Aucune couleur n'est écrite ailleurs.
+   Thème clair dans :root, thème sombre sous [data-theme="dark"]. Le thème
+   par défaut du client est sombre ; index.html pose data-theme au chargement.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --abysse-rgb: 5 10 34;
+  --ardoise-rgb: 21 37 62;
+  --givre-rgb: 232 243 247;
+  --glacier-rgb: 70 179 219;
+  --blanc-rgb: 255 255 255;
+
+  --bg-rgb: var(--givre-rgb);
+  --text-rgb: var(--abysse-rgb);
+  --accent-rgb: 41 103 136;
+  --legal-rgb: 122 92 36;
+  --danger-rgb: 196 48 58;
+
+  --bg: rgb(var(--bg-rgb));
+  --surface: #ffffff;
+  --text: rgb(var(--text-rgb));
+  --text-2: rgb(var(--abysse-rgb) / 0.64);
+  --text-2-glass: rgb(var(--abysse-rgb) / 0.72);
+  --accent: rgb(var(--accent-rgb));
+  --on-accent: #ffffff;
+  --legal: rgb(var(--legal-rgb));
+  --danger: rgb(var(--danger-rgb));
+  --line: rgb(var(--ardoise-rgb) / 0.14);
+  --line-strong: rgb(var(--ardoise-rgb) / 0.5);
+
+  --glass-fill: rgb(var(--blanc-rgb) / 0.6);
+  --glass-saturate: 160%;
+  --glass-border-color: rgb(var(--blanc-rgb) / 0.7);
+  --glass-specular: inset 0 1px 0 rgb(var(--blanc-rgb) / 0.9);
+  --glass-shade: inset 0 -1px 0 rgb(0 0 0 / 0.06);
+  --glass-fallback: #ffffff;
+  --glass-fallback-border: rgb(var(--ardoise-rgb) / 0.14);
+  --shadow-glass: 0 8px 24px rgb(0 0 0 / 0.1);
+  --shadow-signature: 0 16px 40px rgb(0 0 0 / 0.14);
+
+  --halo-alpha: 0.4;
+  --fond-haut: var(--bg);
+  --fond-bas: var(--bg);
+
+  --glass-blur: 20px;
+  --glass-blur-sm: 12px;
+
+  --r-signature: 28px;
+  --r-glass: 20px;
+  --r-pill: 999px;
+  --r-control: 12px;
+
+  --ease-carte: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg-rgb: var(--abysse-rgb);
+  --text-rgb: var(--blanc-rgb);
+  --accent-rgb: 70 179 219;
+  --legal-rgb: 230 212 179;
+  --danger-rgb: 255 138 128;
+
+  --surface: rgb(var(--ardoise-rgb));
+  --text-2: rgb(var(--blanc-rgb) / 0.72);
+  --text-2-glass: rgb(var(--blanc-rgb) / 0.8);
+  --on-accent: rgb(var(--abysse-rgb));
+  --line: rgb(var(--blanc-rgb) / 0.1);
+  --line-strong: rgb(var(--blanc-rgb) / 0.35);
+
+  --glass-fill: rgb(var(--blanc-rgb) / 0.1);
+  --glass-saturate: 180%;
+  --glass-border-color: rgb(var(--blanc-rgb) / 0.22);
+  --glass-specular: inset 0 1px 0 rgb(var(--blanc-rgb) / 0.35);
+  --glass-shade: inset 0 -1px 0 rgb(0 0 0 / 0.12);
+  --glass-fallback: rgb(var(--ardoise-rgb));
+  --glass-fallback-border: rgb(var(--blanc-rgb) / 0.12);
+  --shadow-glass: 0 8px 24px rgb(0 0 0 / 0.28);
+  --shadow-signature: 0 16px 40px rgb(0 0 0 / 0.32);
+
+  --halo-alpha: 0.3;
+  --fond-haut: rgb(var(--abysse-rgb));
+  --fond-bas: rgb(var(--ardoise-rgb));
+
+  color-scheme: dark;
+}
+
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme='dark'] {
+    --text-2: var(--text);
+    --text-2-glass: var(--text);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-legal: var(--legal);
+  --color-danger: var(--danger);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --radius-signature: var(--r-signature);
+  --radius-glass: var(--r-glass);
+  --radius-pill: var(--r-pill);
+  --radius-control: var(--r-control);
+
+  --font-sans: 'Manrope Variable', Manrope, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Échelle client, DESIGN.md section 3 (en rem : suit la taille du système). */
+  --text-date: 2.125rem;
+  --text-date--line-height: 2.5rem;
+  --text-date--letter-spacing: -0.03125rem;
+  --text-titre: 1.75rem;
+  --text-titre--line-height: 2.125rem;
+  --text-titre--letter-spacing: -0.01875rem;
+  --text-bloc: 1.25rem;
+  --text-bloc--line-height: 1.625rem;
+  --text-corps: 1.0625rem;
+  --text-corps--line-height: 1.5rem;
+  --text-libelle: 0.9375rem;
+  --text-libelle--line-height: 1.25rem;
+  --text-legende: 0.8125rem;
+  --text-legende--line-height: 1.125rem;
+}
+
+/* --------------------------------------------------------------------------- */
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  font-size: var(--text-corps);
+  line-height: var(--text-corps--line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@layer components {
+/* Fond vivant (DESIGN.md 4.3) : calque fixe, statique. */
+.fond-vivant {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(210px 210px at 15% 10%, rgb(var(--glacier-rgb) / var(--halo-alpha)), transparent),
+    linear-gradient(160deg, var(--fond-haut), var(--fond-bas));
+}
+.fond-vivant[data-halo-carte] {
+  background:
+    radial-gradient(210px 210px at 15% 10%, rgb(var(--glacier-rgb) / var(--halo-alpha)), transparent),
+    radial-gradient(210px 210px at 70% 340px, rgb(var(--glacier-rgb) / var(--halo-alpha)), transparent),
+    linear-gradient(160deg, var(--fond-haut), var(--fond-bas));
+}
+
+/* Verre (DESIGN.md 4.3 et 4.4). */
+.verre {
+  --text-2: var(--text-2-glass);
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-color);
+  box-shadow: var(--glass-specular), var(--glass-shade), var(--shadow-glass);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .verre {
+    background: var(--glass-fallback);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: var(--glass-fallback-border);
+  }
+}
+@media (prefers-contrast: more) {
+  .verre {
+    background: var(--glass-fallback);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: var(--glass-fallback-border);
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .verre {
+    background: var(--glass-fallback);
+    border-color: var(--glass-fallback-border);
+  }
+}
+
+/* Retour d'état : fondu de couleur de 120 ms, sans déplacement (DESIGN.md 8). */
+.bouton-secondaire {
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .bouton-secondaire:hover {
+    background-color: rgb(var(--text-rgb) / 0.06);
+  }
+}
+.bouton-secondaire:active {
+  background-color: rgb(var(--text-rgb) / 0.1);
+}
+
+.chiffres {
+  font-variant-numeric: tabular-nums;
+}
+
+}
+
+/* Feuille « Saisir le médiateur » : opaque, sans animation. */
+dialog.feuille::backdrop {
+  background: rgb(0 0 0 / 0.48);
+}

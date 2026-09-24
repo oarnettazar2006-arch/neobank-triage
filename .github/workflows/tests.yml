@@ -20,3 +20,21 @@ jobs:
         run: make test
       - name: Cas d'injection du notebook (tâche 4)
         run: python -m unittest -v tests.test_pipeline_replay.PipelineReplayTest.test_notebook_injection_case
+
+  front:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+      - name: Lint (dont react/no-danger et l'interdiction de Date)
+        run: npm run lint
+      - name: Build (vérification des types, puis Vite)
+        run: npm run build

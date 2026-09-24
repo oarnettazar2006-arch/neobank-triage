@@ -218,7 +218,7 @@ Le mot « VAULT » n'est **jamais composé en Manrope** à la place du logo, sau
 **Règles :**
 
 - Casse de phrase partout. **Aucun libellé en capitales**, aucune approche élargie sur un libellé.
-- Chiffres tabulaires pour les dates, les références et les compteurs.
+- Chiffres tabulaires pour les références, les compteurs et les dates **en colonne** (tableaux de la console). Les dates **dans une phrase** et la date légale gardent les chiffres proportionnels : en tabulaire, le « 1 » laisse un vide visible (« jeudi 1 7 septembre »), relevé sur les captures du pilote.
 - Deux graisses par écran au plus, en plus du corps en 400.
 - Aucun dégradé ni ombre sur le texte (règle de décoration du texte du skill web-design : style sobre, donc aucun effet).
 - Pas de texte sous 12 px. Le corps du client respecte le réglage de taille du système : les tailles sont exprimées en `rem`.
@@ -291,14 +291,14 @@ Tous les éléments interactifs ont cinq états : repos, survol, appui, focus, d
 
 Dans l'ordre, de haut en bas :
 
-1. **La date légale**, en 34/600 et en `--legal` (champagne). C'est la plus grande taille du site.
+1. **La date légale**, en 34/600 et en `--legal` (champagne). C'est la plus grande taille du site. Elle tient **toujours sur deux lignes** : « jeudi 31 » puis « décembre 2026 ». À 390 px, « jeudi 24 septembre 2026 » ne tient pas sur une ligne, et une coupure laissée au navigateur donnait trois lignes ou séparait le quantième du mois.
 2. Juste au-dessus, son libellé en 15/500 `--text-2`, par exemple « Réponse au plus tard le ».
 3. **Le rail :** une ligne de 4 px en `--line`, qui va de la date de réception (à gauche) à la date d'échéance (à droite). Sa partie parcourue est remplie en `--accent`.
-4. **La perle :** un disque de verre de 20 px, qui reprend la goutte du logo et le curseur de la référence 01. Elle se place à la proportion de jours ouvrés écoulés, **fournie par l'API** : le front ne calcule jamais de date.
+4. **La perle :** un disque de verre de 20 px, qui reprend la goutte du logo et le curseur de la référence 01. Elle se place à la proportion de jours ouvrés écoulés, **fournie par l'API** : le front ne calcule jamais de date. C'est un verre **plein, sans `backdrop-filter`** (givre en sombre, blanc en clair, reflet haut et ombre noire) : un flou posé sur la carte serait du verre sur du verre.
 5. Sous le rail, les deux jalons en 13/500 : « Reçue le … » et l'échéance.
 6. Si le cas a deux échéances (réclamation : accusé de réception puis réponse), l'accusé de réception est un **second repère** sur le rail, un anneau de 8 px, et sa ligne s'affiche sous le rail.
-7. **Le liseré :** un bord de 1 px en dégradé conique, du glacier (à gauche) au champagne (à droite), comme le bord de la goutte du logo. Il est posé par-dessus le filet de verre, et c'est **le seul dégradé du site**.
-8. En bas : le statut (section 7) et la référence du ticket en 13/500, chiffres tabulaires.
+7. **Le liseré :** un bord de 1 px en dégradé conique, du glacier (à gauche) au champagne (à droite), comme le bord de la goutte du logo. Il est posé par-dessus le filet de verre, et c'est **le seul dégradé du site**. En thème clair, il est à 50 % d'opacité : en tons profonds pleins, il faisait un contour sombre et sale.
+8. En bas, sous un filet `--line` : le statut (section 7) avec son icône, puis la référence du ticket en 13/500, chiffres tabulaires, **sur deux lignes**. Côte à côte, « En cours d'examen » et « Réf. VLT-2026-004127 » se coupaient chacun en deux à 390 px. Pour « Réponse envoyée », la date d'envoi s'ajoute entre les deux : « le mardi 8 septembre 2026 ».
 
 Rayon de 28 px, flou de 20 px, ombre `--shadow-signature`.
 
@@ -422,16 +422,19 @@ Mobile :
 │                                   │
 │ ╭░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░╮  │  carte de suivi, liseré glacier → champagne
 │ ░ Réponse au plus tard le       ░ │  libellé 15/500
-│ ░ jeudi 31 décembre 2026        ░ │  DATE 34/600, --legal
+│ ░ jeudi 31                      ░ │  DATE 34/600, --legal,
+│ ░ décembre 2026                 ░ │  toujours sur deux lignes
 │ ░                               ░ │
 │ ░ ━━━━━━━○━━━━●───────────────  ░ │  rail : ━ parcouru (glacier), ○ accusé
 │ ░ 2 nov.                 31 déc. ░ │  de réception, ● perle de verre
 │ ░                               ░ │
-│ ░ ✓ Accusé de réception envoyé  ░ │  jalon passé
-│ ░   le lundi 16 novembre 2026   ░ │
+│ ░ ✓ Accusé de réception envoyé  ░ │  jalon passé (17 et non 16 :
+│ ░   avant le mardi 17 novembre  ░ │  le 11 novembre est férié)
+│ ░   2026                        ░ │
 │ ░                               ░ │
-│ ░ Statut : en cours d'examen    ░ │
-│ ░ Réf. VLT-2026-004127          ░ │  13/500, chiffres tabulaires
+│ ░ ───────────────────────────── ░ │
+│ ░ ⧖ En cours d'examen           ░ │  statut + icône
+│ ░    Réf. VLT-2026-004127       ░ │  13/500, chiffres tabulaires
 │ ╰░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░╯  │
 │                                   │
 │ Ce qui va se passer               │  titre de bloc (surface opaque)
@@ -523,10 +526,21 @@ Mobile : les trois colonnes s'empilent dans l'ordre ticket, tri, brouillon. Les 
 | **Chargement** | Squelettes **statiques**, sans scintillement : des blocs `--text` à 6 % qui ont la forme exacte du contenu (carte de suivi : rectangle de 28 px de rayon, 3 lignes). Réponse du bot en attente : une bulle de verre avec « VAULT rédige… » en `--text-2`, sans points animés. Le bouton d'envoi est désactivé pendant l'envoi. | Lignes squelettes statiques (5 lignes de 40 px). Un bouton en cours d'action garde sa largeur, affiche « Validation… » et reste désactivé. |
 | **Erreur** | Sur une surface opaque (jamais sur le verre) : icône d'alerte, « Le service ne répond pas. Réessayez dans un instant. », bouton secondaire « Réessayer ». Dans le chatbot, un message non envoyé garde son texte, et « Réessayer l'envoi » apparaît sous la bulle. | Bandeau opaque en haut du panneau concerné : filet gauche `--danger`, message, bouton « Réessayer ». Les données déjà affichées restent visibles. |
 | **Ticket suspect** | **Rien de visible pour le client.** On ne lui signale jamais une injection supposée. | Ligne `--row-suspect` avec l'icône bouclier, dans la file « Suspects » ; bandeau dans le détail ; passages retirés surlignés ; case de relecture obligatoire avant de valider (section 6.5). |
-| **Délai proche de l'échéance** | À 2 jours ouvrés restants ou moins (valeur donnée par l'API) : la carte de suivi garde la date en champagne, et une ligne « Échéance dans 2 jours ouvrés » s'ajoute sous le rail, avec une icône horloge. Pas de rouge côté client : le client n'a rien à faire, on ne l'alarme pas. | Badge vermillon « Échéance proche » ; le ticket entre aussi dans la file « Échéance proche ». |
+| **Délai proche de l'échéance** | Quand l'API renvoie `delai: "proche"` (2 jours ouvrés restants ou moins) : la carte de suivi garde la date en champagne, et une ligne « Échéance dans 2 jours ouvrés » s'ajoute sous le rail, avec une icône horloge. Avec 1 jour : « Échéance dans 1 jour ouvré » ; avec 0 : « Échéance aujourd'hui ». Pas de rouge côté client : le client n'a rien à faire, on ne l'alarme pas. | Badge vermillon « Échéance proche » ; le ticket entre aussi dans la file « Échéance proche ». |
 | **Échéance dépassée** | Rail plein. La ligne sous le rail devient « Échéance dépassée le jeudi 31 décembre 2026. Un conseiller traite votre demande. », avec icône et texte en `--text`. Dessous, sur une surface opaque : « Vous pouvez aussi saisir le médiateur de VAULT. C'est gratuit. », puis le bouton secondaire « Saisir le médiateur » (voir ci-dessous). C'est le seul cas où cette action apparaît. | Badge vermillon « Échéance dépassée » ; le ticket passe en tête de la file « À traiter ». |
 
 **Statuts du client** (trois valeurs, fournies par l'API) : « Reçue », « En cours d'examen », « Réponse envoyée ». Chacun a une icône Phosphor (tray, hourglass, check) en plus du texte.
+
+**« Ce qui va se passer »** (surface opaque sous la carte), selon l'état. « votre réclamation » devient « votre demande » pour les autres cas.
+
+| État | Texte |
+|---|---|
+| Reçue | « Votre réclamation est enregistrée. Un conseiller va l'examiner et vous répondra au plus tard à la date indiquée. » |
+| En cours d'examen | « Un conseiller examine votre réclamation et vous répond au plus tard à la date indiquée. » |
+| Échéance dépassée | « Un conseiller examine votre réclamation. Vous recevrez sa réponse par écrit. » (« au plus tard à la date indiquée » serait faux) |
+| Réponse envoyée | « Notre réponse vous a été envoyée par écrit. Si votre situation n'est pas réglée, écrivez-nous. » |
+
+**Jalons sous le rail :** l'accusé de réception s'affiche « Accusé de réception envoyé / avant le … » s'il est atteint, « Accusé de réception / au plus tard le … » sinon (icône cercle vide). Le contrat ne donne pas la date d'envoi de l'accusé, d'où « avant le » et non « le ».
 
 **Saisir le médiateur** (échéance dépassée seulement) : le bouton ouvre une feuille opaque, pas en verre, car c'est un texte long. Elle affiche, dans cet ordre :
 
@@ -590,8 +604,8 @@ C'est ce que la prochaine PR construit en premier, et rien d'autre.
 
 1. Le squelette Vite + React + TypeScript + Tailwind dans `site/`, avec les tokens de la section 2 sous forme de variables CSS reliées à Tailwind, et Manrope auto-hébergée.
 2. Les composants `FondVivant`, `SurfaceVerre` (avec ses trois replis), `BarreNavigation`, `CarteSuivi` (le rail, la perle, les jalons, le liseré) et `EtatChargement`, `EtatErreur`.
-3. L'écran `/suivi/:reference` avec ses états : chargement, chargé, erreur, échéance proche, échéance dépassée (avec la feuille « Saisir le médiateur »), deux échéances (réclamation).
-4. **Les données viennent d'un fichier de maquette JSON**, qui a exactement la forme du contrat ci-dessous. L'API FastAPI est une PR à part.
+3. L'écran `/suivi/:reference` avec ses états : chargement, chargé, erreur, échéance proche, échéance dépassée (avec la feuille « Saisir le médiateur »), deux échéances (réclamation). Pour la démo, `/suivi/demo-chargement` reste en chargement et `/suivi/demo-erreur` échoue.
+4. **Les données viennent d'un fichier de maquette** (`site/src/api/maquettes.ts`, typé par `site/src/api/contrat.ts`), qui a exactement la forme du contrat ci-dessous. Ses dates ont été calculées avec `src/deadlines.py`. L'API FastAPI est une PR à part.
 
 **Contrat de données** (tout vient de l'API ; le front ne calcule ni date, ni jours ouvrés) :
 
@@ -600,11 +614,15 @@ C'est ce que la prochaine PR construit en premier, et rien d'autre.
 | `reference` | `"VLT-2026-004127"` |
 | `cas` | `"reclamation"` |
 | `statut` | `"en_cours"` (`recue`, `en_cours`, `reponse_envoyee`) |
-| `mediateur` | `{ "nom": "…", "adresse": "…", "site": "…" }`, utilisé seulement si l'échéance est dépassée |
-| `recu_le` | `{ "iso": "2026-11-02", "texte": "lundi 2 novembre 2026" }` |
-| `echeances` | `[{ "kind": "accuse_reception", "iso": "2026-11-16", "texte": "lundi 16 novembre 2026", "atteinte": true }, { "kind": "reponse", "iso": "2026-12-31", "texte": "jeudi 31 décembre 2026", "atteinte": false }]` |
-| `progression` | `0.42` (jours ouvrés écoulés / jours ouvrés totaux, calculé par `src/deadlines.py`) |
-| `jours_ouvres_restants` | `31` |
+| `mediateur` | `{ "nom": "…", "adresse": "…", "site": "…" }` si `delai` vaut `"depasse"`, sinon `null` |
+| `recu_le` | `{ "iso": "2026-11-02", "texte": "lundi 2 novembre 2026", "court": "2 nov." }` |
+| `echeances` | `[{ "kind": "accuse_reception", "iso": "2026-11-17", "texte": "mardi 17 novembre 2026", "court": "17 nov.", "atteinte": true, "position": 0.244 }, { "kind": "reponse", "iso": "2026-12-31", "texte": "jeudi 31 décembre 2026", "court": "31 déc.", "atteinte": false, "position": 1 }]` |
+| `progression` | `0.488` (jours ouvrés écoulés / jours ouvrés totaux, calculé par `src/deadlines.py`) |
+| `jours_ouvres_restants` | `21` |
+| `delai` | `"normal"`, `"proche"` (2 jours ouvrés ou moins) ou `"depasse"` : le seuil est appliqué par l'API, pas par le front |
+| `reponse_envoyee_le` | `{ "iso", "texte", "court" }` quand le statut est `reponse_envoyee`, sinon `null` |
+
+Ajouts du pilote, parce que le front ne peut rien calculer : `court` (le jalon du rail, « 2 nov. »), `position` (la place de l'anneau de l'accusé sur le rail), `delai` (le seuil de 2 jours ouvrés reste côté API) et `reponse_envoyee_le` (la date d'envoi de la réponse). Les textes de date écrivent « 1er » pour le premier du mois.
 
 **Logo :** le SVG n'existe pas encore. Pour le pilote, la barre affiche le mot « VAULT » en Manrope 700, 17 px, approche de +0,02 em, en `--text`, sans le symbole. Le remplacer par le SVG est une tâche à part, une fois le vecteur livré ; elle n'est pas planifiée.
 
@@ -614,8 +632,9 @@ C'est ce que la prochaine PR construit en premier, et rien d'autre.
 - Contrastes de la section 2.2 vérifiés dans le navigateur, sur les deux thèmes, avec le halo à sa valeur maximale.
 - Le repli opaque s'active avec la transparence réduite, avec un navigateur sans `backdrop-filter` et en contraste élevé.
 - Avec `prefers-reduced-motion`, la carte apparaît sans déplacement.
-- `dangerouslySetInnerHTML` est absent du code : une règle ESLint `react/no-danger` en erreur le vérifie.
-- Aucune date n'est calculée côté front : les tests du composant n'utilisent que les champs du contrat.
+- `dangerouslySetInnerHTML` est absent du code : une règle ESLint `react/no-danger` en erreur le vérifie (avec `innerHTML` et `outerHTML` interdits).
+- Aucune date n'est calculée côté front : les tests du composant n'utilisent que les champs du contrat, et ESLint interdit l'objet global `Date` dans `site/`.
+- Captures de référence : `docs/design/captures/pilote/`, à 390 × 844, dans les deux thèmes et pour chaque état.
 
 ---
 
