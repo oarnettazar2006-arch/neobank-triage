@@ -263,6 +263,12 @@ Le client ne voit jamais le brouillon du bot : il est réservé au conseiller (`
 
 ### 6.4 Console
 
+**Tri d'un lot (livré, `/console`)** : barre latérale de 232 px (logo, « Tri d'un lot », lots récents, retour à l'espace client) ; en tête, deux blocs côte à côte, « Déposer un CSV » et « Écrire un ticket » ; puis le lot : progression (une barre fonctionnelle de 4 px, pas décorative) et « Arrêter » en destructif ; quatre chiffres clés ; les graphiques ; le tableau des tickets avec ses filtres et l'export.
+
+**Graphiques** (sans bibliothèque, `site/src/console/graphiques.tsx`) : chaque graphique est un bloc avec un titre (15/600), une phrase qui dit ce qu'il mesure, des axes nommés et une phrase « À retenir » en pied, calculée à partir des mêmes chiffres. Barres horizontales de 16 px, bout arrondi à 4 px, en accent ; valeur au bout de la barre ; graduations rondes et filets `--line`. Cartes de chaleur et matrices : une case par couple, avec son nombre ; teinte accent dont l'opacité suit la valeur ; erreurs des matrices en `--danger`, avec une légende. Ordre des valeurs : celui du schéma, jamais un tri par valeur. Infobulle native au survol de chaque barre et de chaque case.
+
+Captures de référence : `docs/design/captures/console/` (desktop 1440 × 900 en clair et en sombre, aperçu, tri en cours, ticket écrit ; mobile 390 px).
+
 La liste et le détail gardent la structure du v1 : une file à gauche ; un tableau dense ; un détail en trois colonnes (ticket, tri, brouillon) ; la case « J'ai relu le ticket signalé » obligatoire avant de valider un ticket suspect ; « Rejeter » séparé des autres boutons, avec une confirmation.
 
 ---
@@ -373,3 +379,4 @@ Le résumé du mois est fourni par l'API. Un test vérifie que les données de d
 | 2026-09-24 | v1.2 | Oscar : verre sur tout élément interactif, composant Glass, page `/specimen` (PR #31). |
 | 2026-09-24 | **v2** | Oscar : la PR #31 fait maquette de téléphone en verre bulle, générique. Elle est fermée sans fusion. Nouvelle direction : **surfaces pleines, espace, un seul accent glacier, verre seulement sur la navigation et le chat, thème clair par défaut**. Structure inspirée des apps web Revolut et Qonto et d'apple.com. Police **Geist** (chiffres tabulaires). Premier écran : l'accueil client sur données fictives. Le composant Glass, `/specimen` et l'écran pilote sont supprimés. |
 | 2026-09-24 | v2.1 | API branchée (PR « feat/api-chat ») : accueil sur `GET /compte` et `GET /operations` avec états chargement, vide et erreur ; chat relié au vrai pipeline, message fixe au client. |
+| 2026-09-24 | v2.2 | Console, PR 1 « Tri d'un lot » : deux entrées (CSV ou ticket écrit), progression en direct, analyse et métriques, graphiques faits main avec titre, axes, libellés et phrase à retenir. Jeton `--danger-rgb` ajouté pour les fonds teintés. |

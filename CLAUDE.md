@@ -25,10 +25,10 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 - `data/train/` : réservé, vide
 - `eval/` : `triage_csv.py` (livrable principal : tri d'un CSV de tickets, métriques si les bonnes réponses sont là ; `make triage CSV=...`), `run.py` (harnais du tri), `compare.py` (McNemar apparié), `run_controller.py` (contrôleur), `run_reply.py` (brouillons, `--controller` pour la fiche) et `judge_reply.py`, `dedup.py`, `notebook_check.py`
 - `eval/reports/` : un rapport par étape (`final_test100.md` : note finale, tag `v7-final`, tableaux par `eval/final_report.py`) ; `eval/results/` : résultats bruts horodatés
-- `tests/` : tests unitaires (`python3 -m unittest discover -s tests`)
+- `tests/` : tests unitaires (`python3 -m unittest discover -s tests`) ; `test_bot_fige.py` vérifie que les prompts et le code du bot n'ont pas bougé depuis `v7-final`
 - `docs/` : guide d'annotation, politique d'automatisation, data card, audit, base de réponses (`answers/`)
-- `api/` : API FastAPI + SQLite (`main.py`, `db.py`, `suivi.py`, `donnees_demo.json`), dépendances dans `api/requirements.txt`, environnement `.venv` (Python ≥ 3.10) ; base `api/vault.db` ignorée par git ; tests avec LLM simulé (`make test-api`)
-- `site/` : le front (Vite, React, TypeScript, Tailwind), selon `docs/DESIGN.md` ; l'accueil client v2 et le chat, sur l'API (`npm run dev`, `npm run lint`, `npm run build`, `npm test`)
+- `api/` : API FastAPI + SQLite (`main.py`, `db.py`, `suivi.py`, `lots.py` pour les lots de la console, `donnees_demo.json`), dépendances dans `api/requirements.txt`, environnement `.venv` (Python ≥ 3.10) ; base `api/vault.db` ignorée par git ; tests avec LLM simulé (`make test-api`)
+- `site/` : le front (Vite, React, TypeScript, Tailwind), selon `docs/DESIGN.md` ; l'accueil client v2, le chat et la console conseiller (`/console`, `src/console/`), sur l'API (`npm run dev`, `npm run lint`, `npm run build`, `npm test`)
 - `make demo` : l'API (port 8000) et le site ensemble, avec le vrai pipeline sur Ollama
 
 ## Règles

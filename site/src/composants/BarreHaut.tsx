@@ -9,7 +9,7 @@ function lireTheme(): Theme {
 }
 
 /** Bascule clair / sombre, mémorisée dans le navigateur (DESIGN.md 2.3). */
-function BoutonTheme() {
+export function BoutonTheme() {
   const [theme, setTheme] = useState<Theme>(() => (typeof document === 'undefined' ? 'light' : lireTheme()))
   const basculer = () => {
     const suivant: Theme = theme === 'dark' ? 'light' : 'dark'

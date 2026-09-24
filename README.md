@@ -23,6 +23,20 @@ make triage CSV=mes_tickets.csv BROUILLON=1       # + rédacteur et garde de sor
 - **Pipeline** : le pipeline et les prompts sont ceux du chat. Les étapes s'enchaînent sur tout le fichier : tous les tris, puis tous les contrôles, puis tous les brouillons. Un seul modèle est chargé à la fois. La progression et le temps restant estimé s'affichent pendant le calcul.
 - **Temps mesuré** sur demo15, Mac 16 Go, Ollama local, départ à froid : 1 min 35 s, soit 6,3 s par ticket (tri 1 min 09 s, contrôle 26 s). Résultats : catégorie 14/15, produit 14/15, gravité 13/15, tickets entièrement justes 11/15. Les prédictions sont identiques à celles de l'évaluation v7 de référence sur ces 15 tickets.
 
+## Console conseiller (/console)
+
+```bash
+make demo        # API (port 8000) et site (port 5173), vrai pipeline sur Ollama
+# puis ouvrir http://127.0.0.1:5173/console
+```
+
+- **Deux entrées** : déposer un CSV (même format que `make triage`, 200 tickets au plus), ou écrire un ticket, qui devient un CSV d'une ligne et suit le même chemin.
+- **En direct** : la progression (étape, tickets faits, temps restant) et le tableau se remplissent à chaque ticket trié ; « Arrêter » garde les tickets déjà triés.
+- **Analyse** : répartition par catégorie, produit et gravité ; carte de chaleur produit × gravité ; réclamations et tickets suspects. Avec les bonnes réponses : justesse par champ, tickets entièrement justes, matrices de confusion et filtre « Erreurs du bot ». Chaque graphique a un titre, des axes nommés et une phrase « à retenir ».
+- **Export** : le même CSV que `make triage`, une fois le tri terminé.
+- **Même calcul** : l'API (`api/lots.py`) réutilise `eval/triage_csv.py` (lecture, tri étape par étape, métriques, CSV). Vérifié sur demo15 en local : catégorie 14/15, produit 14/15, gravité 13/15, 11/15 entièrement justes, en 1 min 33 s, prédictions identiques à `make triage`.
+- Captures : `docs/design/captures/console/`.
+
 ## Architecture
 
 ```
