@@ -9,6 +9,7 @@ import { arreterLot, chargerLot, creerLot, listerLots } from './api'
 import { Entree } from './Entree'
 import { Prompts } from './prompts/Prompts'
 import { duree } from './retenir'
+import { Pipeline } from './Pipeline'
 import { TableauTickets } from './TableauTickets'
 import type { Lot, LotResume, StatutLot } from './types'
 
@@ -22,14 +23,21 @@ const STATUT: Record<StatutLot, string> = {
 const EN_COURS: StatutLot[] = ['en_attente', 'en_cours']
 const INTERVALLE = 2000
 
-/** Le lot affiché, dans l'adresse (?lot=LOT-XXXXXX) : un rechargement le garde. */
+/** Le lot affiché, et le ticket dont on lit le pipeline, dans l'adresse (?lot=LOT-XXXXXX&ticket=3). */
 function lotDeLAdresse(): string | null {
   return new URLSearchParams(window.location.search).get('lot')
 }
 
-function ecrireAdresse(id: string) {
+function ticketDeLAdresse(): number | null {
+  const n = Number(new URLSearchParams(window.location.search).get('ticket'))
+  return Number.isInteger(n) && n >= 1 ? n : null
+}
+
+function ecrireAdresse(id: string, ticket: number | null = null) {
   const url = new URL(window.location.href)
   url.searchParams.set('lot', id)
+  if (ticket) url.searchParams.set('ticket', String(ticket))
+  else url.searchParams.delete('ticket')
   window.history.replaceState(null, '', url)
 }
 
@@ -251,13 +259,15 @@ function Progression({ lot, onArreter, onRelancer }: { lot: Lot; onArreter: () =
 }
 
 /**
- * Console conseiller. /console : trier un CSV ou un ticket, suivre le tri, lire l'analyse.
+ * Console conseiller. /console : trier un CSV ou un ticket, suivre le tri, lire l'analyse ;
+ * un clic sur un ticket du tableau ouvre son pipeline, étape par étape (?ticket=n).
  * /console/prompts : l'évolution des prompts de tri, de v0 à v7.
  */
 export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
   const [lots, rechargerLots] = useRessource(listerLots)
   const [lotId, setLotId] = useState<string | null>(() => (onglet === 'lot' ? lotDeLAdresse() : null))
-  const [source, setSource] = useState<{ id: string; nom: string; contenu: string } | null>(null)
+  const [ticket, setTicket] = useState<number | null>(() => (onglet === 'lot' ? ticketDeLAdresse() : null))
+  const [source, setSource] = useState<{ id: string; nom: string; contenu: string; brouillon: boolean } | null>(null)
   const [lot, rechargerLot] = useLot(lotId, rechargerLots)
 
   useEffect(() => {
@@ -270,11 +280,19 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
       return
     }
     setLotId(id)
+    setTicket(null)
     ecrireAdresse(id)
   }
-  const lance = (id: string, s: { nom: string; contenu: string }) => {
+  const ouvrir = (id: string, n: number | null) => {
+    setTicket(n)
+    ecrireAdresse(id, n)
+    window.scrollTo({ top: 0 })
+  }
+  // Un ticket écrit (lot d'une ligne, avec brouillon) s'ouvre directement sur son pipeline.
+  const lance = (id: string, s: { nom: string; contenu: string; brouillon: boolean }) => {
     setSource({ id, ...s })
     choisir(id)
+    if (s.brouillon) ouvrir(id, 1)
     rechargerLots()
   }
   const arreter = async (id: string) => {
@@ -290,7 +308,7 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
   const relancer =
     l && source?.id === l.id
       ? () => {
-          creerLot(source.nom, source.contenu).then(
+          creerLot(source.nom, source.contenu, source.brouillon).then(
             (nouveau) => lance(nouveau.id, source),
             () => rechargerLot(),
           )
@@ -316,7 +334,7 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
           </div>
         </header>
         <main className="mx-auto max-w-[1280px] space-y-8 px-5 pt-6 pb-16 lg:px-8">
-          {onglet === 'prompts' ? <Prompts /> : <Entree onLance={lance} />}
+          {onglet === 'prompts' ? <Prompts /> : !ticket && <Entree onLance={lance} />}
 
           {lot?.etat === 'chargement' && (
             <div aria-busy="true" aria-label="Chargement du lot" className="bloc space-y-3 p-5">
@@ -339,13 +357,20 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
                 </div>
                 <Progression lot={l} onArreter={() => void arreter(l.id)} onRelancer={relancer} />
               </section>
-              <Analyse analyse={l.analyse} total={l.tickets} />
-              <TableauTickets
-                lotId={l.id}
-                lignes={l.lignes}
-                termine={l.statut === 'termine'}
-                avecBonnes={l.lignes.some((x) => Object.keys(x.attendu).length > 0)}
-              />
+              {ticket && ticket <= l.tickets ? (
+                <Pipeline key={`${l.id}/${ticket}`} lotId={l.id} n={ticket} onRetour={() => ouvrir(l.id, null)} />
+              ) : (
+                <>
+                  <Analyse analyse={l.analyse} total={l.tickets} />
+                  <TableauTickets
+                    lotId={l.id}
+                    lignes={l.lignes}
+                    termine={l.statut === 'termine'}
+                    avecBonnes={l.lignes.some((x) => Object.keys(x.attendu).length > 0)}
+                    onOuvrir={(n) => ouvrir(l.id, n)}
+                  />
+                </>
+              )}
             </>
           )}
           {onglet === 'lot' && !lotId && (

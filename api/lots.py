@@ -6,6 +6,9 @@ chiffres. Ce module ajoute le suivi en base (progression, prédictions au fil
 du tri, arrêt) et les répartitions affichées par la console.
 
 Un ticket écrit à la main arrive ici comme un CSV d'une ligne (colonne `ticket`).
+Un lot lancé avec `brouillon` fait aussi tourner le rédacteur et la garde de
+sortie (`make triage BROUILLON=1`). Chaque étape de chaque ticket est
+enregistrée pendant le lot (api/trace.py) pour l'onglet Pipeline.
 """
 
 from __future__ import annotations
@@ -22,11 +25,12 @@ import triage_csv  # noqa: E402
 from reply import format_date  # noqa: E402
 from schema import ENUMS  # noqa: E402
 
-from . import db  # noqa: E402
+from . import db, trace  # noqa: E402
 
 MAX_TICKETS = 200
 MAX_OCTETS = 2_000_000
-ETAPES = ["tri", "contrôle"]   # les brouillons viendront avec la file de validation
+ETAPES = ["tri", "contrôle"]
+ETAPES_BROUILLON = ETAPES + ["brouillon"]
 # Mesuré sur demo15 (README) : 6,3 s par ticket pour le tri et le contrôle, départ à froid.
 SECONDES_PAR_TICKET = 6.3
 ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -48,6 +52,10 @@ def lire(contenu: str) -> dict:
     return {"colonnes": colonnes, "lignes": lignes, "delimiteur": delimiteur}
 
 
+def etapes(brouillon: bool) -> list[str]:
+    return ETAPES_BROUILLON if brouillon else ETAPES
+
+
 def apercu(nom: str, lu: dict) -> dict:
     """Ce que la console montre avant de lancer : nombre de tickets, bonnes réponses, durée estimée."""
     n = len(lu["lignes"])
@@ -56,19 +64,19 @@ def apercu(nom: str, lu: dict) -> dict:
             "estimation_s": round(n * SECONDES_PAR_TICKET)}
 
 
-def creer(nom: str, lu: dict, maintenant: datetime) -> str:
+def creer(nom: str, lu: dict, maintenant: datetime, brouillon: bool = False) -> str:
     while True:
         lot_id = "LOT-" + "".join(secrets.choice(ALPHABET) for _ in range(6))
-        if db.insert_lot(lot_id, nom, maintenant.isoformat(), len(lu["lignes"]) * len(ETAPES),
-                         lu["colonnes"], lu["delimiteur"], lu["lignes"]):
+        if db.insert_lot(lot_id, nom, maintenant.isoformat(), len(lu["lignes"]) * len(etapes(brouillon)),
+                         lu["colonnes"], lu["delimiteur"], lu["lignes"], brouillon):
             return lot_id
 
 
 class _Suivi(triage_csv.Progress):
     """La progression de triage_csv, écrite en base au lieu de la sortie d'erreur."""
 
-    def __init__(self, lot_id: str, n: int):
-        super().__init__(n, ETAPES, stream=io.StringIO())
+    def __init__(self, lot_id: str, n: int, brouillon: bool):
+        super().__init__(n, etapes(brouillon), stream=io.StringIO())
         self.lot_id = lot_id
 
     def begin(self, step: str) -> None:
@@ -91,13 +99,18 @@ def _partielle(fields: dict) -> dict:
 
 
 def traiter(lot_id: str, recu_le: str) -> None:
-    """Tâche de fond : tous les tris, puis tous les contrôles (un seul modèle chargé à la fois)."""
+    """Tâche de fond : tous les tris, puis tous les contrôles, puis les brouillons s'il y a lieu
+    (un seul modèle chargé à la fois). Chaque étape de chaque ticket est tracée au passage."""
     lot = db.get_lot(lot_id)
     db.update_lot(lot_id, statut="en_cours")
-    suivi = _Suivi(lot_id, len(lot["lignes"]))
+    brouillon = bool(lot["brouillon"])
+    suivi = _Suivi(lot_id, len(lot["lignes"]), brouillon)
+    traceur = trace.Traceur(lot_id)
     try:
-        preds = triage_csv.process(lot["lignes"], False, recu_le, suivi,
-                                   on_triage=lambda k, f: db.set_prediction(lot_id, k, _partielle(f)))
+        with traceur.ecoute():
+            preds = triage_csv.process(lot["lignes"], brouillon, recu_le, suivi,
+                                       on_triage=lambda k, f: db.set_prediction(lot_id, k, _partielle(f)),
+                                       trace=traceur)
     except LotArrete:
         db.update_lot(lot_id, statut="arrete", reste_s=None, secondes=round(suivi.elapsed, 1))
         return
@@ -151,7 +164,8 @@ def _cree_le_texte(iso: str) -> str:
 def vue_resume(lot: dict) -> dict:
     """Une ligne de la liste des lots."""
     return {"id": lot["id"], "nom": lot["nom"], "cree_le": _cree_le_texte(lot["cree_le"]), "statut": lot["statut"],
-            "tickets": lot["total"] // len(ETAPES), "fait": lot["fait"], "total": lot["total"]}
+            "tickets": lot["total"] // len(etapes(lot["brouillon"])), "fait": lot["fait"], "total": lot["total"],
+            "brouillon": bool(lot["brouillon"])}
 
 
 def vue(lot: dict) -> dict:
@@ -162,7 +176,7 @@ def vue(lot: dict) -> dict:
                "prediction": {**p, **_echeance(p)} if p else None}
               for n, (r, p) in enumerate(zip(lot["lignes"], preds))]
     return {**vue_resume(lot), "etape": lot["etape"], "reste_s": lot["reste_s"], "secondes": lot["secondes"],
-            "erreur": lot["erreur"], "etapes": ETAPES, "lignes": lignes,
+            "erreur": lot["erreur"], "etapes": etapes(lot["brouillon"]), "lignes": lignes,
             "analyse": analyse(lot["lignes"], preds)}
 
 

@@ -172,8 +172,13 @@ def unload(model: str, host: str = triage.HOST) -> None:
 
 
 def process(rows: list[dict], with_draft: bool, received_default: str, progress: Progress,
-            on_triage=None) -> list[dict]:
-    """`on_triage(k, fields)`, si fourni, reçoit le tri de chaque ticket dès qu'il est connu (console)."""
+            on_triage=None, trace=None) -> list[dict]:
+    """`on_triage(k, fields)`, si fourni, reçoit le tri de chaque ticket dès qu'il est connu (console).
+
+    `trace(step, k, call)`, si fourni, exécute `call()` et renvoie son résultat tel quel : la console
+    s'en sert pour enregistrer chaque étape d'un ticket (api/trace.py). Sans lui, `call()` directement.
+    """
+    run = trace or (lambda step, k, call: call())
     ids = [r.get("id") or f"#{n}" for n, r in enumerate(rows, start=1)]
     tickets = [{"id": ids[k], "input": r["ticket"], "channel": r.get("canal") or "form",
                 "received_at": r.get("recu_le") or received_default} for k, r in enumerate(rows)]
@@ -181,7 +186,7 @@ def process(rows: list[dict], with_draft: bool, received_default: str, progress:
     progress.begin("tri")   # garde d'entrée + llama
     tri = []
     for k, t in enumerate(tickets):
-        tri.append(triage.triage(t["input"]))
+        tri.append(run("tri", k, lambda: triage.triage(t["input"])))
         if on_triage:
             on_triage(k, tri[k]["fields"])
         progress.tick("tri", k + 1, ids[k])
@@ -192,7 +197,7 @@ def process(rows: list[dict], with_draft: bool, received_default: str, progress:
     qwen = []
     for k, t in enumerate(tri):
         keep = 0 if k == len(tri) - 1 else "5m"
-        qwen.append(controller.predict(t["llm_text"], keep_alive=keep))
+        qwen.append(run("contrôle", k, lambda: controller.predict(t["llm_text"], keep_alive=keep)))
         progress.tick("contrôle", k + 1, ids[k])
     progress.end("contrôle")
 
@@ -200,7 +205,7 @@ def process(rows: list[dict], with_draft: bool, received_default: str, progress:
     if with_draft:
         progress.begin("brouillon")   # rédacteur (llama) + garde de sortie
         for k, t in enumerate(tickets):
-            drafts[k] = reply.draft_reply(t, tri[k]["fields"], controller_sous_motif=qwen[k])
+            drafts[k] = run("brouillon", k, lambda: reply.draft_reply(t, tri[k]["fields"], controller_sous_motif=qwen[k]))
             progress.tick("brouillon", k + 1, ids[k])
         progress.end("brouillon")
         unload(reply.MODEL)
@@ -208,8 +213,8 @@ def process(rows: list[dict], with_draft: bool, received_default: str, progress:
     out = []
     for k, t in enumerate(tickets):
         f = tri[k]["fields"]
-        ds = compute_deadlines(datetime.fromisoformat(t["received_at"]), f["is_complaint"],
-                               f["unauthorized_payment"], f["product"], t["channel"])
+        ds = run("délais", k, lambda: compute_deadlines(datetime.fromisoformat(t["received_at"]), f["is_complaint"],
+                                                        f["unauthorized_payment"], f["product"], t["channel"]))
         first = nearest(ds)
         pred = {"categorie_predite": f["label"], "produit_predit": f["product"], "severite_predite": f["severity"],
                 "sous_motif": f.get("sous_motif", ""), "reclamation": yes_no(f["is_complaint"]),
