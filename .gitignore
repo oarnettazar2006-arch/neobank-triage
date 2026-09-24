@@ -220,3 +220,7 @@ __marimo__/
 # API : base SQLite locale
 api/*.db
 api/*.db-journal
+
+# Sorties de make triage sur le fichier de démo
+data/demo/*_triage.csv
+data/demo/*_triage.md

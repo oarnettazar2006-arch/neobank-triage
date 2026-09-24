@@ -18,11 +18,12 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 - `data/val/` : val60, juge des étapes du bot
 - `data/calib/` : calib60, réservé au seuil de confiance
 - `data/test/` : test100, réservé à la note finale
+- `data/demo/` : `demo15.csv`, 15 tickets tirés de val60 au format d'entrée de `make triage`
 - `data/attacks/` : attacks30, holdout20 (contrôle de généralisation), `notebook_case.jsonl` (cas du notebook, rejoué à chaque évaluation)
 - `data/gen/` : génération des jeux (fiches, textes, corrections, holdout)
 - `data/qc/` : contrôle qualité des données (réétiquetage par qwen2.5:7b)
 - `data/train/` : réservé, vide
-- `eval/` : `run.py` (harnais du tri), `compare.py` (McNemar apparié), `run_controller.py` (contrôleur), `run_reply.py` (brouillons, `--controller` pour la fiche) et `judge_reply.py`, `dedup.py`, `notebook_check.py`
+- `eval/` : `triage_csv.py` (livrable principal : tri d'un CSV de tickets, métriques si les bonnes réponses sont là ; `make triage CSV=...`), `run.py` (harnais du tri), `compare.py` (McNemar apparié), `run_controller.py` (contrôleur), `run_reply.py` (brouillons, `--controller` pour la fiche) et `judge_reply.py`, `dedup.py`, `notebook_check.py`
 - `eval/reports/` : un rapport par étape ; `eval/results/` : résultats bruts horodatés
 - `tests/` : tests unitaires (`python3 -m unittest discover -s tests`)
 - `docs/` : guide d'annotation, politique d'automatisation, data card, audit, base de réponses (`answers/`)
