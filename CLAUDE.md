@@ -31,6 +31,8 @@ Bot de triage de tickets support pour une néobanque (projet 1 : DATA, prompt et
 - `api/` : API FastAPI + SQLite (`main.py`, `db.py`, `suivi.py`, `lots.py` pour les lots de la console, `trace.py` pour la trace de chaque ticket enregistrée pendant le lot ou le chat, `brouillons.py` pour la file des brouillons à valider, les décisions et les corrections du conseiller, `donnees_demo.json`), dépendances dans `api/requirements.txt`, environnement `.venv` (Python ≥ 3.10) ; base `api/vault.db` ignorée par git ; tests avec LLM simulé (`make test-api`)
 - `site/` : le front (Vite, React, TypeScript, Tailwind), selon `docs/DESIGN.md` ; l'accueil client v2, le chat et la console conseiller (`/console` pour le tri d'un lot et, au clic sur un ticket, son pipeline étape par étape ; `/console/brouillons` pour valider ou rejeter les brouillons ; `/console/prompts` pour l'évolution des prompts ; `src/console/`), sur l'API (`npm run dev`, `npm run lint`, `npm run build`, `npm test`)
 - `make demo` : l'API (port 8000) et le site ensemble, avec le vrai pipeline sur Ollama
+- `notebooks/` : les 6 notebooks de la présentation (données, CSV, prompts, pipeline, résultats, sécurité), exécutés, sur les résultats enregistrés uniquement (aucun appel à un modèle, jamais calib60) ; `outils.py` (style et chiffres clés) ; dépendances dans `requirements_notebooks.txt`
+- `docs/presentation/` : `figures/` (PNG 1920 × 1080 numérotés dans l'ordre des slides) et `kpis.json` (chiffres clés et source), écrits par les notebooks
 
 ## Règles
 
