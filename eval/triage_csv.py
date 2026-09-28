@@ -4,6 +4,7 @@ Usage :
     python3 eval/triage_csv.py tickets.csv                # garde d'entrée, tri, contrôleur
     python3 eval/triage_csv.py tickets.csv --brouillon    # + rédacteur et garde de sortie
     make triage CSV=tickets.csv                           # même chose (BROUILLON=1 pour les brouillons)
+    python3 eval/triage_csv.py ~/Desktop/nom.csv --brouillon --demo   # format de l'oral (make demo CSV=...)
 
 Entrée : un CSV (séparateur « , » ou « ; », UTF-8 avec ou sans BOM) avec une
 colonne obligatoire `ticket` (le texte du client). Colonnes facultatives :
@@ -24,6 +25,12 @@ Sortie : `<nom>_triage.csv` à côté de l'entrée (ou --out), qui reprend les
 colonnes d'entrée et ajoute les prédictions ; si des bonnes réponses sont
 présentes, un rapport Markdown du même nom en `.md`. Progression et temps
 restant estimé sur la sortie d'erreur.
+
+Mode --demo (make demo CSV=...) : l'entrée n'a besoin que de `id` et du texte
+du client, dans une colonne `ticket`, `texte` ou `message`. La sortie a des
+colonnes fixes (DEMO_COLUMNS), pour Excel et Numbers : UTF-8 avec BOM,
+séparateur « ; », retours à la ligne des brouillons gardés dans la cellule.
+Un brouillon rejeté par la garde de sortie commence par BLOCKED_NOTE.
 Bibliothèque standard uniquement.
 """
 
@@ -55,6 +62,12 @@ GOLD = {"categorie": ("label", "categorie_predite"),
 PREDICTED = ["categorie_predite", "produit_predit", "severite_predite", "sous_motif", "reclamation",
              "injection_suspectee", "echeance", "controle"]
 DRAFT_COLUMNS = ["fiche", "brouillon", "brouillon_bloque"]
+# Mode --demo : noms acceptés pour le texte du client (le premier présent l'emporte) et colonnes de sortie.
+TEXT_COLUMNS = ["ticket", "texte", "message"]
+DEMO_COLUMNS = ["id", "ticket", "categorie", "produit", "severite", "sous_motif", "reclamation",
+                "injection_suspectee", "echeance", "brouillon"]
+BLOCKED_NOTE = ("[BLOQUÉ PAR LA GARDE DE SORTIE] Le brouillon du modèle a été rejeté. "
+                "Réponse type écrite en code, à relire :")
 
 
 class InputError(Exception):
@@ -119,6 +132,50 @@ def parse_tickets(text: str) -> tuple[list[str], list[dict], str]:
     if not rows:
         raise InputError("aucun ticket dans le fichier")
     return columns, rows, delimiter
+
+
+def parse_demo(text: str) -> tuple[list[str], list[dict], str]:
+    """Comme parse_tickets, mais le texte du client peut s'appeler `ticket`, `texte` ou `message`."""
+    text = text[1:] if text.startswith("\ufeff") else text
+    header, sep, rest = text.partition("\n")
+    delimiter = ";" if header.count(";") > header.count(",") else ","
+    names = next(csv.reader([header.rstrip("\r")], delimiter=delimiter), [])
+    lower = [n.strip().lower() for n in names]
+    found = next((c for c in TEXT_COLUMNS if c in lower), None)
+    if found is None:
+        raise InputError(f"colonne du texte absente : {', '.join(TEXT_COLUMNS)} attendue "
+                         f"(colonnes trouvées : {', '.join(n.strip() for n in names) or 'aucune'})")
+    lower[lower.index(found)] = "ticket"
+    if lower.count("ticket") > 1:   # `ticket` et un autre nom : c'est `ticket` qui compte
+        lower[lower.index("ticket", lower.index("ticket") + 1)] = f"{found} (ignorée)"
+    buf = io.StringIO()
+    csv.writer(buf, delimiter=delimiter, lineterminator="\n").writerow(lower)
+    return parse_tickets(buf.getvalue() + rest if sep else buf.getvalue())
+
+
+def demo_rows(rows: list[dict], preds: list[dict]) -> list[dict]:
+    """Les colonnes de l'oral : id, texte du client, puis ce que le bot a produit."""
+    out = []
+    for n, (r, p) in enumerate(zip(rows, preds), start=1):
+        draft = p["brouillon"]
+        if p["brouillon_bloque"] == "oui":
+            draft = BLOCKED_NOTE + "\n\n" + draft
+        out.append({"id": r.get("id") or str(n), "ticket": r["ticket"], "categorie": p["categorie_predite"],
+                    "produit": p["produit_predit"], "severite": p["severite_predite"], "sous_motif": p["sous_motif"],
+                    "reclamation": p["reclamation"], "injection_suspectee": p["injection_suspectee"],
+                    "echeance": p["echeance"], "brouillon": draft})
+    return out
+
+
+def write_demo_csv(path: Path, rows: list[dict]) -> None:
+    """UTF-8 avec BOM (sinon Excel lit du Latin-1), « ; » (Excel en français), fins de ligne \\r\\n entre
+    les tickets et \\n dans une cellule : Excel et Numbers gardent le brouillon dans une seule case."""
+    buf = io.StringIO(newline="")
+    w = csv.DictWriter(buf, fieldnames=DEMO_COLUMNS, delimiter=";", quoting=csv.QUOTE_MINIMAL, lineterminator="\r\n")
+    w.writeheader()
+    for r in rows:
+        w.writerow({k: v.replace("\r\n", "\n").replace("\r", "\n") for k, v in r.items()})
+    path.write_bytes(("\ufeff" + buf.getvalue()).encode("utf-8"))
 
 
 class Progress:
@@ -299,10 +356,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--brouillon", action="store_true", help="lance aussi le rédacteur et la garde de sortie")
     ap.add_argument("--out", type=Path, help="CSV de sortie (par défaut : <nom>_triage.csv à côté de l'entrée)")
     ap.add_argument("--recu-le", help="date de réception quand la colonne recu_le manque (par défaut : maintenant)")
+    ap.add_argument("--demo", action="store_true",
+                    help="format de l'oral : colonnes fixes, UTF-8 avec BOM pour Excel et Numbers (voir en tête)")
     args = ap.parse_args(argv)
+    args.csv = args.csv.expanduser()   # make ne développe pas « ~ » dans CSV=~/Desktop/...
+    args.out = args.out.expanduser() if args.out else None
 
     try:
-        columns, rows, delimiter = read_tickets(args.csv)
+        if args.demo:
+            columns, rows, delimiter = parse_demo(args.csv.read_text(encoding="utf-8-sig"))
+        else:
+            columns, rows, delimiter = read_tickets(args.csv)
         received = args.recu_le or datetime.now().replace(microsecond=0).isoformat()
         datetime.fromisoformat(received)
     except (InputError, OSError, ValueError) as e:
@@ -319,7 +383,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\nErreur : Ollama ne répond pas ({triage.HOST}) : {e}. Lancer Ollama puis recommencer.", file=sys.stderr)
         return 1
     seconds = progress.elapsed
-    write_csv(out, columns, rows, preds, delimiter)
+    if args.demo:
+        write_demo_csv(out, demo_rows(rows, preds))
+    else:
+        write_csv(out, columns, rows, preds, delimiter)
     print(f"\n{len(rows)} tickets en {duration(seconds)} ({seconds / len(rows):.1f} s par ticket)".replace(".", ","),
           file=sys.stderr)
     for step, s in progress.step_times.items():
@@ -327,7 +394,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"CSV : {out}", file=sys.stderr)
 
     m = metrics(rows, preds)
-    if m["fields"]:
+    if m["fields"] and not args.demo:
         meta = {"input": args.csv.name, "n": len(rows), "steps": steps, "model": triage.MODEL,
                 "controller": controller.MODEL, "draft": args.brouillon, "seconds": seconds,
                 "started": started, "output": out.name}
