@@ -7,7 +7,7 @@ RUN = PYTHONDONTWRITEBYTECODE=1 $(PYTHON)
 API_PYTHON ?= $(shell command -v python3.13 || command -v python3.12 || command -v python3.11 || command -v python3.10 || echo python3)
 VENV = .venv
 
-.PHONY: help setup setup-all test test-api demo triage eval eval-drafts record
+.PHONY: help setup setup-all test test-api demo demo-site demo-csv triage eval eval-drafts record
 
 help:
 	@echo "make setup        vérifie Python et Ollama, télécharge $(MODEL) (4,9 Go)"
@@ -15,6 +15,8 @@ help:
 	@echo "make test         tests unitaires et test de bout en bout, sans Ollama (moins d'une seconde)"
 	@echo "make test-api     tests de l'API (FastAPI), LLM simulé, sans Ollama"
 	@echo "make demo         lance l'API (port 8000) et le site (port 5173), avec le vrai pipeline sur Ollama"
+	@echo "make demo CSV=~/Desktop/nom.csv   démo de l'oral : trie le CSV (colonnes id et ticket), brouillons compris,"
+	@echo "                  et écrit nom_triage.csv à côté, prêt pour Excel et Numbers"
 	@echo "make triage CSV=chemin.csv   trie un CSV de tickets (colonne ticket) ; métriques si categorie/produit/severite"
 	@echo "                  sont fournies ; BROUILLON=1 lance aussi le rédacteur (démo : CSV=data/demo/demo15.csv)"
 	@echo "make eval         tri v7 sur val60, attacks30 et holdout20 + cas du notebook (environ 10 min)"
@@ -45,8 +47,17 @@ site/node_modules: site/package-lock.json
 test-api: $(VENV)/.api-ok
 	PYTHONDONTWRITEBYTECODE=1 $(VENV)/bin/python -m unittest discover -s api/tests -t . -v
 
+# make demo : l'API et le site ; make demo CSV=... : le tri d'un CSV pour l'oral (demo-csv).
+demo: $(if $(CSV),demo-csv,demo-site)
+
+# « ~ » est développé par eval/triage_csv.py : CSV=~/Desktop/nom.csv marche aussi sous zsh.
+demo-csv:
+	@test -n "$(CSV)" || (echo "Usage : make demo CSV=~/Desktop/nom.csv" && exit 2)
+	@ollama list >/dev/null 2>&1 || true   # réveille Ollama s'il dort
+	$(RUN) eval/triage_csv.py "$(CSV)" --brouillon --demo
+
 # Ctrl-C arrête l'API et le site ensemble. Si le port 5173 est pris, Vite prend le suivant.
-demo: $(VENV)/.api-ok site/node_modules
+demo-site: $(VENV)/.api-ok site/node_modules
 	@command -v ollama >/dev/null || (echo "Ollama introuvable : https://ollama.com/download" && exit 1)
 	@ollama list >/dev/null   # réveille Ollama s'il dort
 	@trap 'kill 0' INT TERM EXIT; \

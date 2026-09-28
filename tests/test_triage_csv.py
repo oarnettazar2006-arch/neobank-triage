@@ -36,6 +36,7 @@ RECU = "2026-10-07T14:00:00"   # mercredi
 class FauxLLM:
     def __init__(self):
         self.calls = []   # (modèle, étape)
+        self.draft = "Bonjour,\n\nVotre demande est transmise à un conseiller."
 
     def __call__(self, req, timeout=None):
         payload = json.loads(req.data)
@@ -44,7 +45,7 @@ class FauxLLM:
             return _Response(b"{}")
         props = payload["format"]["properties"]
         if "brouillon" in props:
-            step, content = "brouillon", {"brouillon": "Bonjour,\n\nVotre demande est transmise à un conseiller."}
+            step, content = "brouillon", {"brouillon": self.draft}
         elif list(props) == ["sous_motif"]:
             step = "controle"
             content = {"sous_motif": "carte_refusee" if "CARTE" in ticket(payload, controller.prompt()) else "autre"}
@@ -215,6 +216,53 @@ class TriageCsvTest(unittest.TestCase):
         with mock.patch.object(urllib.request, "urlopen", side_effect=ConnectionRefusedError("refusé")):
             self.assertEqual(self.run_csv(src), 1)
         self.assertIn("Ollama ne répond pas", self.stderr.getvalue())
+
+
+    def test_demo_colonnes_fixes_bom_et_brouillon_dans_une_cellule(self):
+        for name in ("ticket", "texte", "Message"):
+            with self.subTest(name):
+                src = write(self.tmp / f"d_{name}.csv", [["id", name], ["T1", "CARTE refusée"], ["T2", "FRAIS, je conteste"]])
+                self.assertEqual(self.run_csv(src, "--brouillon", "--demo"), 0)
+                raw = (self.tmp / f"d_{name}_triage.csv").read_bytes()
+                self.assertTrue(raw.startswith(b"\xef\xbb\xbf"))   # BOM : Excel lit l'UTF-8
+                self.assertTrue(raw.decode("utf-8-sig").startswith(";".join(triage_csv.DEMO_COLUMNS) + "\r\n"))
+                out = list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig"), newline=""), delimiter=";"))
+                self.assertEqual(len(out), 2)
+                self.assertEqual([r["id"] for r in out], ["T1", "T2"])
+                self.assertEqual(out[1]["ticket"], "FRAIS, je conteste")
+                self.assertEqual((out[0]["categorie"], out[0]["produit"], out[0]["severite"]), ("bug", "card", "high"))
+                self.assertEqual(out[1]["reclamation"], "oui")
+                self.assertEqual(out[1]["echeance"], "2026-10-21")
+                self.assertIn("Bonjour,\n\n", out[0]["brouillon"])   # retour à la ligne gardé dans la cellule
+                self.assertNotIn("\r", out[0]["brouillon"])
+        self.assertFalse((self.tmp / "d_ticket_triage.md").exists())
+
+    def test_demo_brouillon_bloque_le_dit(self):
+        self.llm.draft = "Bonjour, votre carte 4539 est bien refusée."   # numéro recopié du ticket
+        src = write(self.tmp / "d.csv", [["id", "ticket"], ["T1", "CARTE 4539 refusée"]])
+        self.assertEqual(self.run_csv(src, "--brouillon", "--demo"), 0)
+        out = read_demo(self.tmp / "d_triage.csv")
+        self.assertTrue(out[0]["brouillon"].startswith(triage_csv.BLOCKED_NOTE + "\n\n"))
+        self.assertGreater(len(out[0]["brouillon"]), len(triage_csv.BLOCKED_NOTE) + 20)   # la réponse type suit
+        self.assertNotIn("4539", out[0]["brouillon"])
+
+    def test_demo_chemin_avec_tilde(self):
+        (self.tmp / "Desktop").mkdir()
+        write(self.tmp / "Desktop" / "nom.csv", [["id", "ticket"], ["T1", "RIB svp"]])
+        with mock.patch.dict("os.environ", {"HOME": str(self.tmp)}):
+            self.assertEqual(self.run_csv(Path("~/Desktop/nom.csv"), "--brouillon", "--demo"), 0)
+        self.assertEqual(read_demo(self.tmp / "Desktop" / "nom_triage.csv")[0]["sous_motif"], "demande_document")
+
+    def test_demo_erreurs_d_entree(self):
+        src = write(self.tmp / "d.csv", [["id", "commentaire"], ["T1", "CARTE"]])
+        self.assertEqual(self.run_csv(src, "--brouillon", "--demo"), 2)
+        self.assertIn("colonne du texte absente : ticket, texte, message", self.stderr.getvalue())
+        self.assertEqual(self.llm.calls, [])
+
+
+def read_demo(path: Path) -> list:
+    with path.open(encoding="utf-8-sig", newline="") as fh:
+        return list(csv.DictReader(fh, delimiter=";"))
 
 
 class Demo15Test(unittest.TestCase):

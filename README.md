@@ -23,6 +23,20 @@ make triage CSV=mes_tickets.csv BROUILLON=1       # + rédacteur et garde de sor
 - **Pipeline** : le pipeline et les prompts sont ceux du chat. Les étapes s'enchaînent sur tout le fichier : tous les tris, puis tous les contrôles, puis tous les brouillons. Un seul modèle est chargé à la fois. La progression et le temps restant estimé s'affichent pendant le calcul.
 - **Temps mesuré** sur demo15, Mac 16 Go, Ollama local, départ à froid : 1 min 35 s, soit 6,3 s par ticket (tri 1 min 09 s, contrôle 26 s). Résultats : catégorie 14/15, produit 14/15, gravité 13/15, tickets entièrement justes 11/15. Les prédictions sont identiques à celles de l'évaluation v7 de référence sur ces 15 tickets.
 
+## Démo de l'oral : un CSV du bureau
+
+```bash
+make demo CSV=~/Desktop/nom.csv    # écrit ~/Desktop/nom_triage.csv
+```
+
+- **Entrée** : un CSV avec deux colonnes, `id` et le texte du client (`ticket`, `texte` ou `message`). Il peut être n'importe où ; `~` est accepté.
+- **Traitement** : `eval/triage_csv.py --brouillon --demo`, donc garde d'entrée, tri, contrôleur, rédacteur et garde de sortie, avec les mêmes prompts que `make triage`.
+- **Sortie** : `nom_triage.csv` à côté du fichier d'entrée, avec les colonnes `id`, `ticket`, `categorie`, `produit`, `severite`, `sous_motif`, `reclamation`, `injection_suspectee`, `echeance`, `brouillon`.
+- **Brouillon bloqué** : si la garde de sortie rejette le brouillon du modèle, la case `brouillon` commence par `[BLOQUÉ PAR LA GARDE DE SORTIE]`, suivi de la réponse type écrite en code.
+- **Excel et Numbers** : le fichier est en UTF-8 avec BOM et utilise le séparateur `;`. Chaque brouillon, retours à la ligne compris, reste dans une seule case. Le fichier a été vérifié en l'ouvrant dans les deux applications : 4 lignes et 10 colonnes.
+- **Temps mesuré** sur 3 tickets, Mac 16 Go, Ollama local : 1 min 21 s, soit 26,8 s par ticket (tri 32 s, contrôle 12 s, brouillon 37 s). Le premier ticket de chaque étape inclut le chargement du modèle.
+- Sans `CSV=`, `make demo` lance toujours l'API et le site (ci-dessous).
+
 ## Console conseiller (/console)
 
 ```bash
