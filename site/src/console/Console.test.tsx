@@ -1,7 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Analyse } from './Analyse'
+import { OngletsTicketEcrit } from './Console'
 import { Entree } from './Entree'
+import { ExplicationPipeline } from './ExplicationPipeline'
 import { DEMO15 } from './fixtures'
 import { TableauTickets } from './TableauTickets'
 
@@ -72,5 +74,32 @@ describe('tableau des tickets', () => {
     )
     expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;')
     expect(html).not.toContain('<img')
+  })
+})
+
+describe('ticket écrit : onglets', () => {
+  it('« Vue d’ensemble » et « Détail du traitement », l’onglet actif marqué', () => {
+    const vue = renderToStaticMarkup(<OngletsTicketEcrit detail={false} onChoisir={() => {}} />)
+    expect(vue).toContain('role="tablist"')
+    expect(vue).toMatch(/aria-selected="true"[^>]*>Vue d’ensemble</)
+    expect(vue).toMatch(/aria-selected="false"[^>]*>Détail du traitement</)
+    const detail = renderToStaticMarkup(<OngletsTicketEcrit detail onChoisir={() => {}} />)
+    expect(detail).toMatch(/aria-selected="true"[^>]*>Détail du traitement</)
+  })
+})
+
+describe('onglet Pipeline', () => {
+  const html = net(renderToStaticMarkup(<ExplicationPipeline />))
+
+  it('explique les six étapes dans l’ordre du détail du traitement', () => {
+    const titres = [...html.matchAll(/<h3[^>]*>([^<]+)<\/h3>/g)].map((m) => m[1]).slice(0, 6)
+    expect(titres).toEqual(['Garde d’entrée', 'Tri', 'Contrôleur', 'Rédacteur', 'Garde de sortie', 'Délais'])
+    expect(html).toContain('llama3.1:8b')
+    expect(html).toContain('qwen2.5:7b')
+    expect(html).toContain('Jamais le texte du ticket')
+  })
+
+  it('n’écrit aucun tiret cadratin', () => {
+    expect(html).not.toMatch(/[—–]/)
   })
 })
