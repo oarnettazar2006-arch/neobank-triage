@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, GitDiffIcon, NotePencilIcon, TableIcon, WarningCircleIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, FlowArrowIcon, GitDiffIcon, NotePencilIcon, TableIcon, WarningCircleIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { useRessource, type Ressource } from '../api'
 import { BoutonTheme } from '../composants/BarreHaut'
@@ -8,6 +8,7 @@ import { Analyse } from './Analyse'
 import { arreterLot, chargerLot, creerLot, ErreurApi, genererBrouillons, listerLots } from './api'
 import { Brouillons } from './Brouillons'
 import { Entree } from './Entree'
+import { ExplicationPipeline } from './ExplicationPipeline'
 import { Prompts } from './prompts/Prompts'
 import { duree } from './retenir'
 import { Pipeline } from './Pipeline'
@@ -87,18 +88,55 @@ function useLot(id: string | null, onFini: () => void): [Ressource<Lot> | null, 
   return [lot, () => setEssai((n) => n + 1)]
 }
 
-export type Onglet = 'lot' | 'brouillons' | 'prompts'
+export type Onglet = 'lot' | 'brouillons' | 'prompts' | 'pipeline'
 
 const ONGLETS: { cle: Onglet; href: string; libelle: string; court: string; titre: string; Icone: typeof TableIcon }[] = [
   { cle: 'lot', href: '/console', libelle: 'Tri d’un lot', court: 'Lot', titre: 'Tri d’un lot', Icone: TableIcon },
   { cle: 'brouillons', href: '/console/brouillons', libelle: 'Brouillons', court: 'Brouillons', titre: 'Brouillons à valider', Icone: NotePencilIcon },
   { cle: 'prompts', href: '/console/prompts', libelle: 'Prompts', court: 'Prompts', titre: 'Évolution des prompts', Icone: GitDiffIcon },
+  { cle: 'pipeline', href: '/console/pipeline', libelle: 'Pipeline', court: 'Pipeline', titre: 'Le pipeline du bot', Icone: FlowArrowIcon },
 ]
+
+/**
+ * Un ticket écrit à la main (lot d'une ligne lancé avec le rédacteur) : deux onglets,
+ * la vue du lot et le détail de son traitement, pour y revenir après être passé par l'analyse.
+ */
+export function OngletsTicketEcrit({ detail, onChoisir }: { detail: boolean; onChoisir: (detail: boolean) => void }) {
+  const onglets: { cle: boolean; libelle: string }[] = [
+    { cle: false, libelle: 'Vue d’ensemble' },
+    { cle: true, libelle: 'Détail du traitement' },
+  ]
+  return (
+    <div role="tablist" aria-label="Vue du ticket" className="flex gap-1">
+      {onglets.map((o) => (
+        <button
+          key={o.libelle}
+          type="button"
+          role="tab"
+          aria-selected={o.cle === detail}
+          onClick={() => onChoisir(o.cle)}
+          className={`pressable h-8 rounded-full px-3 text-petit font-medium ${
+            o.cle === detail ? 'bg-[rgb(var(--accent-rgb)/0.1)] text-accent' : 'survol text-text-2'
+          }`}
+        >
+          {o.libelle}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 /** Onglets en tête, sur mobile : la barre latérale n'y est pas. */
 function OngletsMobiles({ onglet }: { onglet: Onglet }) {
+  // Quatre onglets ne tiennent pas sur un téléphone : la rangée défile, l'onglet actif reste visible.
+  const nav = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const n = nav.current
+    const actif = n?.querySelector<HTMLElement>('[aria-current="page"]')
+    if (n && actif) n.scrollLeft = Math.max(0, actif.offsetLeft + actif.offsetWidth - n.clientWidth)
+  }, [onglet])
   return (
-    <nav aria-label="Console" className="flex gap-1 lg:hidden">
+    <nav ref={nav} aria-label="Console" className="relative -mr-2 flex min-w-0 gap-1 overflow-x-auto pr-2 lg:hidden">
       {ONGLETS.map((o) => (
         <a
           key={o.cle}
@@ -320,7 +358,13 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
 
   useEffect(() => {
     document.title =
-      onglet === 'prompts' ? 'Prompts · Console · VAULT' : onglet === 'brouillons' ? 'Brouillons · Console · VAULT' : 'Console · VAULT'
+      onglet === 'prompts'
+        ? 'Prompts · Console · VAULT'
+        : onglet === 'brouillons'
+          ? 'Brouillons · Console · VAULT'
+          : onglet === 'pipeline'
+            ? 'Pipeline · Console · VAULT'
+            : 'Console · VAULT'
   }, [onglet])
 
   const choisir = (id: string) => {
@@ -354,6 +398,7 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
   }
 
   const l = lot?.etat === 'pret' ? lot.donnees : null
+  const ecrit = !!l && !!l.brouillon && l.tickets === 1
   const relancer =
     l && source?.id === l.id
       ? () => {
@@ -370,8 +415,8 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
       <div className="min-w-0">
         <header className="sticky top-0 z-20 border-b border-line bg-surface">
           <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-4 px-5 lg:px-8">
-            <span className="flex items-center gap-3">
-              <span className="lg:hidden">
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="shrink-0 lg:hidden">
                 <Logo />
               </span>
               <h1 className="hidden text-[1.0625rem] font-semibold text-text lg:block">
@@ -379,12 +424,15 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
               </h1>
               <OngletsMobiles onglet={onglet} />
             </span>
-            <BoutonTheme />
+            <span className="shrink-0">
+              <BoutonTheme />
+            </span>
           </div>
         </header>
         <main className="mx-auto max-w-[1280px] space-y-8 px-5 pt-6 pb-16 lg:px-8">
           {onglet === 'prompts' && <Prompts />}
           {onglet === 'brouillons' && <Brouillons />}
+          {onglet === 'pipeline' && <ExplicationPipeline />}
           {onglet === 'lot' && refChat && !lotId && (
             <Pipeline source={{ ref: refChat }} retour="Retour aux brouillons" onRetour={() => window.location.assign('/console/brouillons')} />
           )}
@@ -411,9 +459,18 @@ export function Console({ onglet = 'lot' }: { onglet?: Onglet }) {
                 </div>
                 <Progression lot={l} onArreter={() => void arreter(l.id)} onRelancer={relancer} />
                 <GenererBrouillons lot={l} onLance={rechargerLot} />
+                {ecrit && (
+                  <div className="mt-3 border-t border-line pt-3">
+                    <OngletsTicketEcrit detail={ticket === 1} onChoisir={(d) => ouvrir(l.id, d ? 1 : null)} />
+                  </div>
+                )}
               </section>
               {ticket && ticket <= l.tickets ? (
-                <Pipeline key={`${l.id}/${ticket}`} source={{ lot: l.id, n: ticket }} onRetour={() => ouvrir(l.id, null)} />
+                <Pipeline
+                  key={`${l.id}/${ticket}`}
+                  source={{ lot: l.id, n: ticket }}
+                  onRetour={ecrit ? undefined : () => ouvrir(l.id, null)}
+                />
               ) : (
                 <>
                   <Analyse analyse={l.analyse} total={l.tickets} lotId={l.id} />

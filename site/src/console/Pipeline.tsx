@@ -584,21 +584,24 @@ export function Pipeline({
   retour = 'Retour au lot',
 }: {
   source: SourceTrace
-  onRetour: () => void
+  /** Absent : pas de bouton retour (ticket écrit, l'onglet « Vue d'ensemble » en tient lieu). */
+  onRetour?: () => void
   retour?: string
 }) {
   const [trace, recharger] = useTrace(source)
   return (
     <section aria-labelledby="titre-pipeline" className="space-y-4">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <button
-          type="button"
-          onClick={onRetour}
-          className="pressable flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-petit font-medium text-text hover:bg-surface-2"
-        >
-          <ArrowLeftIcon size={16} aria-hidden="true" />
-          {retour}
-        </button>
+        {onRetour && (
+          <button
+            type="button"
+            onClick={onRetour}
+            className="pressable flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-petit font-medium text-text hover:bg-surface-2"
+          >
+            <ArrowLeftIcon size={16} aria-hidden="true" />
+            {retour}
+          </button>
+        )}
         <h2 id="titre-pipeline" className="text-section font-semibold tracking-[-0.01em] text-text">
           Pipeline du ticket{' '}
           <span className="montant">{trace.etat === 'pret' ? trace.donnees.id : 'ref' in source ? source.ref : `#${source.n}`}</span>
