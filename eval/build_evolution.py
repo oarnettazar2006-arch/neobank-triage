@@ -37,7 +37,7 @@ RESULTS = "eval/results/"
 SORTIE_JSON = ROOT / "eval" / "evolution.json"
 SORTIE_MD = ROOT / "docs" / "prompt_history.md"
 
-# Jeux, dans l'ordre d'affichage. val60 est le juge des étapes (CLAUDE.md).
+# Jeux, dans l'ordre d'affichage. val60 est le juge des étapes (docs/regles_projet.md).
 JEUX = {
     "val60": {"fichier": "data/val/val60.jsonl", "n": 60,
               "description": "60 tickets, dont 6 attaques. Juge de chaque étape du bot, jamais utilisé pour régler un prompt."},

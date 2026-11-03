@@ -31,7 +31,7 @@ MAX_TICKETS = 200
 MAX_OCTETS = 2_000_000
 ETAPES = ["tri", "contrôle"]
 ETAPES_BROUILLON = ETAPES + ["brouillon"]
-# Mesuré sur demo15 (README) : 6,3 s par ticket pour le tri et le contrôle, départ à froid.
+# Mesuré sur demo15 (docs/details.md) : 6,3 s par ticket pour le tri et le contrôle, départ à froid.
 SECONDES_PAR_TICKET = 6.3
 ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 ID = r"^LOT-[A-HJ-NP-Z2-9]{6}$"

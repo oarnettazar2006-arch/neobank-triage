@@ -314,7 +314,7 @@ Le mouvement sert de retour d'action, jamais de décor.
 - **Jamais de promesse d'argent** (remboursement, geste commercial) ni de délai qui ne vient pas du code.
 - **Côté client, pas de jargon interne** : pas de `sous_motif`, de « fiche » ni de « garde ».
 
-**Décisions métier du suivi (Oscar, 2026-09-24), conservées pour l'écran à venir :**
+**Décisions métier du suivi (2026-09-24), conservées pour l'écran à venir :**
 
 - statuts client : « Reçue », « En cours d'examen », « Réponse envoyée » ; un brouillon rejeté par le conseiller fait passer le ticket à « En cours d'examen » (le rejet vise le brouillon, jamais la demande du client), sa validation à « Réponse envoyée » ;
 - échéance proche (révisé le 24/09/2026) : **relative au délai**. Elle est proche quand il reste 20 % du délai ou moins, en jours ouvrés comptés de la réception à l'échéance, avec un minimum d'un jour ouvré : 1 jour restant sur 2, 2 sur 10, 3 sur 15, 8 sur un délai de 2 mois. Seuil appliqué par l'API (`delai`, avec `jours_ouvres_restants` et `jours_ouvres_total`) ; l'ancienne règle fixe (2 jours ouvrés) mettait toute question neuve en « proche » dès sa réception ;
@@ -381,12 +381,12 @@ Le résumé du mois est fourni par l'API. Un test vérifie que les données de d
 | Date | Version | Décision |
 |---|---|---|
 | 2026-09-22 | v1 | Verre limité à trois usages, champagne sur la date légale, Manrope. |
-| 2026-09-24 | v1.1 | Oscar : plus d'or (glace à la place), verre liquide sur la carte de suivi. |
-| 2026-09-24 | v1.2 | Oscar : verre sur tout élément interactif, composant Glass, page `/specimen` (PR #31). |
-| 2026-09-24 | **v2** | Oscar : la PR #31 fait maquette de téléphone en verre bulle, générique. Elle est fermée sans fusion. Nouvelle direction : **surfaces pleines, espace, un seul accent glacier, verre seulement sur la navigation et le chat, thème clair par défaut**. Structure inspirée des apps web Revolut et Qonto et d'apple.com. Police **Geist** (chiffres tabulaires). Premier écran : l'accueil client sur données fictives. Le composant Glass, `/specimen` et l'écran pilote sont supprimés. |
+| 2026-09-24 | v1.1 | plus d'or (glace à la place), verre liquide sur la carte de suivi. |
+| 2026-09-24 | v1.2 | verre sur tout élément interactif, composant Glass, page `/specimen` (PR #31). |
+| 2026-09-24 | **v2** | la PR #31 fait maquette de téléphone en verre bulle, générique. Elle est fermée sans fusion. Nouvelle direction : **surfaces pleines, espace, un seul accent glacier, verre seulement sur la navigation et le chat, thème clair par défaut**. Structure inspirée des apps web Revolut et Qonto et d'apple.com. Police **Geist** (chiffres tabulaires). Premier écran : l'accueil client sur données fictives. Le composant Glass, `/specimen` et l'écran pilote sont supprimés. |
 | 2026-09-24 | v2.1 | API branchée (PR « feat/api-chat ») : accueil sur `GET /compte` et `GET /operations` avec états chargement, vide et erreur ; chat relié au vrai pipeline, message fixe au client. |
 | 2026-09-24 | v2.2 | Console, PR 1 « Tri d'un lot » : deux entrées (CSV ou ticket écrit), progression en direct, analyse et métriques, graphiques faits main avec titre, axes, libellés et phrase à retenir. Jeton `--danger-rgb` ajouté pour les fonds teintés. |
 | 2026-09-24 | v2.3 | Console, PR 2 « Prompts » : frise v0 à v7, précision par version en petits multiples (un jeu à la fois), note finale test100 à part, comparateur de prompts, commandes Git. |
 | 2026-09-24 | v2.4 | Console, PR 3 « Pipeline » : trace d'un ticket en six blocs (entre, sort, durée), enregistrée pendant le lot ; trois exemples en un clic dans « Écrire un ticket » (réclamation implicite tirée de val60, tentative d'injection, limite du bot), qui lance aussi le rédacteur. |
 | 2026-09-24 | v2.5 | Console, PR 4 « Brouillons » : file des brouillons à valider (lots et chat) triée par urgence, détail avec corrections, garde de sortie relancée sur le texte modifié, validation et rejet motivé ; chiffres de validation dans l'analyse du lot ; génération des brouillons d'un lot lancé sans. |
-| 2026-09-24 | v2.6 | Oscar : rejeter un brouillon ne rejette pas la demande (« Réponse à rédiger », statut client « En cours d'examen ») ; échéance proche relative, à 20 % du délai restant, au moins un jour ouvré. |
+| 2026-09-24 | v2.6 | rejeter un brouillon ne rejette pas la demande (« Réponse à rédiger », statut client « En cours d'examen ») ; échéance proche relative, à 20 % du délai restant, au moins un jour ouvré. |
