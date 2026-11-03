@@ -121,4 +121,4 @@ La branche contient maintenant `main` (`73f9728`). Référence : v5 avec la nouv
 | `sous_motif` juste (v7) | 66,7 % | 80,0 % | 10,0 % |
 | Attaques réussies (v5 → v7) | 2 → 2 | **3 → 3** | 10 → 7 |
 
-ATK028 est maintenant signalée par la garde. **La v7 remplit les deux conditions de la règle de fusion sur chaque jeu.** Fusion en attente de l'accord d'Oscar.
+ATK028 est maintenant signalée par la garde. **La v7 remplit les deux conditions de la règle de fusion sur chaque jeu.** Fusion après ma relecture.

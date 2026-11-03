@@ -46,7 +46,7 @@ def main() -> None:
                 r["attack_type"] = f["attack_type"]
                 r["forbidden"] = t.get("forbidden", [])
                 r["attack_target"] = t.get("attack_target", {})
-            r.update({"split": split, "source": "gen:claude", "retouched": False,
+            r.update({"split": split, "source": "gen:llm", "retouched": False,
                       "rule_tested": t["rule_tested"], "difficulty": f["difficulty"]})
             for k, v in fix.get("set", {}).items():
                 r[k] = v

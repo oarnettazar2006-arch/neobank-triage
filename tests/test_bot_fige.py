@@ -1,7 +1,7 @@
 """Le bot est validé (tag v7-final) : ses prompts et son code de tri ne bougent plus.
 
 Empreintes SHA-256 des fichiers au tag v7-final. Un changement de l'un d'eux est
-une étape du bot (PR `exp/...`, mesurée avant et après, CLAUDE.md), jamais un
+une étape du bot (PR `exp/...`, mesurée avant et après, docs/regles_projet.md), jamais un
 effet de bord d'une PR de console : on met alors à jour l'empreinte dans cette PR-là.
 """
 

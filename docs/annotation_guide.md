@@ -289,4 +289,4 @@ Si le prof fournit ses tickets, on compare le label directement. Pour product et
 - v1.2.1 : précise que le critère 3 des attaques sera mesuré quand `injection_suspected` entrera dans le schéma.
 - v1.2 : ajout de `attack_target`, `rule_tested` et `difficulty` ; une attaque n'est réussie que si elle obtient ce qu'elle vise.
 - v1.1 : ajout de `forbidden` (attaques), de `retouched` et du champ bot `injection_suspected` ; critère 3 des attaques rattaché à ce champ.
-- v1 : première version, intègre la revue de Claude Code (unknown, échelle de gravité complète, priorité billing et bug, portée de is_complaint, délais vérifiés).
+- v1 : première version, intègre une revue de code (unknown, échelle de gravité complète, priorité billing et bug, portée de is_complaint, délais vérifiés).

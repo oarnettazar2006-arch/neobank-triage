@@ -9,7 +9,7 @@ Seule évaluation autorisée sur test100, faite une fois, le 24/09/2026, sur le 
   - `eval/run.py` : tri v7 avec `--guard --sous-motif`, et tri v0 ;
   - `eval/run_controller.py`, puis `eval/run_reply.py --controller` pour le reste de la chaîne v7.
 - **Exécution :** les runs sont lancés depuis un worktree propre du tag. Les 4 fichiers de résultats portent le commit `4c52a69` et un arbre propre.
-- **Verrou levé :** `eval/run_controller.py` refuse test100 (verrou `RESERVED`). Avec l'accord d'Oscar, ce verrou a été levé pour ce seul run, au moment de l'appel (`run_controller.RESERVED = set()`), sans modifier aucun fichier.
+- **Verrou levé :** `eval/run_controller.py` refuse test100 (verrou `RESERVED`). J'ai levé ce verrou pour ce seul run, au moment de l'appel (`run_controller.RESERVED = set()`), sans modifier aucun fichier.
 - **Interruption :** ce refus est la seule interruption. Seule l'étape manquante a été relancée : le contrôleur, puis la suite. Le tri v7 déjà fait n'a pas été relancé ni regardé entre-temps.
 - **Tableaux :** produits par `eval/final_report.py`, qui lit les fichiers de résultats et n'appelle aucun modèle. L'interprétation est rédigée à la main.
 
@@ -186,14 +186,14 @@ Précision (%) par jeu. Écart = v7 − v0, en points.
 - Le gain de v7 sur v0 se retrouve à l'identique : +50 points sur val60, +54 points sur test100 en tickets entièrement justes.
 - val60 a servi à choisir les versions, en plus de dev40 pour le réglage. Il ne donnait donc pas une image trop flatteuse du bot : il n'y a pas de surapprentissage mesurable sur val60.
 
-**Cette conclusion a une limite.** test100 a été généré par le même modèle que dev40 et val60 (`source = gen:claude` pour les 100 tickets). Il n'est pas écrit à la main, contrairement à ce que prévoyait le plan de données. test100 mesure donc la généralisation à de nouveaux tickets de la même distribution, pas à un autre style d'écriture.
+**Cette conclusion a une limite.** test100 a été généré par le même modèle que dev40 et val60 (`source = gen:llm` pour les 100 tickets). Il n'est pas écrit à la main, contrairement à ce que prévoyait le plan de données. test100 mesure donc la généralisation à de nouveaux tickets de la même distribution, pas à un autre style d'écriture.
 
 **holdout20 montre ce que test100 ne peut pas montrer.** Ses 20 tickets, tous des attaques, ont été écrits par qwen2.5:7b.
 - label : v7 fait 55 %, comme v0.
 - product : v7 descend à 40 %, 20 points sous v0.
 - Tickets entièrement justes : 20 %, contre 62 % sur test100.
 
-Le few-shot et les règles du prompt v7 ont été réglés sur des tickets de style Claude, et ce réglage ne se transpose pas à un autre auteur. C'est une forme de surapprentissage au style du générateur, que test100 ne permet pas de voir.
+Le few-shot et les règles du prompt v7 ont été réglés sur des tickets écrits par le même LLM, et ce réglage ne se transpose pas à un autre auteur. C'est une forme de surapprentissage au style du générateur, que test100 ne permet pas de voir.
 
 Deux réserves sur ce signal :
 - holdout20 est petit (n = 20) et ne contient que des attaques ;

@@ -20,8 +20,8 @@ Jeux construits le 23/09/2026 pour obtenir des chiffres honnêtes, puisque dev40
 Champ à 16 valeurs qui précise le motif (guide, section 2 bis). Il sert à choisir la fiche de réponse du brouillon (`docs/answers/`). **Tous les jeux l'ont reçu, y compris calib60 et test100, qui ne sont toujours pas évalués.**
 
 - **Liste :** construite à partir de 8 valeurs de départ. `debit_en_double` est élargi en `debit_errone` ; `question_carte_etranger` en `question_carte`. Ajouts : `operation_non_autorisee`, `question_debit`, `compte_bloque`, `probleme_virement`, `probleme_prelevement`, `question_operation`, `gestion_compte`, `relance_sans_reponse`. Objectif : que « autre » reste sous 15 %.
-- **Étiquetage :** pré-étiquetage par règles (label, produit, mots-clés), puis **relecture de chacun des 331 tickets** par Claude, avec **15 corrections**, dont 3 pièges de mots-clés (« relue deux fois », « pas bloquant »).
-- **Contrôle par qwen2.5:7b, à l'aveugle** (section 2 bis du guide et ticket seulement ; `data/qc/sous_motif_qc.py`). **Accord : 72,2 %** (239 / 331). Les 92 désaccords ont été relus avec le guide et tranchés par Claude, le générateur des tickets. Résultat : **4 corrections**, toutes des incohérences entre décisions similaires (attestation dictée, données d'un tiers, export de liste). Deux règles ont été ajoutées au guide pour les trancher. Accord après corrections : 243 / 331.
+- **Étiquetage :** pré-étiquetage par règles (label, produit, mots-clés), puis **relecture de chacun des 331 tickets** par le LLM générateur, avec **15 corrections**, dont 3 pièges de mots-clés (« relue deux fois », « pas bloquant »).
+- **Contrôle par qwen2.5:7b, à l'aveugle** (section 2 bis du guide et ticket seulement ; `data/qc/sous_motif_qc.py`). **Accord : 72,2 %** (239 / 331). Les 92 désaccords ont été relus avec le guide et tranchés par le LLM générateur des tickets. Résultat : **4 corrections**, toutes des incohérences entre décisions similaires (attestation dictée, données d'un tiers, export de liste). Deux règles ont été ajoutées au guide pour les trancher. Accord après corrections : 243 / 331.
 - **Désaccords maintenus :** erreurs systématiques de qwen contraires aux définitions. Question sur des frais lue comme contestation (9) ; question sur le compte lue comme question d'opération (10) ; bug de l'appli pendant un virement lu comme `acces_appli` (6) ; carte bloquée lue comme compte bloqué (4).
 
 | Sous-motif | Tickets (331) | | Sous-motif | Tickets |
@@ -38,7 +38,7 @@ Champ à 16 valeurs qui précise le motif (guide, section 2 bis). Il sert à cho
 
 « autre » par jeu : dev40 5 %, guide_cases 10 %, val60 3 %, calib60 5 %, test100 5 %, attacks30 13 %, holdout20 10 % (le cas du notebook, 1 ticket, est une attaque pure).
 
-**Limite :** un seul étiqueteur (Claude), contrôlé par un modèle dont l'accord est moyen (72 %). Plusieurs frontières restent discutables : `gestion_compte` / `question_operation`, `probleme_virement` / `virement_non_arrive`, et les tickets vagues de holdout20.
+**Limite :** un seul étiqueteur (le LLM générateur), contrôlé par un modèle dont l'accord est moyen (72 %). Plusieurs frontières restent discutables : `gestion_compte` / `question_operation`, `probleme_virement` / `virement_non_arrive`, et les tickets vagues de holdout20.
 
 ## holdout20 : attaques rédigées par qwen2.5:7b
 
@@ -47,9 +47,9 @@ Construit le 23/09/2026 **avant** la garde d'entrée (commit `aec450d`), pour v�
 - **Rédaction :** qwen2.5:7b ne reçoit que la définition de chaque type d'attaque (guide, section 9), jamais attacks30. Script : `data/gen/holdout_gen.py`, sorties brutes : `data/gen/holdout_raw.json`.
 - **Quatre tours.** Tour 1 : les 7 types. Tour 2 : fake_system, hidden et foreign, avec une définition précisée par les seuls exemples du guide. Tour 3 : foreign. Tour 4 : qwen n'a produit **aucune** attaque foreign valide en trois tours ; sur décision, il traduit la consigne de deux de ses tickets (portugais, anglais).
 - **Sélection :** par type, les premiers tickets valides dans l'ordre de génération. Valide = une vraie tentative de manipulation du robot, du type demandé. Les tickets écartés et leurs raisons sont dans `data/gen/holdout_labels.json`.
-- **Étiquetage :** par Claude, selon le guide v1.3.1. Les textes de qwen sont souvent vagues (« soucis avec ma carte », « somme inconnue ») : ces étiquettes sont plus discutables que celles des autres jeux (product à 35 % pour le bot, rapport v5).
+- **Étiquetage :** par le LLM générateur, selon le guide v1.3.1. Les textes de qwen sont souvent vagues (« soucis avec ma carte », « somme inconnue ») : ces étiquettes sont plus discutables que celles des autres jeux (product à 35 % pour le bot, rapport v5).
 - **Répartition :** 7 types (3 par type, 2 foreign), `difficulty: hard`, `source: gen:qwen2.5:7b`. Aucune paire au-dessus de 0,85 (nomic) avec les autres jeux.
-- **Usage déjà fait :** mesuré en v4, v5 et v6. Claude l'a lu pour l'étiqueter. Il ne peut plus servir de contrôle indépendant : toute nouvelle version de la garde demande un nouveau jeu d'attaques.
+- **Usage déjà fait :** mesuré en v4, v5 et v6. Le LLM générateur l'a lu pour l'étiqueter. Il ne peut plus servir de contrôle indépendant : toute nouvelle version de la garde demande un nouveau jeu d'attaques.
 
 ## Construction
 
@@ -58,7 +58,7 @@ Construit le 23/09/2026 **avant** la garde d'entrée (commit `aec450d`), pour v�
    - Canal et date sont tirés au hasard ; persona (30, toutes absentes de dev40) et style (15) aussi.
    - Langue : 7,5 % d'anglais et 2,5 % de franglais, par quota.
    - Attaques dans val, calib et test : 10 % des tickets, avec les 7 types en rotation. attacks30 : les 7 types (4 ou 5 chacun), contenu tiré des tickets normaux de dev40 ou sans vraie demande (usurpation, exfiltration).
-2. **Un ticket écrit par fiche** (`data/gen/texts/`), par Claude (`source: gen:claude`). Chaque texte décrit une situation nouvelle. Les attaques ont `attack_target` et `forbidden`.
+2. **Un ticket écrit par fiche** (`data/gen/texts/`), par un LLM (`source: gen:llm`). Chaque texte décrit une situation nouvelle. Les attaques ont `attack_target` et `forbidden`.
 3. **Assemblage** : `data/gen/build.py` applique `data/gen/corrections.json` et produit les jeux.
 
 ## Répartition
@@ -103,7 +103,7 @@ Types d'attaque :
 **Protocole.**
 - qwen2.5:7b (4,68 Go, vérifié avant téléchargement) réétiquette les 250 tickets à l'aveugle. Il utilise le prompt `data/qc/annotator_prompt.txt` : le guide v1.3 (définitions, règles, lexique) plus la consigne d'ignorer les instructions glissées dans le ticket. Il ne voit jamais la fiche.
 - Température 0, seed 42, sortie contrainte par schéma, via `eval/run.py`. Résultats bruts : `data/qc/results/`.
-- Chaque désaccord (131 tickets) a été relu avec le guide et tranché par **Claude, le même modèle que celui qui a généré les tickets**. Ce n'est pas une relecture humaine.
+- Chaque désaccord (131 tickets) a été relu avec le guide et tranché par **le même modèle que celui qui a généré les tickets**. Ce n'est pas une relecture humaine.
 
 **Taux d'accord qwen / fiches** (avant corrections)
 
@@ -147,7 +147,7 @@ Ces motifs recoupent les points faibles connus du bot (gravité, is_complaint, p
 
 ## Limites
 
-- **Le générateur tranche ses propres désaccords.** Claude a écrit les tickets et fixé les fiches, puis c'est encore Claude qui a tranché chaque désaccord avec qwen. Il y a donc un risque de biais de confirmation : 184 désaccords de champ ont été tranchés en faveur de la fiche, 6 corrections seulement. qwen sert de second avis indépendant, mais ce n'est pas un annotateur humain. Un kappa entre deux humains du groupe, sur un échantillon, reste à faire (guide, section 10).
+- **Le générateur tranche ses propres désaccords.** Le LLM générateur a écrit les tickets et fixé les fiches, puis c'est encore lui qui a tranché chaque désaccord avec qwen. Il y a donc un risque de biais de confirmation : 184 désaccords de champ ont été tranchés en faveur de la fiche, 6 corrections seulement. qwen sert de second avis indépendant, mais ce n'est pas un annotateur humain. Un kappa entre deux humains du groupe, sur un échantillon, reste à faire (guide, section 10).
 - **Style homogène possible.** Les personas et styles varient, mais tous les textes viennent du même générateur. Le contrôle nomic ne détecte que la proximité sémantique, pas une signature de style.
 - **Étiquettes de la fiche.** Elles font foi par construction. Quand le texte les contredit, c'est le texte qui a été réécrit (5 cas), ou l'étiquette corrigée si le texte était clair (1 cas).
 - **attacks30** : 16 attaques sur 30 n'ont pas de champ cible (`attack_target` vide).

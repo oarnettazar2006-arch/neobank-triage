@@ -7,7 +7,7 @@ Audit du 23/09/2026 sur `main` (commit `145a319`, après la PR #16). En lecture 
 | Point | Verdict |
 |---|---|
 | 1. Carte | 90 fichiers suivis. Pas de fichier mort dans le code. 8 `.gitkeep` inutiles, 2 dossiers vides (`data/train/`, `site/`), un schéma dupliqué entre `eval/run.py` et `src/triage.py` |
-| 2. Cohérence | 6 jeux sur 7 conformes au guide v1.3.1. `guide_cases.jsonl` ne l'est pas. `CLAUDE.md` (arborescence) et `docs/data_card.md` (holdout20) sont en retard |
+| 2. Cohérence | 6 jeux sur 7 conformes au guide v1.3.1. `guide_cases.jsonl` ne l'est pas. `docs/regles_projet.md` (arborescence) et `docs/data_card.md` (holdout20) sont en retard |
 | 3. Reproductibilité | **Exacte** : v5 relancée sur val60, 60 / 60 prédictions identiques, toutes les métriques identiques |
 | 4. Étanchéité | **Prouvée** à partir des fichiers de résultats : le bot n'a jamais tourné sur calib60 ni test100 ; aucun ticket de dev40 dans un prompt |
 | 5. Tests | 22 / 22. Le harnais, les scripts de génération et les appels au LLM ne sont pas testés |
@@ -23,7 +23,7 @@ Audit du 23/09/2026 sur `main` (commit `145a319`, après la PR #16). En lecture 
 
 | Fichier | Rôle |
 |---|---|
-| `CLAUDE.md` | règles du projet, règles de fusion, zone d'autonomie |
+| `docs/regles_projet.md` | règles du projet, règles de fusion |
 | `README.md` | **deux lignes** (titre et « Projet 1 - DATA prompt et git ») |
 | `.env.example` | variables Ollama et Langfuse attendues, sans valeurs |
 | `.gitignore` | modèle Python de GitHub, `/site` désactivé pour versionner le front |
@@ -104,7 +104,7 @@ Audit du 23/09/2026 sur `main` (commit `145a319`, après la PR #16). En lecture 
 | Prompts de tri v2 à v4 | alignés sur les règles du guide v1.3 (la v1.3.1 n'a ajouté que des valeurs de `split`) |
 | Harnais (`eval/run.py`), `src/triage.py`, `src/reply.py` | mêmes listes fermées que le guide |
 | `src/deadlines.py` | conforme à la section 7, **sauf la règle décidée le 23/09** : un délai qui tombe un jour férié doit être avancé au dernier jour ouvrable précédent. PR séparée prévue après cet audit |
-| `CLAUDE.md` | règles à jour (modèle `llama3.1:8b`, fusion, autonomie), mais **arborescence obsolète** : ne mentionne ni `data/dev`, `data/val`, `data/gen`, `data/qc`, ni `tests/`, `eval/reports`, `eval/results` |
+| `docs/regles_projet.md` | règles à jour (modèle `llama3.1:8b`, fusion), mais **arborescence obsolète** : ne mentionne ni `data/dev`, `data/val`, `data/gen`, `data/qc`, ni `tests/`, `eval/reports`, `eval/results` |
 | `docs/data_card.md` | ne mentionne pas holdout20 (documenté seulement dans `data/gen/holdout_*` et le rapport v5) |
 | `docs/automation_policy.md` | décrit un seuil de « confiance haute » qui n'existe pas encore dans le code. Rien n'applique la politique : le bot ne décide jamais seul, par défaut |
 
@@ -141,7 +141,7 @@ python3 eval/compare.py eval/results/20260923T104459Z_v4_injection_llama3.1-8b.j
 | **test100** | **0** | **0** | 1 |
 
 Ce qui a touché calib60 et test100, et que la règle autorise :
-- **leur écriture**, par Claude, fiche par fiche ;
+- **leur écriture**, par le LLM générateur, fiche par fiche ;
 - **le réétiquetage à l'aveugle par qwen** et la relecture des désaccords (contrôle qualité, PR #9) ;
 - **le contrôle des quasi-doublons** par embeddings nomic ;
 - **la vérification de format** de cet audit.
@@ -216,7 +216,7 @@ Ni la garde (`src/guard.py`), ni aucun prompt du bot n'y a été exécuté.
 | Rang | Risque | Correction recommandée |
 |---|---|---|
 | **1** | **Le correcteur ne peut ni comprendre ni relancer le projet.** README vide, pas de commande unique, pas de CI, pour un cours dont la moitié du titre est git. | README complet + `Makefile` (`make test`, `make eval`) + workflow GitHub Actions qui lance les tests unitaires. Environ 2 h. C'est le meilleur rapport gain / effort. |
-| **2** | **Pas encore de chiffre sur les 24 tickets officiels, ni d'interface compatible avec le notebook.** Le critère noté est l'exactitude sur ces données, avec `classify(ticket) -> str`. | Un adaptateur `classify`, et `extract` pour les champs, qui appelle `src/triage.py` ; une commande qui note les 24 tickets en un seul passage final (règle de `CLAUDE.md`). À préparer et tester sur dev40 dès maintenant, pour ne perdre aucun temps à l'arrivée des données. |
+| **2** | **Pas encore de chiffre sur les 24 tickets officiels, ni d'interface compatible avec le notebook.** Le critère noté est l'exactitude sur ces données, avec `classify(ticket) -> str`. | Un adaptateur `classify`, et `extract` pour les champs, qui appelle `src/triage.py` ; une commande qui note les 24 tickets en un seul passage final (règle de `docs/regles_projet.md`). À préparer et tester sur dev40 dès maintenant, pour ne perdre aucun temps à l'arrivée des données. |
 | **3** | **Le cas d'injection exact du notebook ne tourne dans aucune évaluation.** L'énoncé demande de le garder « en permanence ». | L'ajouter à attacks30, ou à un fichier `data/attacks/notebook_case.jsonl` relancé à chaque évaluation, et en faire un test de CI sur une réponse enregistrée. |
 | **4** | **Des chiffres présentés plus solides qu'ils ne sont.** La garde repère 83 % d'attacks30 mais 30 % de holdout20 ; le juge qwen est d'accord à 60 % avec ma vérification ; les étiquettes ont été écrites et arbitrées par le même modèle ; test100 n'a pas encore tourné. Un correcteur qui creuse le verra. | Présenter en priorité les chiffres de val60 et de holdout20. Lancer test100 **une seule fois**, avant l'oral. Faire étiqueter 40 tickets par deux membres du groupe (kappa, guide section 10) pour valider les étiquettes. |
-| **5** | **Dérive entre la documentation et le code.** Arborescence de `CLAUDE.md`, holdout20 absent de la data card, politique d'automatisation sans seuil, règle des jours fériés pas encore codée, `guide_cases.jsonl` non conforme, schéma dupliqué. | Une PR de documentation qui aligne `CLAUDE.md`, la data card et la politique ; la PR des jours fériés (déjà décidée) ; un `src/schema.py` unique ; mettre `guide_cases.jsonl` au format ; supprimer les 16 branches fusionnées. |
+| **5** | **Dérive entre la documentation et le code.** Arborescence de `docs/regles_projet.md`, holdout20 absent de la data card, politique d'automatisation sans seuil, règle des jours fériés pas encore codée, `guide_cases.jsonl` non conforme, schéma dupliqué. | Une PR de documentation qui aligne `docs/regles_projet.md`, la data card et la politique ; la PR des jours fériés (déjà décidée) ; un `src/schema.py` unique ; mettre `guide_cases.jsonl` au format ; supprimer les 16 branches fusionnées. |

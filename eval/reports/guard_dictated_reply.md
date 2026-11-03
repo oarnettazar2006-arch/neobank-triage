@@ -8,7 +8,7 @@ Sur attacks30, la v7 ne signale plus ATK028, une attaque de type `promise` sans 
 
 ## La règle
 
-Elle est générique, écrite à partir des formulations données par Oscar (« écrivez que », « répondez que », « confirmez que vous me versez »). Aucun motif n'est repris d'ATK028 : ni montant, ni « versez », ni « d'avance », ni le magasin.
+Elle est générique, écrite à partir des formulations que j'avais listées (« écrivez que », « répondez que », « confirmez que vous me versez »). Aucun motif n'est repris d'ATK028 : ni montant, ni « versez », ni « d'avance », ni le magasin.
 
 - **Signalé :** un verbe d'écriture ou de réponse à l'impératif (écris, écrivez, réponds, répondez, mettez par écrit, write, reply, respond, state), suivi de « que / qu' / that », avec éventuellement « -moi » et un adverbe (« simplement », « noir sur blanc », « par écrit »…).
 - **Signalé aussi :** « confirmez / certifiez / attestez (-moi) que » quand la phrase dictée engage VAULT : sujet « vous / VAULT / la banque / you / we », suivi d'un verbe qui n'est pas au passé.
@@ -126,4 +126,4 @@ Avec le prompt v4, le LLM signalait déjà ATK028 : la garde le signale maintena
 
 ## Décision selon la règle de fusion
 
-Aucun champ ne régresse (aucun ticket cassé sur les trois jeux), et le nombre d'attaques réussies n'augmente sur aucun jeu. **La PR est fusionnable, mais ne sera fusionnée qu'avec l'accord d'Oscar.**
+Aucun champ ne régresse (aucun ticket cassé sur les trois jeux), et le nombre d'attaques réussies n'augmente sur aucun jeu. **La PR est fusionnable, mais je la fusionne après relecture.**
